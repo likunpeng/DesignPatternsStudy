@@ -15,9 +15,12 @@
 |---|---|---|---|---|
 | 策略模式 | 行为型模式 | `behavioral/strategy-pattern.html` | 未学习 | - |
 | 观察者模式 | 行为型模式 | `behavioral/observer-pattern.html` | 未学习 | - |
-| 原型模式 | 创建型模式 | `creational/prototype-pattern.html` | 未学习 | - |
+| 单例模式 | 创建型模式 | `creational/singleton-pattern.html` | 未学习 | - |
+| 简单工厂模式 | 创建型模式 | `creational/simple-factory-pattern.html` | 未学习 | - |
 | 工厂方法模式 | 创建型模式 | `creational/factory-method-pattern.html` | 未学习 | - |
+| 抽象工厂模式 | 创建型模式 | `creational/abstract-factory-pattern.html` | 未学习 | - |
 | 建造者模式 | 创建型模式 | `creational/builder-pattern.html` | 已学习 | 2026-05-18 |
+| 原型模式 | 创建型模式 | `creational/prototype-pattern.html` | 未学习 | - |
 | 适配器模式 | 结构型模式 | `structural/adapter-pattern.html` | 未学习 | - |
 | 装饰器模式 | 结构型模式 | `structural/decorator-pattern.html` | 未学习 | - |
 | 代理模式 | 结构型模式 | `structural/proxy-pattern.html` | 未学习 | - |
@@ -28,7 +31,7 @@
 
 ## 下一个建议学习
 
-策略模式：`behavioral/strategy-pattern.html`
+单例模式：`creational/singleton-pattern.html`
 
 ## 更新示例
 
