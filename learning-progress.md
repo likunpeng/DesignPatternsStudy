@@ -13,6 +13,8 @@
 
 | 模式 | 类型 | 文件 | 状态 | 更新时间 |
 |---|---|---|---|---|
+| 策略模式 | 行为型模式 | `strategy-pattern.html` | 未学习 | - |
+| 观察者模式 | 行为型模式 | `observer-pattern.html` | 未学习 | - |
 | 原型模式 | 创建型模式 | `prototype-pattern.html` | 未学习 | - |
 | 工厂方法模式 | 创建型模式 | `factory-method-pattern.html` | 未学习 | - |
 | 建造者模式 | 创建型模式 | `builder-pattern.html` | 已学习 | 2026-05-18 |
@@ -26,7 +28,7 @@
 
 ## 下一个建议学习
 
-原型模式：`prototype-pattern.html`
+策略模式：`strategy-pattern.html`
 
 ## 更新示例
 
