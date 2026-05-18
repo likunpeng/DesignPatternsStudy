@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>观察者模式学习笔记</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ecfdf5;
+      --paper: #fafffe;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --line: #bbf0d8;
+      --accent: #059669;
+      --accent-soft: #d1fae5;
+      --code-bg: #111827;
+      --code-ink: #f9fafb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #ecfdf5 0%, #fff 100%);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
+    }
+
+    h1, h2, h3 { line-height: 1.25; color: #111827; }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+
+    code {
+      padding: 0.14rem 0.32rem;
+      border-radius: 5px;
+      background: var(--accent-soft);
+      color: #047857;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      line-height: 1.6;
+    }
+
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #d1fae5; color: #064e3b; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #ecfdf5; color: #047857; font-size: 0.9rem; }
+    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: #ecfdf5; }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: #d1fae5; }
+
+    @media (max-width: 680px) {
+      main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>观察者模式学习笔记</h1>
+    <p class="lead">观察者模式解决的是"一个对象状态变化后，需要自动通知多个依赖它的对象"的问题。它把被观察者和观察者解耦，让通知逻辑不再写死在主流程里。</p>
+    <div class="meta">
+      <span class="tag">行为型模式</span>
+      <span class="tag">Observer Pattern</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">状态通知</span>
+    </div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解观察者模式解决的问题。</li>
+      <li>知道什么时候适合用"通知多个对象更新"的方式组织代码。</li>
+      <li>能用 TypeScript 实现观察者模式。</li>
+      <li>能用 Python 实现观察者模式。</li>
+      <li>知道观察者模式适合和不适合的场景。</li>
+    </ul>
+
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>观察者模式主要解决这种问题：</p>
+    <pre><code>一个对象状态变化后，需要自动通知多个依赖它的对象。</code></pre>
+    <p>例如：</p>
+    <ul>
+      <li>公众号发新文章后，所有订阅者都收到通知。</li>
+      <li>订单状态变化后，库存、通知、积分等模块都要联动更新。</li>
+      <li>UI 状态变化后，多个视图组件需要同步刷新。</li>
+      <li>事件系统中，一个事件触发多个监听器执行。</li>
+    </ul>
+    <p>如果把通知逻辑直接写死在一个对象里，就会出现强耦合。</p>
+
+    <h2>2. 坏代码示例</h2>
+    <p>假设订单支付成功后，要分别通知库存、短信、积分模块。</p>
+    <pre><code class="language-ts">class OrderService {
+  paySuccess(orderId: string) {
+    console.log(`订单 ${orderId} 支付成功`);
+    console.log(`更新库存: ${orderId}`);
+    console.log(`发送短信通知: ${orderId}`);
+    console.log(`发放积分: ${orderId}`);
+  }
+}</code></pre>
+    <p>这段代码的问题是：</p>
+    <ul>
+      <li>所有通知逻辑都挤在一个方法里。</li>
+      <li>新增一个通知模块时，必须修改 <code>OrderService</code>。</li>
+      <li>某个通知模块变复杂时，会污染主流程。</li>
+      <li>很难单独测试每个通知逻辑。</li>
+    </ul>
+
+    <h2>3. 一个生活类比</h2>
+    <p>你关注了一个博主：博主发布视频，平台自动推送给所有关注者，每个关注者收到通知后执行自己的动作。这里博主是被观察者，关注者是观察者，发布视频是状态变化，推送通知是自动更新。</p>
+
+    <h2>4. 适用场景</h2>
+    <ul>
+      <li>一个对象变化后，需要通知多个对象。</li>
+      <li>事件驱动系统。</li>
+      <li>消息订阅系统。</li>
+      <li>UI 状态联动刷新。</li>
+      <li>订单状态变化后触发多个后续动作。</li>
+    </ul>
+
+    <h2>5. 不适用场景</h2>
+    <ul>
+      <li>只有一个下游逻辑，直接调用更简单。</li>
+      <li>通知关系固定且不会变化。</li>
+      <li>观察者太多，调试和排查问题成本很高。</li>
+      <li>需要严格的执行顺序，但观察者之间又没有明确编排机制。</li>
+    </ul>
+
+    <h2>6. 核心结构</h2>
+    <table>
+      <thead><tr><th>角色</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td>Subject</td><td>保存观察者列表，状态变化时通知所有观察者。</td></tr>
+        <tr><td>Observer</td><td>定义更新接口，收到通知后执行自己的逻辑。</td></tr>
+        <tr><td>ConcreteObserver</td><td>具体观察者实现。</td></tr>
+        <tr><td>Client</td><td>创建 Subject 和 Observer，建立订阅关系。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. TypeScript 示例</h2>
+    <pre><code class="language-ts">interface Observer {
+  update(message: string): void;
+}
+
+class Subject {
+  private observers: Observer[] = [];
+
+  attach(observer: Observer): void {
+    this.observers.push(observer);
+  }
+
+  detach(observer: Observer): void {
+    this.observers = this.observers.filter((item) =&gt; item !== observer);
+  }
+
+  notify(message: string): void {
+    for (const observer of this.observers) {
+      observer.update(message);
+    }
+  }
+}
+
+class InventoryObserver implements Observer {
+  update(message: string): void {
+    console.log(`库存系统收到通知: ${message}`);
+  }
+}
+
+class SmsObserver implements Observer {
+  update(message: string): void {
+    console.log(`短信系统收到通知: ${message}`);
+  }
+}
+
+class PointsObserver implements Observer {
+  update(message: string): void {
+    console.log(`积分系统收到通知: ${message}`);
+  }
+}
+
+const subject = new Subject();
+subject.attach(new InventoryObserver());
+subject.attach(new SmsObserver());
+subject.attach(new PointsObserver());
+
+subject.notify("订单 A1001 支付成功");</code></pre>
+    <p>新增一个通知模块时，只需要新增一个观察者类，然后订阅到 <code>Subject</code>，不需要改主流程。</p>
+
+    <h2>8. Python 示例</h2>
+    <pre><code class="language-python">from abc import ABC, abstractmethod
+
+
+class Observer(ABC):
+    @abstractmethod
+    def update(self, message: str) -&gt; None:
+        pass
+
+
+class Subject:
+    def __init__(self) -&gt; None:
+        self._observers: list[Observer] = []
+
+    def attach(self, observer: Observer) -&gt; None:
+        self._observers.append(observer)
+
+    def detach(self, observer: Observer) -&gt; None:
+        self._observers.remove(observer)
+
+    def notify(self, message: str) -&gt; None:
+        for observer in self._observers:
+            observer.update(message)
+
+
+class InventoryObserver(Observer):
+    def update(self, message: str) -&gt; None:
+        print(f"库存系统收到通知: {message}")
+
+
+class SmsObserver(Observer):
+    def update(self, message: str) -&gt; None:
+        print(f"短信系统收到通知: {message}")
+
+
+class PointsObserver(Observer):
+    def update(self, message: str) -&gt; None:
+        print(f"积分系统收到通知: {message}")
+
+
+subject = Subject()
+subject.attach(InventoryObserver())
+subject.attach(SmsObserver())
+subject.attach(PointsObserver())
+
+subject.notify("订单 A1001 支付成功")</code></pre>
+    <p>Python 也可以更轻量地直接传函数，但用类更容易表达"订阅者"这种角色关系。</p>
+
+    <h2>9. 优缺点</h2>
+    <table>
+      <thead><tr><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>被观察者和观察者解耦。</td><td>观察者过多时，调试链路复杂。</td></tr>
+        <tr><td>新增观察者不需要修改被观察者。</td><td>通知顺序不确定，可能引发问题。</td></tr>
+        <tr><td>符合开闭原则。</td><td>如果观察者之间有依赖，容易产生级联更新。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10. 和相似模式的区别</h2>
+    <table>
+      <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
+      <tbody>
+        <tr><td>观察者模式</td><td>状态变化通知多个订阅者</td><td>被观察者直接通知观察者。</td></tr>
+        <tr><td>策略模式</td><td>算法替换</td><td>策略关注"怎么做"，观察者关注"谁来被通知"。</td></tr>
+        <tr><td>责任链模式</td><td>沿链传递处理</td><td>责任链是"谁处理算谁的"，观察者是"一次通知多个"。</td></tr>
+        <tr><td>发布订阅</td><td>事件中心解耦</td><td>发布订阅多了一个中间事件中心，观察者更强调主题和观察者直接关系。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>11. 练习题</h2>
+    <p>把下面的活动发布逻辑改造成观察者模式：</p>
+    <pre><code class="language-ts">class EventService {
+  publish(title: string) {
+    console.log(`发布活动: ${title}`);
+    console.log(`通知邮件系统: ${title}`);
+    console.log(`通知推送系统: ${title}`);
+    console.log(`通知统计系统: ${title}`);
+  }
+}</code></pre>
+    <div class="note">参考思路：定义 <code>EventObserver</code> 接口，邮件、推送、统计各实现一个观察者，<code>EventService</code> 继承 <code>Subject</code>，发布时调用 <code>notify</code>。</div>
+
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>观察者模式的核心是：当一个对象变化后，有多个对象需要跟着变化时，把通知逻辑从主流程里拆出去。以后看到"状态变更后顺手调用一堆下游模块"的代码，可以先思考：这里是不是适合使用观察者模式？</p>
+    </div>
+  </main>
+</body>
+</html>
