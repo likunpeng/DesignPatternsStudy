@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>代理模式学习笔记</title>
+  <style>
+    :root{color-scheme:light;--bg:#fff7ed;--paper:#fffdf8;--ink:#1f2933;--muted:#665f52;--line:#ead8bd;--accent:#c2410c;--accent-soft:#ffedd5;--code-bg:#111827;--code-ink:#f9fafb}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#fff7ed,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.75}main{width:min(980px,calc(100% - 32px));margin:32px auto;padding:40px;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 50px rgba(31,41,51,.12)}h1,h2,h3{line-height:1.25;color:#111827}h1{margin:0 0 12px;font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-.04em}h2{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);font-size:1.55rem}h3{margin-top:28px;font-size:1.18rem}p{margin:12px 0}ul{padding-left:1.25rem}li{margin:6px 0}code{padding:.14rem .32rem;border-radius:5px;background:var(--accent-soft);color:#9a3412;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.92em}pre{overflow:auto;padding:18px 20px;border-radius:12px;background:var(--code-bg);color:var(--code-ink);line-height:1.6}pre code{padding:0;background:transparent;color:inherit;font-size:.9rem}table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#ffedd5;color:#7c2d12;font-weight:700}tr:last-child td{border-bottom:0}.lead{max-width:780px;color:var(--muted);font-size:1.08rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 30px}.tag{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff7ed;color:#9a3412;font-size:.9rem}.note{margin:18px 0;padding:16px 18px;border-left:5px solid var(--accent);border-radius:10px;background:#fff7ed}.summary{margin-top:28px;padding:20px;border-radius:14px;background:#ffedd5}@media(max-width:680px){main{width:min(100% - 18px,980px);margin:10px auto;padding:22px 16px;border-radius:14px}table{display:block;overflow-x:auto}}
+  </style>
+</head>
+<body><main>
+  <h1>代理模式学习笔记</h1>
+  <p class="lead">代理模式解决的是“不能或不应该直接访问真实对象”的问题。代理和真实对象通常接口相同，但代理会在访问前后加入控制逻辑。</p>
+  <div class="meta"><span class="tag">结构型模式</span><span class="tag">Proxy Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">访问控制</span></div>
+
+  <h2>今日目标</h2>
+  <ul><li>理解代理不是简单中转，而是访问控制点。</li><li>掌握虚拟代理、保护代理、缓存代理的典型场景。</li><li>能写出缓存代理示例。</li><li>能区分代理和装饰器。</li></ul>
+
+  <h2>1. 这个模式解决什么问题</h2>
+  <p>真实对象可能很昂贵、很敏感、在远程，或需要统一控制访问。代理对象站在调用方和真实对象之间，决定是否转发请求、何时创建真实对象、是否直接返回缓存。</p>
+
+  <h2>2. 一个生活类比</h2>
+  <p>你想见一位高管，通常不会直接冲进办公室，而是先通过助理预约。助理不会替高管做所有事情，但会控制访问时机、过滤无效请求、安排日程。助理就是代理。</p>
+
+  <h2>3. 适用场景</h2>
+  <ul><li>远程服务调用，需要隐藏网络细节。</li><li>大对象延迟加载，例如图片、报表、模型文件。</li><li>需要权限校验、限流、审计。</li><li>同一查询很频繁，可以用缓存代理减少真实调用。</li></ul>
+
+  <h2>4. 不适用场景</h2>
+  <ul><li>真实对象访问成本低，也没有控制需求。</li><li>只是想增加功能组合，更适合装饰器。</li><li>代理里塞入大量业务逻辑，导致真实对象职责被掏空。</li></ul>
+
+  <h2>5. 核心结构</h2>
+  <table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Subject</td><td>真实对象和代理共同遵守的接口。</td></tr><tr><td>RealSubject</td><td>真正完成工作的对象。</td></tr><tr><td>Proxy</td><td>持有或创建真实对象，并控制访问。</td></tr><tr><td>Client</td><td>面向 Subject 编程，不直接依赖 RealSubject。</td></tr></tbody></table>
+
+  <h2>6. TypeScript 示例</h2>
+  <pre><code class="language-ts">interface UserRepository {
+  findName(userId: string): string;
+}
+
+class RemoteUserRepository implements UserRepository {
+  findName(userId: string): string {
+    console.log("调用远程用户服务");
+    return userId === "u1" ? "Alice" : "Unknown";
+  }
+}
+
+class CachedUserRepositoryProxy implements UserRepository {
+  private cache = new Map&lt;string, string&gt;();
+
+  constructor(private real: UserRepository) {}
+
+  findName(userId: string): string {
+    if (!this.cache.has(userId)) {
+      this.cache.set(userId, this.real.findName(userId));
+    }
+    return this.cache.get(userId)!;
+  }
+}
+
+const repo = new CachedUserRepositoryProxy(new RemoteUserRepository());
+console.log(repo.findName("u1"));
+console.log(repo.findName("u1"));</code></pre>
+
+  <h2>7. Python 示例</h2>
+  <pre><code class="language-python">from typing import Protocol
+
+
+class UserRepository(Protocol):
+    def find_name(self, user_id: str) -&gt; str:
+        ...
+
+
+class RemoteUserRepository:
+    def find_name(self, user_id: str) -&gt; str:
+        print("调用远程用户服务")
+        return "Alice" if user_id == "u1" else "Unknown"
+
+
+class CachedUserRepositoryProxy:
+    def __init__(self, real: UserRepository) -&gt; None:
+        self.real = real
+        self.cache: dict[str, str] = {}
+
+    def find_name(self, user_id: str) -&gt; str:
+        if user_id not in self.cache:
+            self.cache[user_id] = self.real.find_name(user_id)
+        return self.cache[user_id]
+
+
+repo = CachedUserRepositoryProxy(RemoteUserRepository())
+print(repo.find_name("u1"))
+print(repo.find_name("u1"))</code></pre>
+
+  <h2>8. 优缺点</h2>
+  <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>调用方不需要知道远程、缓存、权限等细节。</td><td>多一层间接调用，排查链路要看代理逻辑。</td></tr><tr><td>可以延迟创建昂贵对象。</td><td>代理和真实对象接口要保持一致。</td></tr><tr><td>集中管理访问控制。</td><td>如果代理做太多事，会变成隐藏的业务核心。</td></tr></tbody></table>
+
+  <h2>9. 和相似模式的区别</h2>
+  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>代理</td><td>控制访问</td><td>决定是否访问真实对象，常见于权限、缓存、懒加载。</td></tr><tr><td>装饰器</td><td>增强能力</td><td>重点是叠加行为，通常可多层自由组合。</td></tr><tr><td>适配器</td><td>接口转换</td><td>改变接口形状，让不兼容对象可用。</td></tr></tbody></table>
+
+  <h2>10. 练习题</h2>
+  <p>设计一个图片加载代理。真实图片对象加载很慢，代理在第一次调用 <code>display()</code> 时才创建真实图片对象。</p>
+  <div class="note">参考思路：代理实现 <code>Image.display()</code>，内部保存文件路径和可选的真实图片实例，首次展示时再加载。</div>
+
+  <div class="summary"><h2>今日总结</h2><p>代理模式的核心是“接口相同，访问受控”。当你需要缓存、权限、懒加载或远程调用隔离时，可以考虑代理。</p></div>
+</main></body></html>

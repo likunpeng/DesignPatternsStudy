@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>装饰器模式学习笔记</title>
+  <style>
+    :root{color-scheme:light;--bg:#f8f4ff;--paper:#fffcff;--ink:#1f2933;--muted:#5b5368;--line:#ded3ef;--accent:#7c3aed;--accent-soft:#ede9fe;--code-bg:#111827;--code-ink:#f9fafb}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#f5f0ff,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.75}main{width:min(980px,calc(100% - 32px));margin:32px auto;padding:40px;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 50px rgba(31,41,51,.12)}h1,h2,h3{line-height:1.25;color:#111827}h1{margin:0 0 12px;font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-.04em}h2{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);font-size:1.55rem}h3{margin-top:28px;font-size:1.18rem}p{margin:12px 0}ul{padding-left:1.25rem}li{margin:6px 0}code{padding:.14rem .32rem;border-radius:5px;background:var(--accent-soft);color:#6d28d9;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.92em}pre{overflow:auto;padding:18px 20px;border-radius:12px;background:var(--code-bg);color:var(--code-ink);line-height:1.6}pre code{padding:0;background:transparent;color:inherit;font-size:.9rem}table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#ede9fe;color:#4c1d95;font-weight:700}tr:last-child td{border-bottom:0}.lead{max-width:780px;color:var(--muted);font-size:1.08rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 30px}.tag{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#f5f3ff;color:#6d28d9;font-size:.9rem}.note{margin:18px 0;padding:16px 18px;border-left:5px solid var(--accent);border-radius:10px;background:#f5f3ff}.summary{margin-top:28px;padding:20px;border-radius:14px;background:#ede9fe}@media(max-width:680px){main{width:min(100% - 18px,980px);margin:10px auto;padding:22px 16px;border-radius:14px}table{display:block;overflow-x:auto}}
+  </style>
+</head>
+<body><main>
+  <h1>装饰器模式学习笔记</h1>
+  <p class="lead">装饰器模式解决的是“在不修改原对象的前提下，动态叠加新能力”的问题。它强调增强行为，而不是替换对象。</p>
+  <div class="meta"><span class="tag">结构型模式</span><span class="tag">Decorator Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">动态增强</span></div>
+
+  <h2>今日目标</h2>
+  <ul><li>理解为什么继承不适合组合大量功能开关。</li><li>掌握装饰器的共同接口和包裹关系。</li><li>能区分装饰器模式和代理模式。</li><li>知道 Python 语言装饰器和设计模式装饰器的联系与区别。</li></ul>
+
+  <h2>1. 这个模式解决什么问题</h2>
+  <p>当一个对象需要可选能力时，如果用继承组合，会很快出现类爆炸。</p>
+  <pre><code>基础通知 + 短信通知 + 邮件通知 + 日志通知 + 重试通知</code></pre>
+  <p>装饰器模式让每个增强能力成为一个独立包装器，需要什么就包什么。</p>
+
+  <h2>2. 一个生活类比</h2>
+  <p>一杯基础咖啡可以加奶、加糖、加燕麦奶。咖啡本身没变，每个配料都在原有饮品外面叠加一层新效果。你可以自由组合，而不需要为每种组合创建一个新咖啡类。</p>
+
+  <h2>3. 适用场景</h2>
+  <ul><li>给对象增加日志、缓存、重试、鉴权、压缩、加密等横向能力。</li><li>增强能力可以自由组合，且顺序可能有影响。</li><li>不希望修改原类，或原类来自第三方库。</li><li>希望比继承更灵活地扩展行为。</li></ul>
+
+  <h2>4. 不适用场景</h2>
+  <ul><li>增强能力固定且很少，直接修改类更简单。</li><li>包装层太多，调试调用链会变困难。</li><li>调用方必须识别具体类型，装饰器会让类型判断更复杂。</li></ul>
+
+  <h2>5. 核心结构</h2>
+  <table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Component</td><td>原对象和装饰器共同遵守的接口。</td></tr><tr><td>ConcreteComponent</td><td>基础对象，提供核心能力。</td></tr><tr><td>Decorator</td><td>持有一个 Component，并实现同样接口。</td></tr><tr><td>ConcreteDecorator</td><td>在调用前后增加新行为。</td></tr></tbody></table>
+
+  <h2>6. TypeScript 示例</h2>
+  <pre><code class="language-ts">interface Notifier {
+  send(message: string): void;
+}
+
+class EmailNotifier implements Notifier {
+  send(message: string): void {
+    console.log(`发送邮件：${message}`);
+  }
+}
+
+class SmsDecorator implements Notifier {
+  constructor(private wrapped: Notifier) {}
+
+  send(message: string): void {
+    this.wrapped.send(message);
+    console.log(`发送短信：${message}`);
+  }
+}
+
+class LogDecorator implements Notifier {
+  constructor(private wrapped: Notifier) {}
+
+  send(message: string): void {
+    console.log("记录发送日志");
+    this.wrapped.send(message);
+  }
+}
+
+const notifier = new LogDecorator(new SmsDecorator(new EmailNotifier()));
+notifier.send("订单已支付");</code></pre>
+
+  <h2>7. Python 示例</h2>
+  <pre><code class="language-python">from typing import Protocol
+
+
+class Notifier(Protocol):
+    def send(self, message: str) -&gt; None:
+        ...
+
+
+class EmailNotifier:
+    def send(self, message: str) -&gt; None:
+        print(f"发送邮件：{message}")
+
+
+class SmsDecorator:
+    def __init__(self, wrapped: Notifier) -&gt; None:
+        self.wrapped = wrapped
+
+    def send(self, message: str) -&gt; None:
+        self.wrapped.send(message)
+        print(f"发送短信：{message}")
+
+
+class LogDecorator:
+    def __init__(self, wrapped: Notifier) -&gt; None:
+        self.wrapped = wrapped
+
+    def send(self, message: str) -&gt; None:
+        print("记录发送日志")
+        self.wrapped.send(message)
+
+
+notifier = LogDecorator(SmsDecorator(EmailNotifier()))
+notifier.send("订单已支付")</code></pre>
+  <p>Python 的 <code>@decorator</code> 常用于包装函数；设计模式里的装饰器更通用，可以包装对象。两者思想相同：不改原逻辑，外面加一层。</p>
+
+  <h2>8. 优缺点</h2>
+  <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>比继承更灵活，可运行时组合功能。</td><td>对象链变长后，排查问题更费力。</td></tr><tr><td>每个增强职责独立，符合单一职责。</td><td>装饰器顺序可能影响结果，需要约定清楚。</td></tr><tr><td>不需要修改原对象。</td><td>过度使用会产生很多小类。</td></tr></tbody></table>
+
+  <h2>9. 和相似模式的区别</h2>
+  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>装饰器</td><td>动态增强</td><td>通常为了叠加新功能，可多层包装。</td></tr><tr><td>代理</td><td>访问控制</td><td>通常控制是否、何时、如何访问真实对象。</td></tr><tr><td>适配器</td><td>接口转换</td><td>让不兼容接口变成目标接口。</td></tr></tbody></table>
+
+  <h2>10. 练习题</h2>
+  <p>给一个文件读取器增加 gzip 解压和读取日志功能。请思考：用继承会产生哪些组合类？用装饰器如何组合？</p>
+  <div class="note">参考思路：定义 <code>Reader.read()</code>，基础类读取原始内容，<code>GzipReaderDecorator</code> 负责解压，<code>LogReaderDecorator</code> 负责记录耗时。</div>
+
+  <div class="summary"><h2>今日总结</h2><p>装饰器模式的核心是“同接口、包一层、加能力”。当功能组合多、又不想改原类时，它比继承更灵活。</p></div>
+</main></body></html>

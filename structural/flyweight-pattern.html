@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>享元模式学习笔记</title><style>:root{color-scheme:light;--bg:#fdf2f8;--paper:#fffafd;--ink:#1f2933;--muted:#665766;--line:#edcfe0;--accent:#be185d;--accent-soft:#fce7f3;--code-bg:#111827;--code-ink:#f9fafb}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#fdf2f8,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.75}main{width:min(980px,calc(100% - 32px));margin:32px auto;padding:40px;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 50px rgba(31,41,51,.12)}h1,h2,h3{line-height:1.25;color:#111827}h1{margin:0 0 12px;font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-.04em}h2{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);font-size:1.55rem}h3{margin-top:28px;font-size:1.18rem}p{margin:12px 0}ul{padding-left:1.25rem}li{margin:6px 0}code{padding:.14rem .32rem;border-radius:5px;background:var(--accent-soft);color:#be185d;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.92em}pre{overflow:auto;padding:18px 20px;border-radius:12px;background:var(--code-bg);color:var(--code-ink);line-height:1.6}pre code{padding:0;background:transparent;color:inherit;font-size:.9rem}table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#fce7f3;color:#831843;font-weight:700}tr:last-child td{border-bottom:0}.lead{max-width:780px;color:var(--muted);font-size:1.08rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 30px}.tag{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fdf2f8;color:#be185d;font-size:.9rem}.note{margin:18px 0;padding:16px 18px;border-left:5px solid var(--accent);border-radius:10px;background:#fdf2f8}.summary{margin-top:28px;padding:20px;border-radius:14px;background:#fce7f3}@media(max-width:680px){main{width:min(100% - 18px,980px);margin:10px auto;padding:22px 16px;border-radius:14px}table{display:block;overflow-x:auto}}</style></head><body><main>
+  <h1>享元模式学习笔记</h1><p class="lead">享元模式解决的是“大量相似对象占用太多内存”的问题。它把可共享的内部状态抽出来复用，把变化的外部状态放到调用时传入。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Flyweight Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">对象共享</span></div>
+  <h2>今日目标</h2><ul><li>理解内部状态和外部状态的区别。</li><li>知道享元模式为什么能节省内存。</li><li>能实现一个简单享元工厂。</li><li>知道什么时候不要为了“省对象”过度设计。</li></ul>
+  <h2>1. 这个模式解决什么问题</h2><p>如果系统需要创建大量细粒度对象，而这些对象有很多相同数据，就会浪费内存。享元模式把相同部分共享起来。</p><pre><code>一百万个字符对象：字体、颜色、字号可能重复；坐标和字符内容可能变化。</code></pre>
+  <h2>2. 一个生活类比</h2><p>图书馆不会给每个读者都买一本同样的书，而是保存一批可共享的书。读者借阅时记录“谁借了哪本、什么时候还”，书本内容是共享的，借阅记录是外部状态。</p>
+  <h2>3. 适用场景</h2><ul><li>对象数量非常大，内存压力真实存在。</li><li>对象可以拆分为可共享的内部状态和变化的外部状态。</li><li>共享对象最好是不可变的。</li><li>常见于文本编辑器字符样式、地图图标、游戏粒子、缓存池。</li></ul>
+  <h2>4. 不适用场景</h2><ul><li>对象数量少，内存不是问题。</li><li>对象状态高度个性化，无法有效共享。</li><li>共享对象会被频繁修改，容易引发串数据问题。</li><li>为了微小优化牺牲代码可读性。</li></ul>
+  <h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Flyweight</td><td>可共享对象，保存内部状态。</td></tr><tr><td>FlyweightFactory</td><td>按 key 复用或创建享元对象。</td></tr><tr><td>External State</td><td>不能共享的变化状态，由调用方传入。</td></tr><tr><td>Client</td><td>使用工厂获取享元，并提供外部状态。</td></tr></tbody></table>
+  <h2>6. TypeScript 示例</h2><pre><code class="language-ts">class TextStyle {
+  constructor(
+    public readonly font: string,
+    public readonly size: number,
+    public readonly color: string,
+  ) {}
+
+  render(char: string, x: number, y: number): void {
+    console.log(`${char} at (${x}, ${y}) with ${this.font}/${this.size}/${this.color}`);
+  }
+}
+
+class TextStyleFactory {
+  private styles = new Map&lt;string, TextStyle&gt;();
+
+  getStyle(font: string, size: number, color: string): TextStyle {
+    const key = `${font}-${size}-${color}`;
+    if (!this.styles.has(key)) {
+      this.styles.set(key, new TextStyle(font, size, color));
+    }
+    return this.styles.get(key)!;
+  }
+}
+
+const factory = new TextStyleFactory();
+factory.getStyle("Arial", 12, "black").render("A", 0, 0);
+factory.getStyle("Arial", 12, "black").render("B", 10, 0);</code></pre>
+  <h2>7. Python 示例</h2><pre><code class="language-python">from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class TextStyle:
+    font: str
+    size: int
+    color: str
+
+    def render(self, char: str, x: int, y: int) -&gt; None:
+        print(f"{char} at ({x}, {y}) with {self.font}/{self.size}/{self.color}")
+
+
+class TextStyleFactory:
+    def __init__(self) -&gt; None:
+        self.styles: dict[tuple[str, int, str], TextStyle] = {}
+
+    def get_style(self, font: str, size: int, color: str) -&gt; TextStyle:
+        key = (font, size, color)
+        if key not in self.styles:
+            self.styles[key] = TextStyle(font, size, color)
+        return self.styles[key]
+
+
+factory = TextStyleFactory()
+factory.get_style("Arial", 12, "black").render("A", 0, 0)
+factory.get_style("Arial", 12, "black").render("B", 10, 0)</code></pre>
+  <p>Python 示例用 <code>dataclass(frozen=True)</code> 表示共享对象不可变，降低被误改的风险。</p>
+  <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>显著减少重复对象带来的内存占用。</td><td>需要区分内部状态和外部状态，设计复杂度提高。</td></tr><tr><td>共享对象集中管理，便于复用。</td><td>调用方需要额外传入外部状态。</td></tr><tr><td>适合大量细粒度对象场景。</td><td>共享对象如果可变，会产生难查的副作用。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>享元</td><td>共享对象节省内存</td><td>关注大量相似对象的复用。</td></tr><tr><td>单例</td><td>全局唯一实例</td><td>单例强调唯一，享元强调按 key 共享多个实例。</td></tr><tr><td>对象池</td><td>复用昂贵对象生命周期</td><td>对象池借出归还可变对象，享元通常共享不可变内部状态。</td></tr></tbody></table>
+  <h2>10. 练习题</h2><p>地图上有十万个标记点，但图标类型只有餐厅、酒店、加油站三种。请用享元模式共享图标对象，并把经纬度作为外部状态。</p><div class="note">参考思路：<code>IconFactory</code> 按类型缓存 <code>MapIcon</code>，渲染时传入 <code>lat</code> 和 <code>lng</code>。</div>
+  <div class="summary"><h2>今日总结</h2><p>享元模式的核心是“共享不变的，外传变化的”。只有当对象数量巨大且内存问题真实存在时，它才值得引入。</p></div>
+</main></body></html>

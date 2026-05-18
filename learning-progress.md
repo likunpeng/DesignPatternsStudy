@@ -13,22 +13,22 @@
 
 | 模式 | 类型 | 文件 | 状态 | 更新时间 |
 |---|---|---|---|---|
-| 策略模式 | 行为型模式 | `strategy-pattern.html` | 未学习 | - |
-| 观察者模式 | 行为型模式 | `observer-pattern.html` | 未学习 | - |
-| 原型模式 | 创建型模式 | `prototype-pattern.html` | 未学习 | - |
-| 工厂方法模式 | 创建型模式 | `factory-method-pattern.html` | 未学习 | - |
-| 建造者模式 | 创建型模式 | `builder-pattern.html` | 已学习 | 2026-05-18 |
-| 适配器模式 | 结构型模式 | `adapter-pattern.html` | 未学习 | - |
-| 装饰器模式 | 结构型模式 | `decorator-pattern.html` | 未学习 | - |
-| 代理模式 | 结构型模式 | `proxy-pattern.html` | 未学习 | - |
-| 外观模式 | 结构型模式 | `facade-pattern.html` | 未学习 | - |
-| 桥接模式 | 结构型模式 | `bridge-pattern.html` | 未学习 | - |
-| 组合模式 | 结构型模式 | `composite-pattern.html` | 未学习 | - |
-| 享元模式 | 结构型模式 | `flyweight-pattern.html` | 未学习 | - |
+| 策略模式 | 行为型模式 | `behavioral/strategy-pattern.html` | 未学习 | - |
+| 观察者模式 | 行为型模式 | `behavioral/observer-pattern.html` | 未学习 | - |
+| 原型模式 | 创建型模式 | `creational/prototype-pattern.html` | 未学习 | - |
+| 工厂方法模式 | 创建型模式 | `creational/factory-method-pattern.html` | 未学习 | - |
+| 建造者模式 | 创建型模式 | `creational/builder-pattern.html` | 已学习 | 2026-05-18 |
+| 适配器模式 | 结构型模式 | `structural/adapter-pattern.html` | 未学习 | - |
+| 装饰器模式 | 结构型模式 | `structural/decorator-pattern.html` | 未学习 | - |
+| 代理模式 | 结构型模式 | `structural/proxy-pattern.html` | 未学习 | - |
+| 外观模式 | 结构型模式 | `structural/facade-pattern.html` | 未学习 | - |
+| 桥接模式 | 结构型模式 | `structural/bridge-pattern.html` | 未学习 | - |
+| 组合模式 | 结构型模式 | `structural/composite-pattern.html` | 未学习 | - |
+| 享元模式 | 结构型模式 | `structural/flyweight-pattern.html` | 未学习 | - |
 
 ## 下一个建议学习
 
-策略模式：`strategy-pattern.html`
+策略模式：`behavioral/strategy-pattern.html`
 
 ## 更新示例
 

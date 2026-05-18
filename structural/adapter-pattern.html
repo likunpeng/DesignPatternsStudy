@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>适配器模式学习笔记</title>
+  <style>
+    :root { color-scheme: light; --bg:#f2f7f4; --paper:#fcfffd; --ink:#1f2933; --muted:#52606d; --line:#d6e4dc; --accent:#16805f; --accent-soft:#dff5ec; --code-bg:#111827; --code-ink:#f9fafb; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(135deg,#eef8f3 0%,#fbfffd 100%); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; line-height:1.75; }
+    main { width:min(980px,calc(100% - 32px)); margin:32px auto; padding:40px; background:var(--paper); border:1px solid var(--line); border-radius:20px; box-shadow:0 18px 50px rgba(31,41,51,.12); }
+    h1,h2,h3 { line-height:1.25; color:#111827; } h1 { margin:0 0 12px; font-size:clamp(2rem,4vw,3.2rem); letter-spacing:-.04em; } h2 { margin-top:44px; padding-top:20px; border-top:1px solid var(--line); font-size:1.55rem; } h3 { margin-top:28px; font-size:1.18rem; }
+    p { margin:12px 0; } ul { padding-left:1.25rem; } li { margin:6px 0; }
+    code { padding:.14rem .32rem; border-radius:5px; background:var(--accent-soft); color:#047857; font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; font-size:.92em; }
+    pre { overflow:auto; padding:18px 20px; border-radius:12px; background:var(--code-bg); color:var(--code-ink); line-height:1.6; } pre code { padding:0; background:transparent; color:inherit; font-size:.9rem; }
+    table { width:100%; border-collapse:collapse; margin:18px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; } th,td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { background:#dff5ec; color:#064e3b; font-weight:700; } tr:last-child td { border-bottom:0; }
+    .lead { max-width:780px; color:var(--muted); font-size:1.08rem; } .meta { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0 30px; } .tag { padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#ecfdf5; color:#047857; font-size:.9rem; } .note { margin:18px 0; padding:16px 18px; border-left:5px solid var(--accent); border-radius:10px; background:#ecfdf5; } .summary { margin-top:28px; padding:20px; border-radius:14px; background:#dff5ec; }
+    @media (max-width:680px) { main { width:min(100% - 18px,980px); margin:10px auto; padding:22px 16px; border-radius:14px; } table { display:block; overflow-x:auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>适配器模式学习笔记</h1>
+    <p class="lead">适配器模式解决的是“已有对象能用，但接口不符合当前系统要求”的问题。它让新旧接口可以协作，而不是强行改动稳定代码。</p>
+    <div class="meta"><span class="tag">结构型模式</span><span class="tag">Adapter Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">接口转换</span></div>
+
+    <h2>今日目标</h2>
+    <ul><li>理解适配器模式为什么不是简单封装。</li><li>能识别接口不兼容导致的耦合问题。</li><li>能用 TypeScript 和 Python 实现一个最小适配器。</li><li>知道适配器和外观、代理的区别。</li></ul>
+
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>当系统期望一种接口，但现有类、第三方库或遗留系统提供的是另一种接口时，就会出现“不兼容但有用”的对象。</p>
+    <pre><code>调用方想要 pay(amount)，旧系统只有 charge(cents)。</code></pre>
+    <p>如果到处写转换逻辑，调用方会同时依赖新接口和旧接口，后续替换第三方库会很痛苦。适配器把转换集中在一个对象里。</p>
+
+    <h2>2. 一个生活类比</h2>
+    <p>你的笔记本是 USB-C 接口，投影仪是 HDMI 接口。投影仪能用，电脑也能用，只是接口不匹配。转接头就是适配器：它不改变电脑，也不改变投影仪，只负责把一种接口转换成另一种接口。</p>
+
+    <h2>3. 适用场景</h2>
+    <ul><li>接入第三方 SDK，但它的方法名、参数单位或返回结构和系统约定不同。</li><li>改造遗留系统，希望新代码使用统一接口。</li><li>多个供应商能力类似，但接口细节不同。</li><li>测试时需要把复杂外部服务适配成简单接口。</li></ul>
+
+    <h2>4. 不适用场景</h2>
+    <ul><li>接口可以直接修改，而且没有外部依赖或历史包袱。</li><li>只是想给方法改个名字，增加适配器反而让代码绕。</li><li>业务规则本身不同，不只是接口形状不同。</li></ul>
+
+    <h2>5. 核心结构</h2>
+    <table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Target</td><td>当前系统希望使用的目标接口。</td></tr><tr><td>Adaptee</td><td>已有对象或第三方对象，功能可用但接口不匹配。</td></tr><tr><td>Adapter</td><td>实现目标接口，并在内部调用 Adaptee 完成转换。</td></tr><tr><td>Client</td><td>只依赖 Target，不关心背后接的是谁。</td></tr></tbody></table>
+
+    <h2>6. TypeScript 示例</h2>
+    <pre><code class="language-ts">interface PaymentGateway {
+  pay(amount: number): void; // 单位：元
+}
+
+class LegacyPaySdk {
+  charge(cents: number): void {
+    console.log(`旧支付系统扣款 ${cents} 分`);
+  }
+}
+
+class LegacyPayAdapter implements PaymentGateway {
+  constructor(private sdk: LegacyPaySdk) {}
+
+  pay(amount: number): void {
+    this.sdk.charge(amount * 100);
+  }
+}
+
+function checkout(gateway: PaymentGateway) {
+  gateway.pay(99);
+}
+
+checkout(new LegacyPayAdapter(new LegacyPaySdk()));</code></pre>
+    <p><code>checkout</code> 只认识 <code>PaymentGateway</code>。旧 SDK 的单位转换被限制在 <code>LegacyPayAdapter</code> 内部。</p>
+
+    <h2>7. Python 示例</h2>
+    <pre><code class="language-python">from typing import Protocol
+
+
+class PaymentGateway(Protocol):
+    def pay(self, amount: float) -&gt; None:
+        ...
+
+
+class LegacyPaySdk:
+    def charge(self, cents: int) -&gt; None:
+        print(f"旧支付系统扣款 {cents} 分")
+
+
+class LegacyPayAdapter:
+    def __init__(self, sdk: LegacyPaySdk) -&gt; None:
+        self.sdk = sdk
+
+    def pay(self, amount: float) -&gt; None:
+        self.sdk.charge(int(amount * 100))
+
+
+def checkout(gateway: PaymentGateway) -&gt; None:
+    gateway.pay(99)
+
+
+checkout(LegacyPayAdapter(LegacyPaySdk()))</code></pre>
+    <p>Python 更自然地使用鸭子类型或 <code>Protocol</code>。只要对象有 <code>pay</code> 方法，就能被 <code>checkout</code> 使用。</p>
+
+    <h2>8. 优缺点</h2>
+    <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>隔离第三方或遗留接口，调用方更稳定。</td><td>类数量增加，简单场景可能显得多余。</td></tr><tr><td>转换逻辑集中，便于替换外部实现。</td><td>适配器过多时，需要统一命名和组织。</td></tr><tr><td>符合开闭原则，新增供应商通常只加新适配器。</td><td>只能解决接口不兼容，不能解决语义不一致。</td></tr></tbody></table>
+
+    <h2>9. 和相似模式的区别</h2>
+    <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>适配器</td><td>接口转换</td><td>已有对象接口不符合当前系统。</td></tr><tr><td>外观</td><td>简化复杂子系统</td><td>不是为了兼容接口，而是为了降低使用复杂度。</td></tr><tr><td>代理</td><td>控制访问</td><td>代理通常保持相同接口，增加权限、缓存、延迟加载等控制。</td></tr></tbody></table>
+
+    <h2>10. 练习题</h2>
+    <p>你的系统统一使用 <code>send(to, content)</code> 发送短信，但某短信平台 SDK 只有 <code>pushSms(phone, text, sign)</code>。请设计一个适配器，让业务代码不依赖该 SDK。</p>
+    <div class="note">参考思路：定义 <code>SmsSender</code> 接口，再实现 <code>VendorSmsAdapter</code>，把 <code>send</code> 的参数转换成平台需要的参数，并在适配器中补充签名。</div>
+
+    <div class="summary"><h2>今日总结</h2><p>适配器模式的核心是：不要让调用方到处理解外部接口差异。把差异封装在适配器里，让业务代码依赖自己的稳定接口。</p></div>
+  </main>
+</body>
+</html>
