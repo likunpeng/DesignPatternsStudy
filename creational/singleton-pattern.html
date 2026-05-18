@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>单例模式学习笔记</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fef2f2;
+      --paper: #fffbfb;
+      --ink: #1f2933;
+      --muted: #665f52;
+      --line: #f5c6c6;
+      --accent: #dc2626;
+      --accent-soft: #fee2e2;
+      --code-bg: #111827;
+      --code-ink: #f9fafb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #fef2f2 0%, #fff 100%);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
+    }
+
+    h1, h2, h3 { line-height: 1.25; color: #111827; }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+
+    code {
+      padding: 0.14rem 0.32rem;
+      border-radius: 5px;
+      background: var(--accent-soft);
+      color: #b91c1c;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      line-height: 1.6;
+    }
+
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #fee2e2; color: #7f1d1d; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fef2f2; color: #b91c1c; font-size: 0.9rem; }
+    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: #fef2f2; }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: #fee2e2; }
+
+    @media (max-width: 680px) {
+      main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>单例模式学习笔记</h1>
+    <p class="lead">单例模式解决的是"一个类在整个程序中只需要一个实例"的问题。它控制实例数量，而不是创建哪种对象。</p>
+    <div class="meta">
+      <span class="tag">创建型模式</span>
+      <span class="tag">Singleton Pattern</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">唯一实例</span>
+    </div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解单例模式为什么存在，而不是到处 <code>new</code>。</li>
+      <li>知道懒加载和饿加载的区别。</li>
+      <li>能用 TypeScript 和 Python 实现线程安全的单例。</li>
+      <li>知道单例模式最常见的误用场景。</li>
+    </ul>
+
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>有些对象在程序中只应该存在一份，例如：</p>
+    <ul>
+      <li>全局配置对象。</li>
+      <li>数据库连接池。</li>
+      <li>日志管理器。</li>
+      <li>缓存管理器。</li>
+      <li>设备驱动程序。</li>
+    </ul>
+    <p>如果多处 <code>new</code> 出多个实例，可能导致配置不一致、资源浪费或状态冲突。单例模式保证一个类只有一个实例，并提供全局访问点。</p>
+
+    <h2>2. 一个生活类比</h2>
+    <p>一个国家只有一个总统，一个学校只有一个校长。不管谁去问，得到的都是同一个人。单例模式就是给类加了这个"唯一性"约束。</p>
+
+    <h2>3. 适用场景</h2>
+    <ul>
+      <li>全局配置，整个程序共享同一份设置。</li>
+      <li>资源管理器，例如连接池、线程池、文件系统。</li>
+      <li>日志服务，所有模块写同一个日志输出。</li>
+      <li>缓存，避免多处维护不同缓存副本。</li>
+      <li>硬件设备访问，避免重复初始化。</li>
+    </ul>
+
+    <h2>4. 不适用场景</h2>
+    <ul>
+      <li>对象本身没有"全局唯一"的需求。</li>
+      <li>为了方便传参而把类改成单例，这是滥用。</li>
+      <li>需要多实例测试时，单例会让测试互相影响。</li>
+      <li>单例承担了太多职责，变成上帝对象。</li>
+      <li>分布式系统中，单例只保证进程内唯一，不保证跨进程唯一。</li>
+    </ul>
+
+    <h2>5. 核心结构</h2>
+    <table>
+      <thead><tr><th>要素</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>私有构造函数</td><td>禁止外部 <code>new</code>。</td></tr>
+        <tr><td>静态实例</td><td>类内部保存唯一实例。</td></tr>
+        <tr><td>静态获取方法</td><td>提供全局访问点，首次调用时创建实例。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. TypeScript 示例</h2>
+    <pre><code class="language-ts">class AppConfig {
+  private static instance: AppConfig;
+  public readonly env: string;
+  public readonly version: string;
+
+  private constructor() {
+    this.env = process.env.NODE_ENV ?? "development";
+    this.version = "1.0.0";
+  }
+
+  static getInstance(): AppConfig {
+    if (!AppConfig.instance) {
+      AppConfig.instance = new AppConfig();
+    }
+    return AppConfig.instance;
+  }
+}
+
+const config1 = AppConfig.getInstance();
+const config2 = AppConfig.getInstance();
+console.log(config1 === config2); // true</code></pre>
+    <p>TypeScript 中更简洁的做法是利用模块机制：模块顶层变量天然是单例。</p>
+    <pre><code class="language-ts">class AppConfig {
+  public readonly env = process.env.NODE_ENV ?? "development";
+  public readonly version = "1.0.0";
+}
+
+export const appConfig = new AppConfig();</code></pre>
+    <div class="note">在 Node.js / 前端模块系统中，模块只会被加载一次，<code>export const</code> 天然就是单例。大多数情况下不需要手写 <code>getInstance()</code>。</div>
+
+    <h2>7. Python 示例</h2>
+    <pre><code class="language-python">class AppConfig:
+    _instance: "AppConfig | None" = None
+
+    def __new__(cls) -&gt; "AppConfig":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.env = "development"
+            cls._instance.version = "1.0.0"
+        return cls._instance
+
+
+config1 = AppConfig()
+config2 = AppConfig()
+print(config1 is config2)  # True</code></pre>
+    <p>Python 也可以用模块变量实现单例，更简单也更常见：</p>
+    <pre><code class="language-python">class _AppConfig:
+    def __init__(self) -&gt; None:
+        self.env = "development"
+        self.version = "1.0.0"
+
+app_config = _AppConfig()</code></pre>
+    <p>Python 模块同样只加载一次，<code>app_config</code> 就是进程内唯一的实例。</p>
+
+    <h2>8. 优缺点</h2>
+    <table>
+      <thead><tr><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>保证全局只有一个实例。</td><td>隐藏依赖，调用方不知道自己用了全局状态。</td></tr>
+        <tr><td>提供统一的全局访问点。</td><td>难以单元测试，测试之间会互相影响。</td></tr>
+        <tr><td>延迟初始化，按需创建。</td><td>容易膨胀成上帝对象。</td></tr>
+        <tr><td>避免重复创建资源。</td><td>多线程环境下需要额外加锁。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 和相似模式的区别</h2>
+    <table>
+      <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
+      <tbody>
+        <tr><td>单例模式</td><td>控制实例数量为1</td><td>关注"只有一个"。</td></tr>
+        <tr><td>原型模式</td><td>复制已有对象</td><td>原型鼓励复制多个实例，单例禁止。</td></tr>
+        <tr><td>静态类</td><td>工具方法集合</td><td>静态类不能实现接口、不能延迟加载、不能传参。</td></tr>
+        <tr><td>依赖注入</td><td>由外部管理生命周期</td><td>依赖注入可以更好地控制单例作用域，不需要类自己管。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10. 练习题</h2>
+    <p>你有一个日志管理器，需要全局共享。请思考：</p>
+    <ul>
+      <li>用模块变量实现和用 <code>getInstance()</code> 实现，哪个更简单？</li>
+      <li>如果日志管理器需要支持运行时切换输出目标（文件、控制台），单例会不会成为阻碍？</li>
+      <li>测试时如何隔离单例状态？</li>
+    </ul>
+    <div class="note">参考思路：模块变量实现更简单。如果需要运行时切换行为，可以考虑策略模式配合单例。测试隔离可以在每次测试前重置单例实例，或者用依赖注入替代单例。</div>
+
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>单例模式的核心是"一个类只有一个实例"。它适合全局配置、资源管理、日志服务等场景。但单例也是最容易滥用的模式：如果只是图方便传参，或者把各种逻辑都塞进单例，就会制造隐藏依赖和测试困难。能用依赖注入解决的，就不要用单例。</p>
+    </div>
+  </main>
+</body>
+</html>
