@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>抽象工厂模式学习笔记</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f0f9ff;
+      --paper: #fbfdff;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --line: #bae0fd;
+      --accent: #0369a1;
+      --accent-soft: #e0f2fe;
+      --code-bg: #111827;
+      --code-ink: #f9fafb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #f0f9ff 0%, #fff 100%);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
+    }
+
+    h1, h2, h3 { line-height: 1.25; color: #111827; }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+
+    code {
+      padding: 0.14rem 0.32rem;
+      border-radius: 5px;
+      background: var(--accent-soft);
+      color: #075985;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      line-height: 1.6;
+    }
+
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #e0f2fe; color: #0c4a6e; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #f0f9ff; color: #075985; font-size: 0.9rem; }
+    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: #f0f9ff; }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: #e0f2fe; }
+
+    @media (max-width: 680px) {
+      main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>抽象工厂模式学习笔记</h1>
+    <p class="lead">抽象工厂模式解决的是"一组相关对象必须保持风格一致"的问题。它提供一个创建产品族的接口，而不是单个产品。</p>
+    <div class="meta">
+      <span class="tag">创建型模式</span>
+      <span class="tag">Abstract Factory Pattern</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">产品族</span>
+    </div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解抽象工厂和工厂方法的本质区别。</li>
+      <li>知道什么是"产品族"。</li>
+      <li>能用 TypeScript 和 Python 实现抽象工厂。</li>
+      <li>知道什么时候该用抽象工厂，什么时候用工厂方法就够了。</li>
+    </ul>
+
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>有些场景下，一组对象必须属于同一种风格或同一个系列。例如：</p>
+    <ul>
+      <li>UI 组件：Windows 风格的按钮、输入框、窗口必须配套。</li>
+      <li>数据库访问：MySQL 的连接、命令、读取器必须配套。</li>
+      <li>主题系统：暗色主题的背景、文字、按钮颜色必须配套。</li>
+    </ul>
+    <pre><code>如果按钮是 Windows 风格，输入框却是 Mac 风格，界面就会不协调。</code></pre>
+    <p>抽象工厂保证同一工厂创建出来的产品都是配套的。</p>
+
+    <h2>2. 一个生活类比</h2>
+    <p>你去宜家买家具。你可以选"北欧风"套装，也可以选"日式风"套装。每个套装里的沙发、茶几、书架风格一致。你不需要自己搭配，只要选一个套装就行。这里的"套装"就是产品族，"宜家"就是抽象工厂。</p>
+
+    <h2>3. 适用场景</h2>
+    <ul>
+      <li>一组对象需要保持风格或平台一致。</li>
+      <li>系统需要支持多种风格或平台，且运行时切换。</li>
+      <li>不想让调用方知道具体使用了哪种风格。</li>
+      <li>产品族中的产品经常一起使用。</li>
+    </ul>
+
+    <h2>4. 不适用场景</h2>
+    <ul>
+      <li>只需要创建一种产品，不需要产品族。</li>
+      <li>产品之间没有配套关系，各自独立。</li>
+      <li>产品族很少变化，简单工厂或工厂方法更直接。</li>
+      <li>新增产品类型（而不是产品族）时，抽象工厂需要改所有工厂接口。</li>
+    </ul>
+
+    <h2>5. 核心结构</h2>
+    <table>
+      <thead><tr><th>角色</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td>AbstractFactory</td><td>声明创建一组产品的方法。</td></tr>
+        <tr><td>ConcreteFactory</td><td>实现具体风格的产品创建。</td></tr>
+        <tr><td>AbstractProduct</td><td>每种产品的接口。</td></tr>
+        <tr><td>ConcreteProduct</td><td>具体风格的产品实现。</td></tr>
+        <tr><td>Client</td><td>只依赖抽象工厂和抽象产品。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. TypeScript 示例</h2>
+    <pre><code class="language-ts">interface Button {
+  render(): void;
+}
+
+class DarkButton implements Button {
+  render(): void { console.log("暗色按钮"); }
+}
+
+class LightButton implements Button {
+  render(): void { console.log("亮色按钮"); }
+}
+
+interface Input {
+  render(): void;
+}
+
+class DarkInput implements Input {
+  render(): void { console.log("暗色输入框"); }
+}
+
+class LightInput implements Input {
+  render(): void { console.log("亮色输入框"); }
+}
+
+interface UIFactory {
+  createButton(): Button;
+  createInput(): Input;
+}
+
+class DarkUIFactory implements UIFactory {
+  createButton(): Button { return new DarkButton(); }
+  createInput(): Input { return new DarkInput(); }
+}
+
+class LightUIFactory implements UIFactory {
+  createButton(): Button { return new LightButton(); }
+  createInput(): Input { return new LightInput(); }
+}
+
+function renderUI(factory: UIFactory) {
+  factory.createButton().render();
+  factory.createInput().render();
+}
+
+renderUI(new DarkUIFactory());
+renderUI(new LightUIFactory());</code></pre>
+    <p>调用方只依赖 <code>UIFactory</code>，不关心具体是暗色还是亮色。切换主题只需要换一个工厂实例。</p>
+
+    <h2>7. Python 示例</h2>
+    <pre><code class="language-python">from abc import ABC, abstractmethod
+
+
+class Button(ABC):
+    @abstractmethod
+    def render(self) -&gt; None:
+        pass
+
+
+class DarkButton(Button):
+    def render(self) -&gt; None:
+        print("暗色按钮")
+
+
+class LightButton(Button):
+    def render(self) -&gt; None:
+        print("亮色按钮")
+
+
+class Input(ABC):
+    @abstractmethod
+    def render(self) -&gt; None:
+        pass
+
+
+class DarkInput(Input):
+    def render(self) -&gt; None:
+        print("暗色输入框")
+
+
+class LightInput(Input):
+    def render(self) -&gt; None:
+        print("亮色输入框")
+
+
+class UIFactory(ABC):
+    @abstractmethod
+    def create_button(self) -&gt; Button:
+        pass
+
+    @abstractmethod
+    def create_input(self) -&gt; Input:
+        pass
+
+
+class DarkUIFactory(UIFactory):
+    def create_button(self) -&gt; Button:
+        return DarkButton()
+
+    def create_input(self) -&gt; Input:
+        return DarkInput()
+
+
+class LightUIFactory(UIFactory):
+    def create_button(self) -&gt; Button:
+        return LightButton()
+
+    def create_input(self) -&gt; Input:
+        return LightInput()
+
+
+def render_ui(factory: UIFactory) -&gt; None:
+    factory.create_button().render()
+    factory.create_input().render()
+
+
+render_ui(DarkUIFactory())
+render_ui(LightUIFactory())</code></pre>
+
+    <h2>8. 优缺点</h2>
+    <table>
+      <thead><tr><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>保证产品族风格一致。</td><td>新增产品类型时，所有工厂都要改。</td></tr>
+        <tr><td>调用方不需要知道具体风格。</td><td>类数量增加较快。</td></tr>
+        <tr><td>切换产品族只需要换工厂。</td><td>产品族少时显得过度设计。</td></tr>
+        <tr><td>符合开闭原则（新增产品族）。</td><td>不符合开闭原则（新增产品类型）。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 和相似模式的区别</h2>
+    <table>
+      <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
+      <tbody>
+        <tr><td>抽象工厂</td><td>创建一组相关对象</td><td>关注产品族，保证风格一致。</td></tr>
+        <tr><td>工厂方法</td><td>子类决定创建哪种对象</td><td>只创建一种产品，关注"谁决定"。</td></tr>
+        <tr><td>简单工厂</td><td>一个函数根据参数创建对象</td><td>最简单，但不保证产品族一致性。</td></tr>
+        <tr><td>建造者</td><td>分步骤组装复杂对象</td><td>关注构建过程，而不是产品族。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10. 练习题</h2>
+    <p>你需要支持 MySQL 和 PostgreSQL 两种数据库，每种数据库都需要 Connection 和 Command 两种对象。请用抽象工厂模式实现，并思考：如果新增一种数据库（例如 SQLite），需要改哪些地方？如果新增一种产品类型（例如 Transaction），需要改哪些地方？</p>
+    <div class="note">参考思路：新增数据库只需要新增一个 ConcreteFactory，符合开闭原则。新增产品类型需要改 AbstractFactory 接口和所有 ConcreteFactory，违反开闭原则。这是抽象工厂的经典取舍。</div>
+
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>抽象工厂模式的核心是"保证一组相关对象风格一致"。它适合多主题、多平台、多数据库等需要产品族配套的场景。记住一句话：工厂方法创建一种产品，抽象工厂创建一组产品。</p>
+    </div>
+  </main>
+</body>
+</html>
