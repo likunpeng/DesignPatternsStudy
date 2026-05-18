@@ -193,28 +193,45 @@ class PageConfig {
   ) {}
 
   clone(): PageConfig {
-    return new PageConfig(
-      this.theme,
-      this.layout,
-      [...this.modules],
-      { ...this.tracking },
-    );
+    const copy = Object.create(PageConfig.prototype);
+    copy.theme = this.theme;
+    copy.layout = this.layout;
+    copy.modules = [...this.modules];
+    copy.tracking = { ...this.tracking };
+    return copy;
   }
 }
 
-const springTemplate = new PageConfig(
+class PageTemplateRegistry {
+  private templates = new Map&lt;string, PageConfig&gt;();
+
+  register(name: string, template: PageConfig): void {
+    this.templates.set(name, template);
+  }
+
+  create(name: string): PageConfig {
+    const template = this.templates.get(name);
+    if (!template) throw new Error(`模板 ${name} 不存在`);
+    return template.clone();
+  }
+}
+
+const registry = new PageTemplateRegistry();
+registry.register("spring-landing", new PageConfig(
   "dark",
   "landing",
   ["banner", "coupon", "product-list"],
   { channel: "app", campaign: "spring" },
-);
+));
 
-const summerPage = springTemplate.clone();
+const summerPage = registry.create("spring-landing");
 summerPage.tracking.campaign = "summer";
 
-console.log(springTemplate.tracking.campaign); // spring
+console.log(registry.create("spring-landing").tracking.campaign); // spring
 console.log(summerPage.tracking.campaign); // summer</code></pre>
-    <p>这里的 <code>clone()</code> 不只是复制引用，而是复制了 <code>modules</code> 数组和 <code>tracking</code> 对象，避免两个配置互相影响。</p>
+    <p><code>clone()</code> 用 <code>Object.create</code> 直接复制自身状态，绕过构造函数。这样即使构造函数以后加了校验或副作用，克隆也不会触发。</p>
+    <p><code>PageTemplateRegistry</code> 是原型注册表，调用方不需要自己持有原型对象，按名称取出克隆即可。</p>
+    <div class="note">如果不需要绕过构造函数，也可以用现代 JS 的 <code>structuredClone(this)</code>，它自动做深拷贝。但 <code>structuredClone</code> 不保留类实例的原型链，返回的是纯对象。</div>
 
     <h2>8. Python 示例</h2>
     <pre><code class="language-python">from copy import deepcopy
@@ -238,19 +255,37 @@ class PageConfig:
         return deepcopy(self)
 
 
-spring_template = PageConfig(
-    theme="dark",
-    layout="landing",
-    modules=["banner", "coupon", "product-list"],
-    tracking=Tracking(channel="app", campaign="spring"),
+class PageTemplateRegistry:
+    def __init__(self) -&gt; None:
+        self._templates: dict[str, PageConfig] = {}
+
+    def register(self, name: str, template: PageConfig) -&gt; None:
+        self._templates[name] = template
+
+    def create(self, name: str) -&gt; PageConfig:
+        template = self._templates.get(name)
+        if template is None:
+            raise KeyError(f"模板 {name} 不存在")
+        return template.clone()
+
+
+registry = PageTemplateRegistry()
+registry.register(
+    "spring-landing",
+    PageConfig(
+        theme="dark",
+        layout="landing",
+        modules=["banner", "coupon", "product-list"],
+        tracking=Tracking(channel="app", campaign="spring"),
+    ),
 )
 
-summer_page = spring_template.clone()
+summer_page = registry.create("spring-landing")
 summer_page.tracking.campaign = "summer"
 
-print(spring_template.tracking.campaign)  # spring
+print(registry.create("spring-landing").tracking.campaign)  # spring
 print(summer_page.tracking.campaign)  # summer</code></pre>
-    <p>Python 里可以直接用 <code>copy.copy</code> 做浅拷贝，用 <code>copy.deepcopy</code> 做深拷贝。示例里用深拷贝，是因为对象中有嵌套的可变结构。</p>
+    <p>Python 里 <code>deepcopy</code> 天然支持深拷贝，不需要手动处理嵌套对象。<code>PageTemplateRegistry</code> 和 TypeScript 版本一样，按名称管理原型。</p>
 
     <h2>9. 浅拷贝和深拷贝</h2>
     <table>
