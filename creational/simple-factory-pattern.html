@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>简单工厂模式学习笔记</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fff7ed;
+      --paper: #fffcf8;
+      --ink: #1f2933;
+      --muted: #665f52;
+      --line: #f0d9b5;
+      --accent: #c2410c;
+      --accent-soft: #ffedd5;
+      --code-bg: #111827;
+      --code-ink: #f9fafb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #fff7ed 0%, #fff 100%);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
+    }
+
+    h1, h2, h3 { line-height: 1.25; color: #111827; }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+
+    code {
+      padding: 0.14rem 0.32rem;
+      border-radius: 5px;
+      background: var(--accent-soft);
+      color: #9a3412;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      line-height: 1.6;
+    }
+
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #ffedd5; color: #7c2d12; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff7ed; color: #9a3412; font-size: 0.9rem; }
+    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: #fff7ed; }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: #ffedd5; }
+
+    @media (max-width: 680px) {
+      main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>简单工厂模式学习笔记</h1>
+    <p class="lead">简单工厂模式解决的是"调用方不应该知道具体创建哪个类"的问题。它把创建逻辑集中到一个工厂函数里，调用方只传参数。</p>
+    <div class="meta">
+      <span class="tag">创建型模式</span>
+      <span class="tag">Simple Factory Pattern</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">集中创建</span>
+    </div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解简单工厂和工厂方法的区别。</li>
+      <li>知道简单工厂不是严格意义上的 GoF 模式。</li>
+      <li>能用 TypeScript 和 Python 实现简单工厂。</li>
+      <li>知道什么时候用简单工厂就够了，什么时候需要升级。</li>
+    </ul>
+
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>调用方需要根据条件创建不同对象，但不想在每个调用点都写 <code>if-else</code> 和 <code>new</code>。简单工厂把这段逻辑集中到一个地方。</p>
+    <pre><code>调用方只说"我要一个 XX"，工厂负责决定创建哪个具体类。</code></pre>
+
+    <h2>2. 一个生活类比</h2>
+    <p>你去奶茶店点单：你说"一杯珍珠奶茶"，店员负责决定用哪种茶底、加什么料。你不需要知道制作细节，只需要说出名字。</p>
+
+    <h2>3. 适用场景</h2>
+    <ul>
+      <li>创建逻辑简单，产品种类不多。</li>
+      <li>调用方只关心接口，不关心具体实现。</li>
+      <li>创建逻辑可能变化，但变化不频繁。</li>
+      <li>作为工厂方法模式的简化版本。</li>
+    </ul>
+
+    <h2>4. 不适用场景</h2>
+    <ul>
+      <li>产品种类经常新增，每次都要改工厂函数，违反开闭原则。</li>
+      <li>创建逻辑很复杂，一个工厂函数会变得很长。</li>
+      <li>需要让子类决定创建哪种对象，应该用工厂方法模式。</li>
+    </ul>
+
+    <h2>5. 核心结构</h2>
+    <table>
+      <thead><tr><th>角色</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td>Product</td><td>产品接口，所有具体产品实现它。</td></tr>
+        <tr><td>ConcreteProduct</td><td>具体产品类。</td></tr>
+        <tr><td>Factory</td><td>包含一个静态方法，根据参数创建具体产品。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. TypeScript 示例</h2>
+    <pre><code class="language-ts">interface Logger {
+  log(message: string): void;
+}
+
+class FileLogger implements Logger {
+  log(message: string): void {
+    console.log(`[File] ${message}`);
+  }
+}
+
+class ConsoleLogger implements Logger {
+  log(message: string): void {
+    console.log(`[Console] ${message}`);
+  }
+}
+
+class LoggerFactory {
+  static create(type: "file" | "console"): Logger {
+    switch (type) {
+      case "file":
+        return new FileLogger();
+      case "console":
+        return new ConsoleLogger();
+    }
+  }
+}
+
+const logger = LoggerFactory.create("file");
+logger.log("服务启动");</code></pre>
+    <p>调用方只传 <code>"file"</code> 或 <code>"console"</code>，不直接 <code>new</code> 具体类。</p>
+
+    <h2>7. Python 示例</h2>
+    <pre><code class="language-python">from abc import ABC, abstractmethod
+
+
+class Logger(ABC):
+    @abstractmethod
+    def log(self, message: str) -&gt; None:
+        pass
+
+
+class FileLogger(Logger):
+    def log(self, message: str) -&gt; None:
+        print(f"[File] {message}")
+
+
+class ConsoleLogger(Logger):
+    def log(self, message: str) -&gt; None:
+        print(f"[Console] {message}")
+
+
+class LoggerFactory:
+    @staticmethod
+    def create(type_: str) -&gt; Logger:
+        if type_ == "file":
+            return FileLogger()
+        if type_ == "console":
+            return ConsoleLogger()
+        raise ValueError(f"未知日志类型: {type_}")
+
+
+logger = LoggerFactory.create("file")
+logger.log("服务启动")</code></pre>
+    <p>Python 里也可以用字典映射替代 <code>if-else</code>，更简洁：</p>
+    <pre><code class="language-python">class LoggerFactory:
+    _registry: dict[str, type[Logger]] = {
+        "file": FileLogger,
+        "console": ConsoleLogger,
+    }
+
+    @staticmethod
+    def create(type_: str) -&gt; Logger:
+        cls = LoggerFactory._registry.get(type_)
+        if cls is None:
+            raise ValueError(f"未知日志类型: {type_}")
+        return cls()</code></pre>
+
+    <h2>8. 优缺点</h2>
+    <table>
+      <thead><tr><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>调用方不需要知道具体类名。</td><td>新增产品要改工厂，违反开闭原则。</td></tr>
+        <tr><td>创建逻辑集中，便于维护。</td><td>产品多时工厂函数会变长。</td></tr>
+        <tr><td>实现简单，上手快。</td><td>不是 GoF 标准模式，只是工厂方法的前置简化。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 和相似模式的区别</h2>
+    <table>
+      <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
+      <tbody>
+        <tr><td>简单工厂</td><td>一个函数根据参数创建对象</td><td>创建逻辑集中在一个地方。</td></tr>
+        <tr><td>工厂方法</td><td>子类决定创建哪种对象</td><td>符合开闭原则，新增产品不需要改旧代码。</td></tr>
+        <tr><td>抽象工厂</td><td>创建一组相关对象</td><td>关注产品族，而不是单个产品。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10. 练习题</h2>
+    <p>你有一个通知发送器，目前支持邮件和短信。请用简单工厂实现 <code>NotificationFactory.create("email")</code>。然后思考：如果新增企业微信通知，需要改哪些地方？这是不是违反了开闭原则？</p>
+    <div class="note">参考思路：需要改工厂函数的 <code>switch</code> 或字典。确实违反开闭原则。如果通知类型经常新增，应该升级为工厂方法模式。</div>
+
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>简单工厂模式的核心是"把创建逻辑集中到一个函数"。它简单实用，但新增产品时需要改工厂代码。产品种类少且稳定时，简单工厂就够用了；产品经常新增时，应该升级为工厂方法模式。</p>
+    </div>
+  </main>
+</body>
+</html>
