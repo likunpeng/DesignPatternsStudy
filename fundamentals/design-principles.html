@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>设计原则学习笔记</title>
+  <style>
+    :root { color-scheme: light; --bg:#f4f5f7; --paper:#fafbfc; --ink:#1f2933; --muted:#52606d; --line:#d5d8de; --accent:#4b5563; --accent-soft:#e5e7eb; --code-bg:#111827; --code-ink:#f9fafb; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(135deg,#f4f5f7 0%,#fafbfc 100%); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; line-height:1.75; }
+    main { width:min(980px,calc(100% - 32px)); margin:32px auto; padding:40px; background:var(--paper); border:1px solid var(--line); border-radius:20px; box-shadow:0 18px 50px rgba(31,41,51,.12); }
+    h1,h2,h3 { line-height:1.25; color:#111827; }
+    h1 { margin:0 0 12px; font-size:clamp(2rem,4vw,3.2rem); letter-spacing:-.04em; }
+    h2 { margin-top:44px; padding-top:20px; border-top:1px solid var(--line); font-size:1.55rem; }
+    h3 { margin-top:28px; font-size:1.18rem; }
+    p { margin:12px 0; }
+    ul { padding-left:1.25rem; }
+    li { margin:6px 0; }
+    code { padding:.14rem .32rem; border-radius:5px; background:var(--accent-soft); color:#374151; font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; font-size:.92em; }
+    pre { overflow:auto; padding:18px 20px; border-radius:12px; background:var(--code-bg); color:var(--code-ink); line-height:1.6; }
+    pre code { padding:0; background:transparent; color:inherit; font-size:.9rem; }
+    table { width:100%; border-collapse:collapse; margin:18px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; }
+    th,td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#e5e7eb; color:#1f2937; font-weight:700; }
+    tr:last-child td { border-bottom:0; }
+    .lead { max-width:780px; color:var(--muted); font-size:1.08rem; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0 30px; }
+    .tag { padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#f3f4f6; color:#374151; font-size:.9rem; }
+    .note { margin:18px 0; padding:16px 18px; border-left:5px solid var(--accent); border-radius:10px; background:#f3f4f6; }
+    .summary { margin-top:28px; padding:20px; border-radius:14px; background:#e5e7eb; }
+    @media (max-width:680px) { main { width:min(100% - 18px,980px); margin:10px auto; padding:22px 16px; border-radius:14px; } table { display:block; overflow-x:auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>设计原则学习笔记</h1>
+    <p class="lead">设计原则不是背口号，而是帮助你在代码变复杂之前看见风险。七大原则最常见的价值，不是写出更花哨的结构，而是让需求变化时少改旧代码、少引入连锁错误。</p>
+    <div class="meta"><span class="tag">前置基础</span><span class="tag">Design Principles</span><span class="tag">TypeScript + Python</span><span class="tag">七大原则</span></div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解七大设计原则分别在解决什么问题。</li>
+      <li>通过坏代码和改进代码，理解原则不是空话。</li>
+      <li>知道每条原则在真实业务里最常见的落地点。</li>
+      <li>避免把设计原则机械套用成模板。</li>
+    </ul>
+
+    <h2>1. 单一职责原则</h2>
+    <p><strong>核心思想：</strong>一个类或模块只负责一件事，变化原因尽量只有一个。</p>
+    <p><strong>生活类比：</strong>餐厅里让一个人同时做饭、收银、洗碗，任何一个环节出问题都会拖垮全部流程。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">class OrderService {
+  create(order: { email: string; amount: number }): void {
+    if (order.amount &lt;= 0) {
+      throw new Error("金额不合法");
+    }
+
+    console.log("保存订单到数据库");
+    console.log(`发送邮件给 ${order.email}`);
+  }
+}</code></pre>
+    <p>问题在于：校验规则变化、存储方式变化、通知方式变化，都会迫使你修改同一个类。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">type OrderInput = { email: string; amount: number };
+
+class OrderValidator {
+  validate(input: OrderInput): void {
+    if (input.amount &lt;= 0) {
+      throw new Error("金额不合法");
+    }
+  }
+}
+
+class OrderRepository {
+  save(input: OrderInput): void {
+    console.log("保存订单到数据库");
+  }
+}
+
+class OrderNotifier {
+  send(email: string): void {
+    console.log(`发送邮件给 ${email}`);
+  }
+}
+
+class OrderService {
+  constructor(
+    private validator: OrderValidator,
+    private repository: OrderRepository,
+    private notifier: OrderNotifier,
+  ) {}
+
+  create(input: OrderInput): void {
+    this.validator.validate(input);
+    this.repository.save(input);
+    this.notifier.send(input.email);
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">class OrderValidator:
+    def validate(self, amount: int) -&gt; None:
+        if amount &lt;= 0:
+            raise ValueError("金额不合法")
+
+
+class OrderRepository:
+    def save(self) -&gt; None:
+        print("保存订单到数据库")
+
+
+class OrderNotifier:
+    def send(self, email: str) -&gt; None:
+        print(f"发送邮件给 {email}")
+
+
+class OrderService:
+    def __init__(self, validator: OrderValidator, repository: OrderRepository, notifier: OrderNotifier):
+        self.validator = validator
+        self.repository = repository
+        self.notifier = notifier
+
+    def create(self, email: str, amount: int) -&gt; None:
+        self.validator.validate(amount)
+        self.repository.save()
+        self.notifier.send(email)</code></pre>
+    <div class="note">判断标准不是“类越小越好”，而是“这个类是不是因为不同原因被反复修改”。</div>
+
+    <h2>2. 开闭原则</h2>
+    <p><strong>核心思想：</strong>对扩展开放，对修改关闭。新增能力时，优先增加新代码，而不是反复改稳定代码。</p>
+    <p><strong>生活类比：</strong>插排多一个插孔，不需要拆墙重拉电线；只要能扩展接口，就不用破坏原结构。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">function pay(type: string, amount: number): void {
+  if (type === "alipay") {
+    console.log(`支付宝支付 ${amount} 元`);
+  } else if (type === "wechat") {
+    console.log(`微信支付 ${amount} 元`);
+  } else if (type === "bank") {
+    console.log(`银行卡支付 ${amount} 元`);
+  }
+}</code></pre>
+    <p>每新增一种支付方式，都要改老函数。改得越频繁，越容易把旧逻辑改坏。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface PaymentMethod {
+  pay(amount: number): void;
+}
+
+class Alipay implements PaymentMethod {
+  pay(amount: number): void {
+    console.log(`支付宝支付 ${amount} 元`);
+  }
+}
+
+class WechatPay implements PaymentMethod {
+  pay(amount: number): void {
+    console.log(`微信支付 ${amount} 元`);
+  }
+}
+
+class CheckoutService {
+  checkout(method: PaymentMethod, amount: number): void {
+    method.pay(amount);
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
+
+
+class PaymentMethod(Protocol):
+    def pay(self, amount: int) -&gt; None:
+        ...
+
+
+class Alipay:
+    def pay(self, amount: int) -&gt; None:
+        print(f"支付宝支付 {amount} 元")
+
+
+class WechatPay:
+    def pay(self, amount: int) -&gt; None:
+        print(f"微信支付 {amount} 元")
+
+
+class CheckoutService:
+    def checkout(self, method: PaymentMethod, amount: int) -&gt; None:
+        method.pay(amount)</code></pre>
+    <div class="note">开闭原则不等于永远不改旧代码，而是别把变化集中压在一个核心函数里。</div>
+
+    <h2>3. 里氏替换原则</h2>
+    <p><strong>核心思想：</strong>子类应该能够替换父类使用，而不破坏原有程序的正确性。</p>
+    <p><strong>生活类比：</strong>租一辆“车”时，无论拿到的是轿车还是 SUV，基本驾驶行为都应该成立，不能突然要求你换一套完全不同的规则。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">class Rectangle {
+  protected width = 0;
+  protected height = 0;
+
+  setWidth(width: number): void { this.width = width; }
+  setHeight(height: number): void { this.height = height; }
+  getArea(): number { return this.width * this.height; }
+}
+
+class Square extends Rectangle {
+  setWidth(width: number): void {
+    this.width = width;
+    this.height = width;
+  }
+
+  setHeight(height: number): void {
+    this.width = height;
+    this.height = height;
+  }
+}</code></pre>
+    <p>调用方本来以为“改宽不会动高”，但到了 <code>Square</code> 里规则变了，这就是替换失败。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface Shape {
+  getArea(): number;
+}
+
+class Rectangle implements Shape {
+  constructor(private width: number, private height: number) {}
+
+  getArea(): number {
+    return this.width * this.height;
+  }
+}
+
+class Square implements Shape {
+  constructor(private side: number) {}
+
+  getArea(): number {
+    return this.side * this.side;
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
+
+
+class Shape(Protocol):
+    def get_area(self) -&gt; int:
+        ...
+
+
+class Rectangle:
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+
+    def get_area(self) -&gt; int:
+        return self.width * self.height
+
+
+class Square:
+    def __init__(self, side: int):
+        self.side = side
+
+    def get_area(self) -&gt; int:
+        return self.side * self.side</code></pre>
+    <div class="note">里氏替换最常见的坑，不是“不能继承”，而是“继承后偷偷改变了调用方原本依赖的行为约定”。</div>
+
+    <h2>4. 接口隔离原则</h2>
+    <p><strong>核心思想：</strong>不要逼使用者依赖它不需要的方法。宁可多个小接口，也不要一个胖接口。</p>
+    <p><strong>生活类比：</strong>程序员的工牌只需要开电脑房和办公区门，不需要顺带拥有仓库、厨房、保洁间的权限按钮。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">interface Worker {
+  code(): void;
+  deliver(): void;
+  clean(): void;
+}
+
+class Programmer implements Worker {
+  code(): void { console.log("写代码"); }
+  deliver(): void { throw new Error("不会送餐"); }
+  clean(): void { throw new Error("不会保洁"); }
+}</code></pre>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface Coder {
+  code(): void;
+}
+
+interface Deliverer {
+  deliver(): void;
+}
+
+interface Cleaner {
+  clean(): void;
+}
+
+class Programmer implements Coder {
+  code(): void {
+    console.log("写代码");
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
+
+
+class Coder(Protocol):
+    def code(self) -&gt; None:
+        ...
+
+
+class Programmer:
+    def code(self) -&gt; None:
+        print("写代码")</code></pre>
+    <div class="note">接口隔离的目标不是拆得越细越好，而是避免“实现一个接口，却被迫写一堆无意义的方法”。</div>
+
+    <h2>5. 依赖倒置原则</h2>
+    <p><strong>核心思想：</strong>高层模块不应该直接依赖低层实现，双方都应该依赖抽象。</p>
+    <p><strong>生活类比：</strong>遥控器不该焊死在某个电视品牌主板上，它只应该依赖一套统一的按键协议。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">class MySQLDatabase {
+  insert(data: string): void {
+    console.log(`MySQL 保存 ${data}`);
+  }
+}
+
+class UserService {
+  private database = new MySQLDatabase();
+
+  save(name: string): void {
+    this.database.insert(name);
+  }
+}</code></pre>
+    <p>如果以后换 PostgreSQL、MongoDB，就只能修改 <code>UserService</code>。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface Database {
+  insert(data: string): void;
+}
+
+class MySQLDatabase implements Database {
+  insert(data: string): void {
+    console.log(`MySQL 保存 ${data}`);
+  }
+}
+
+class UserService {
+  constructor(private database: Database) {}
+
+  save(name: string): void {
+    this.database.insert(name);
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
+
+
+class Database(Protocol):
+    def insert(self, data: str) -&gt; None:
+        ...
+
+
+class MySQLDatabase:
+    def insert(self, data: str) -&gt; None:
+        print(f"MySQL 保存 {data}")
+
+
+class UserService:
+    def __init__(self, database: Database):
+        self.database = database
+
+    def save(self, name: str) -&gt; None:
+        self.database.insert(name)</code></pre>
+    <div class="note">依赖倒置的重点不是“把一切都抽成接口”，而是高层业务别直接绑死在某个底层实现上。</div>
+
+    <h2>6. 迪米特法则</h2>
+    <p><strong>核心思想：</strong>一个对象应当尽量少了解其他对象的内部细节，只和“直接朋友”通信。</p>
+    <p><strong>生活类比：</strong>你在餐厅结账时应该找服务员，而不是自己跑去后厨翻账本、找收银系统、再去打印小票。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">const temp = computer.getCpu().getCore(0).getTemperature();</code></pre>
+    <p>这行代码知道了太多内部结构：电脑里有 CPU，CPU 里有核心，核心里有温度。只要中间某层结构改动，调用方就一起崩。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">class Core {
+  getTemperature(): number {
+    return 68;
+  }
+}
+
+class Cpu {
+  private core = new Core();
+
+  getAverageTemperature(): number {
+    return this.core.getTemperature();
+  }
+}
+
+class Computer {
+  private cpu = new Cpu();
+
+  getCpuTemperature(): number {
+    return this.cpu.getAverageTemperature();
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">class Core:
+    def get_temperature(self) -&gt; int:
+        return 68
+
+
+class Cpu:
+    def __init__(self):
+        self._core = Core()
+
+    def get_average_temperature(self) -&gt; int:
+        return self._core.get_temperature()
+
+
+class Computer:
+    def __init__(self):
+        self._cpu = Cpu()
+
+    def get_cpu_temperature(self) -&gt; int:
+        return self._cpu.get_average_temperature()</code></pre>
+    <div class="note">迪米特法则的本质，是把内部层级藏起来，让调用方只拿到它真正需要的结果。</div>
+
+    <h2>7. 组合优于继承</h2>
+    <p><strong>核心思想：</strong>优先通过组合对象来获得能力，而不是通过继承把行为绑死在层级结构上。</p>
+    <p><strong>生活类比：</strong>给狗装飞行能力，最合理的方式不是让“狗继承鸟”，而是给它加一个“飞行组件”。</p>
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">class Animal {
+  eat(): void {
+    console.log("吃东西");
+  }
+}
+
+class Bird extends Animal {
+  fly(): void {
+    console.log("飞行");
+  }
+}
+
+class FlyingDog extends Bird {}</code></pre>
+    <p><code>FlyingDog</code> 继承了飞，但也被迫继承了“鸟”的语义。类层次会越来越怪。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface Flyable {
+  fly(): void;
+}
+
+class Wings implements Flyable {
+  fly(): void {
+    console.log("飞行");
+  }
+}
+
+class Dog {
+  constructor(private flyable?: Flyable) {}
+
+  run(): void {
+    console.log("奔跑");
+  }
+
+  tryFly(): void {
+    this.flyable?.fly();
+  }
+}</code></pre>
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
+
+
+class Flyable(Protocol):
+    def fly(self) -&gt; None:
+        ...
+
+
+class Wings:
+    def fly(self) -&gt; None:
+        print("飞行")
+
+
+class Dog:
+    def __init__(self, flyable: Flyable | None = None):
+        self.flyable = flyable
+
+    def run(self) -&gt; None:
+        print("奔跑")
+
+    def try_fly(self) -&gt; None:
+        if self.flyable:
+            self.flyable.fly()</code></pre>
+    <div class="note">继承适合稳定的“是一种”关系；组合更适合变化频繁的能力拼装。</div>
+
+    <h2>8. 七大原则之间的关系</h2>
+    <table>
+      <thead><tr><th>原则</th><th>重点</th><th>最常见落点</th></tr></thead>
+      <tbody>
+        <tr><td>单一职责</td><td>别把太多变化原因塞进一个类</td><td>服务类、控制器、工具类拆分</td></tr>
+        <tr><td>开闭原则</td><td>新增能力尽量加新代码</td><td>策略、工厂、插件化结构</td></tr>
+        <tr><td>里氏替换</td><td>子类替换父类不能破坏约定</td><td>继承层次设计</td></tr>
+        <tr><td>接口隔离</td><td>不要胖接口</td><td>角色接口、SDK 接口、能力接口</td></tr>
+        <tr><td>依赖倒置</td><td>高层依赖抽象，不绑死实现</td><td>仓储层、网关层、外部依赖封装</td></tr>
+        <tr><td>迪米特法则</td><td>少暴露内部细节</td><td>链式调用过深、领域对象穿透</td></tr>
+        <tr><td>组合优于继承</td><td>能力拼装比层级扩张更灵活</td><td>桥接、装饰器、代理、策略</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 练习题</h2>
+    <p>下面这段代码同时违反了哪些设计原则？应该怎么改？</p>
+    <pre><code class="language-ts">class ReportService {
+  export(type: string, user: string): void {
+    if (type === "pdf") {
+      console.log("导出 PDF");
+    } else if (type === "excel") {
+      console.log("导出 Excel");
+    }
+
+    console.log("写数据库日志");
+    console.log(`发送通知给 ${user}`);
+  }
+}</code></pre>
+    <ul>
+      <li>先判断它违反了哪些原则。</li>
+      <li>再思考：导出、日志、通知是否应该放在一个类里？</li>
+      <li>如果后续新增 CSV、图片导出，哪种改法更稳定？</li>
+    </ul>
+
+    <h2>10. 参考答案或改进建议</h2>
+    <p>这段代码至少违反了：</p>
+    <ul>
+      <li><strong>单一职责原则</strong>：导出、记录日志、发送通知耦合在一起。</li>
+      <li><strong>开闭原则</strong>：每加一种导出类型都要修改 <code>if-else</code>。</li>
+      <li><strong>依赖倒置原则</strong>：如果以后把日志或通知接到外部系统，高层导出逻辑会直接受影响。</li>
+    </ul>
+    <p>一种更合理的改法是：把导出做成策略接口，把日志和通知拆成独立协作者，由主流程协调调用。</p>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>设计原则的价值，不在于你能背出多少条定义，而在于看到坏代码时能立刻意识到：这里为什么难扩展、为什么容易出 Bug、为什么一改就牵一发而动全身。后面的设计模式，本质上就是这些原则在不同场景下的落地方式。</p>
+    </section>
+  </main>
+</body>
+</html>

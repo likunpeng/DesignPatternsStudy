@@ -69,6 +69,7 @@ CSS 主题色按分类区分：
 
 | 分类 | accent 色 | 目录 |
 |---|---|---|
+| 前置基础 | 灰色系 `#4b5563` | `fundamentals/` |
 | 创建型 | 蓝色系 `#2563eb` | `creational/` |
 | 结构型 | 绿色系 `#16805f` | `structural/` |
 | 行为型 | 紫色系 `#7c3aed` | `behavioral/` |
