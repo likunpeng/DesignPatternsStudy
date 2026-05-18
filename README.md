@@ -27,6 +27,46 @@ AGENTS.md          写作规范和教学原则
 - TypeScript 和 Python 双语示例，对比语言差异
 - 每篇附练习题和今日总结
 
+## 教程索引
+
+### 前置基础
+
+- [面向对象基础](fundamentals/oop-basics.html)
+- [设计原则](fundamentals/design-principles.html)
+
+### 创建型模式
+
+- [单例模式](creational/singleton-pattern.html)
+- [简单工厂模式](creational/simple-factory-pattern.html)
+- [工厂方法模式](creational/factory-method-pattern.html)
+- [抽象工厂模式](creational/abstract-factory-pattern.html)
+- [建造者模式](creational/builder-pattern.html)
+- [原型模式](creational/prototype-pattern.html)
+
+### 结构型模式
+
+- [适配器模式](structural/adapter-pattern.html)
+- [装饰器模式](structural/decorator-pattern.html)
+- [代理模式](structural/proxy-pattern.html)
+- [外观模式](structural/facade-pattern.html)
+- [桥接模式](structural/bridge-pattern.html)
+- [组合模式](structural/composite-pattern.html)
+- [享元模式](structural/flyweight-pattern.html)
+
+### 行为型模式
+
+- [策略模式](behavioral/strategy-pattern.html)
+- 模板方法模式（待补充）
+- [观察者模式](behavioral/observer-pattern.html)
+- 责任链模式（待补充）
+- 命令模式（待补充）
+- 状态模式（待补充）
+- 迭代器模式（待补充）
+- 中介者模式（待补充）
+- 备忘录模式（待补充）
+- 访问者模式（待补充）
+- 解释器模式（待补充）
+
 ## 当前进度
 
 详见 [learning-progress.md](learning-progress.md)
