@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>设计模式教程</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-light: #334155;
+      --ink: #f8fafc;
+      --ink-muted: #94a3b8;
+      --line: #334155;
+      --accent-fundamentals: #475569;
+      --accent-creational: #4f46e5;
+      --accent-structural: #059669;
+      --accent-behavioral: #7c3aed;
+      --success: #059669;
+      --success-bg: #064e3b;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      padding: 80px 24px 60px;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(79,70,229,.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(124,58,237,.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(5,150,105,.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .hero h1 {
+      position: relative;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+    .hero .slogan {
+      position: relative;
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+    .hero .subtitle {
+      position: relative;
+      font-size: .95rem;
+      color: #94a3b8;
+    }
+
+    /* Container */
+    .container {
+      width: min(1100px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
+
+    /* Progress overview */
+    .progress-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    .progress-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .progress-count {
+      color: var(--ink-muted);
+      font-size: .95rem;
+    }
+    .progress-bar {
+      height: 12px;
+      background: var(--surface-light);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed, #059669);
+      border-radius: 999px;
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* Category grid */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .category-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .category-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    }
+    .category-card.active {
+      border-color: var(--card-accent);
+    }
+    .category-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-accent);
+    }
+    .category-icon {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+    .category-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .category-count {
+      color: var(--ink-muted);
+      font-size: .85rem;
+    }
+
+    /* Pattern list */
+    .pattern-section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .pattern-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .pattern-header:hover {
+      background: var(--surface-light);
+    }
+    .pattern-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pattern-header h3 .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .pattern-toggle {
+      color: var(--ink-muted);
+      transition: transform .25s;
+      font-size: 1.2rem;
+    }
+    .pattern-section.open .pattern-toggle {
+      transform: rotate(180deg);
+    }
+    .pattern-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s cubic-bezier(.4,0,.2,1);
+    }
+    .pattern-section.open .pattern-list {
+      max-height: 2000px;
+    }
+    .pattern-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      border-top: 1px solid var(--line);
+      gap: 16px;
+    }
+    .pattern-item:last-child {
+      border-bottom: none;
+    }
+    .pattern-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .pattern-name {
+      font-weight: 600;
+      font-size: .95rem;
+    }
+    .pattern-name-en {
+      color: var(--ink-muted);
+      font-size: .8rem;
+    }
+    .pattern-link {
+      color: var(--ink-muted);
+      font-size: .8rem;
+      text-decoration: none;
+    }
+    .pattern-link:hover {
+      color: var(--ink);
+      text-decoration: underline;
+    }
+    .pattern-status {
+      font-size: .75rem;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    .pattern-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .btn-go {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--card-accent, var(--accent-creational));
+      color: #fff;
+      font-size: .85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity .2s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-go:hover {
+      opacity: .85;
+      transform: translateY(-1px);
+    }
+    .btn-go::after {
+      content: "→";
+    }
+    .pattern-disabled {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--surface-light);
+      color: var(--ink-muted);
+      font-size: .85rem;
+      white-space: nowrap;
+    }
+
+    /* Button */
+    .btn-learn {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink-muted);
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn-learn:hover {
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .btn-learn.learned {
+      background: var(--success-bg);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--ink-muted);
+      font-size: .85rem;
+      border-top: 1px solid var(--line);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .category-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 56px 16px 40px; }
+      .container { width: calc(100% - 24px); padding: 24px 0 60px; }
+      .category-grid { grid-template-columns: 1fr; }
+      .progress-card { padding: 20px; }
+      .pattern-header { padding: 16px 18px; }
+      .pattern-item { padding: 12px 18px; flex-wrap: wrap; }
+      .pattern-actions { width: 100%; order: 3; }
+      .btn-go, .pattern-disabled { width: 100%; justify-content: center; text-align: center; }
+      .btn-learn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-grid"></div>
+  <h1>设计模式教程</h1>
+  <p class="slogan">设计模式，从知其然到知其所以然</p>
+  <p class="subtitle">TypeScript × Python 双语示例 · 23 种经典模式 · 从零到精通</p>
+</section>
+
+<main class="container">
+  <div class="progress-card">
+    <div class="progress-header">
+      <h2>学习进度</h2>
+      <span class="progress-count" id="progressCount">已学习 0 / 26</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div class="category-grid" id="categoryGrid"></div>
+  <div id="patternSections"></div>
+</main>
+
+<footer class="footer">
+  设计模式教程 · 持续更新中
+</footer>
+
+<script>
+const PATTERNS = [
+  // 前置基础
+  { cat: "fundamentals", catZh: "前置基础", icon: "📐", name: "面向对象基础", nameEn: "OOP Basics", file: "fundamentals/oop-basics.html", status: "learned", date: "2026-05-18" },
+  { cat: "fundamentals", catZh: "前置基础", icon: "📐", name: "设计原则", nameEn: "Design Principles", file: "fundamentals/design-principles.html", status: "learned", date: "2026-05-18" },
+  // 创建型
+  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "单例模式", nameEn: "Singleton", file: "creational/singleton-pattern.html" },
+  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "简单工厂模式", nameEn: "Simple Factory", file: "creational/simple-factory-pattern.html" },
+  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "工厂方法模式", nameEn: "Factory Method", file: "creational/factory-method-pattern.html" },
+  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "抽象工厂模式", nameEn: "Abstract Factory", file: "creational/abstract-factory-pattern.html" },
+  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "建造者模式", nameEn: "Builder", file: "creational/builder-pattern.html", status: "learned", date: "2026-05-18" },
+  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "原型模式", nameEn: "Prototype", file: "creational/prototype-pattern.html" },
+  // 结构型
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "适配器模式", nameEn: "Adapter", file: "structural/adapter-pattern.html", status: "learned", date: "2026-05-18" },
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "装饰器模式", nameEn: "Decorator", file: "structural/decorator-pattern.html" },
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "代理模式", nameEn: "Proxy", file: "structural/proxy-pattern.html" },
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "外观模式", nameEn: "Facade", file: "structural/facade-pattern.html" },
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "桥接模式", nameEn: "Bridge", file: "structural/bridge-pattern.html" },
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "组合模式", nameEn: "Composite", file: "structural/composite-pattern.html" },
+  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "享元模式", nameEn: "Flyweight", file: "structural/flyweight-pattern.html" },
+  // 行为型
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "策略模式", nameEn: "Strategy", file: "behavioral/strategy-pattern.html", status: "learned", date: "2026-05-18" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "模板方法模式", nameEn: "Template Method", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "观察者模式", nameEn: "Observer", file: "behavioral/observer-pattern.html", status: "learned", date: "2026-05-18" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "责任链模式", nameEn: "Chain of Responsibility", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "命令模式", nameEn: "Command", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "状态模式", nameEn: "State", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "迭代器模式", nameEn: "Iterator", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "中介者模式", nameEn: "Mediator", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "备忘录模式", nameEn: "Memento", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "访问者模式", nameEn: "Visitor", file: "" },
+  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "解释器模式", nameEn: "Interpreter", file: "" },
+];
+
+const CATEGORIES = [
+  { key: "fundamentals", zh: "前置基础", icon: "📐", accent: "var(--accent-fundamentals)" },
+  { key: "creational", zh: "创建型模式", icon: "🔨", accent: "var(--accent-creational)" },
+  { key: "structural", zh: "结构型模式", icon: "🧩", accent: "var(--accent-structural)" },
+  { key: "behavioral", zh: "行为型模式", icon: "⚡", accent: "var(--accent-behavioral)" },
+];
+
+const STORAGE_KEY = "design-pattern-progress";
+const TOTAL = PATTERNS.length;
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveProgress(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function mergeProgress() {
+  const saved = loadProgress();
+  PATTERNS.forEach(p => {
+    if (saved[p.file]) {
+      p.status = saved[p.file].status || "pending";
+      p.date = saved[p.file].date || null;
+    }
+  });
+}
+
+function getLearnedCount() {
+  return PATTERNS.filter(p => p.status === "learned").length;
+}
+
+function updateProgressUI() {
+  const count = getLearnedCount();
+  document.getElementById("progressCount").textContent = `已学习 ${count} / ${TOTAL}`;
+  document.getElementById("progressFill").style.width = `${(count / TOTAL) * 100}%`;
+}
+
+function renderCategoryGrid() {
+  const grid = document.getElementById("categoryGrid");
+  grid.innerHTML = CATEGORIES.map(cat => {
+    const total = PATTERNS.filter(p => p.cat === cat.key).length;
+    const done = PATTERNS.filter(p => p.cat === cat.key && p.status === "learned").length;
+    return `
+      <div class="category-card" style="--card-accent: ${cat.accent}" data-cat="${cat.key}">
+        <div class="category-icon">${cat.icon}</div>
+        <div class="category-name">${cat.zh}</div>
+        <div class="category-count">已学习 ${done} / ${total}</div>
+      </div>
+    `;
+  }).join("");
+
+  grid.querySelectorAll(".category-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const cat = card.dataset.cat;
+      const section = document.querySelector(`.pattern-section[data-cat="${cat}"]`);
+      if (section) {
+        section.classList.toggle("open");
+        card.classList.toggle("active");
+      }
+    });
+  });
+}
+
+function renderPatternSections() {
+  const container = document.getElementById("patternSections");
+  container.innerHTML = CATEGORIES.map(cat => {
+    const patterns = PATTERNS.filter(p => p.cat === cat.key);
+    const items = patterns.map((p, i) => {
+      const isLearned = p.status === "learned";
+      const catAccent = cat.accent;
+      let actionHtml;
+      if (p.file) {
+        actionHtml = `<div class="pattern-actions" style="--card-accent:${catAccent}"><a href="${p.file}" class="btn-go">开始学习</a></div>`;
+      } else {
+        actionHtml = `<div class="pattern-actions"><span class="pattern-disabled">待补充</span></div>`;
+      }
+      const statusHtml = isLearned && p.date
+        ? `<div class="pattern-status" style="color:var(--success)">已学习 · ${p.date}</div>`
+        : `<div class="pattern-status">未学习</div>`;
+      const btnClass = isLearned ? "btn-learn learned" : "btn-learn";
+      const btnText = isLearned ? "✓ 已学习" : "标记为已学习";
+      return `
+        <div class="pattern-item" data-file="${p.file || `pending-${cat.key}-${i}`}">
+          <div class="pattern-info">
+            <div class="pattern-name">${p.name}</div>
+            <div class="pattern-name-en">${p.nameEn}</div>
+            ${statusHtml}
+          </div>
+          ${actionHtml}
+          <button class="${btnClass}" data-file="${p.file}" data-status="${p.status}">${btnText}</button>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="pattern-section" data-cat="${cat.key}">
+        <div class="pattern-header" data-cat="${cat.key}">
+          <h3><span class="dot" style="background:${cat.accent}"></span>${cat.icon} ${cat.zh}</h3>
+          <span class="pattern-toggle">▼</span>
+        </div>
+        <div class="pattern-list">${items}</div>
+      </div>
+    `;
+  }).join("");
+
+  // Toggle sections
+  container.querySelectorAll(".pattern-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const cat = header.dataset.cat;
+      const section = document.querySelector(`.pattern-section[data-cat="${cat}"]`);
+      const card = document.querySelector(`.category-card[data-cat="${cat}"]`);
+      if (section) section.classList.toggle("open");
+      if (card) card.classList.toggle("active");
+    });
+  });
+
+  // Toggle learn status
+  container.querySelectorAll(".btn-learn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const file = btn.dataset.file;
+      if (!file) return;
+      const pattern = PATTERNS.find(p => p.file === file);
+      if (!pattern) return;
+
+      if (pattern.status === "learned") {
+        pattern.status = "pending";
+        pattern.date = null;
+      } else {
+        pattern.status = "learned";
+        pattern.date = new Date().toISOString().split("T")[0];
+      }
+
+      // Save
+      const saved = loadProgress();
+      saved[file] = { status: pattern.status, date: pattern.date };
+      saveProgress(saved);
+
+      // Re-render
+      renderCategoryGrid();
+      renderPatternSections();
+      updateProgressUI();
+    });
+  });
+}
+
+// Init
+mergeProgress();
+updateProgressUI();
+renderCategoryGrid();
+renderPatternSections();
+</script>
+
+</body>
+</html>

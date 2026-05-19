@@ -3,26 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>原型模式学习笔记</title>
+  <title>原型模式教程</title>
   <style>
     :root {
       color-scheme: light;
-      --bg: #f5f3ff;
-      --paper: #fffaff;
-      --ink: #1f2933;
-      --muted: #5b5368;
-      --line: #ddd6fe;
-      --accent: #7c3aed;
-      --accent-soft: #ede9fe;
-      --code-bg: #111827;
-      --code-ink: #f9fafb;
+      --bg: #f8fafc;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --code-bg: #1e293b;
+      --code-ink: #f8fafc;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      background: linear-gradient(135deg, #f5f3ff 0%, #fff 100%);
+      background: var(--bg);
       color: var(--ink);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
       line-height: 1.75;
@@ -34,11 +33,11 @@
       padding: 40px;
       background: var(--paper);
       border: 1px solid var(--line);
-      border-radius: 20px;
-      box-shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
     }
 
-    h1, h2, h3 { line-height: 1.25; color: #111827; }
+    h1, h2, h3 { line-height: 1.25; color: var(--ink); }
     h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
     h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
     h3 { margin-top: 28px; font-size: 1.18rem; }
@@ -50,7 +49,7 @@
       padding: 0.14rem 0.32rem;
       border-radius: 5px;
       background: var(--accent-soft);
-      color: #6d28d9;
+      color: var(--accent);
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       font-size: 0.92em;
     }
@@ -70,10 +69,10 @@
       width: 100%;
       border-collapse: collapse;
       margin: 18px 0;
-      overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: #ffffff;
+      overflow: hidden;
+      background: #fff;
     }
 
     th, td {
@@ -83,14 +82,27 @@
       vertical-align: top;
     }
 
-    th { background: #ede9fe; color: #4c1d95; font-weight: 700; }
+    th { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
     tr:last-child td { border-bottom: 0; }
 
     .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
     .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
-    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #f5f3ff; color: #6d28d9; font-size: 0.9rem; }
-    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: #f5f3ff; }
-    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: #ede9fe; }
+    .tag {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .note {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--accent);
+      border-radius: 10px;
+      background: var(--accent-soft);
+    }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: var(--accent-soft); }
 
     @media (max-width: 680px) {
       main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
@@ -100,7 +112,7 @@
 </head>
 <body>
   <main>
-    <h1>原型模式学习笔记</h1>
+    <h1>原型模式教程</h1>
     <p class="lead">原型模式解决的是“创建一个对象成本高，但可以基于已有对象复制出新对象”的问题。它关注的不是从零创建，而是从一个现成样板克隆。</p>
     <div class="meta">
       <span class="tag">创建型模式</span>

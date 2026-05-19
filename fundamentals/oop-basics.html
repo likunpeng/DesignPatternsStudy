@@ -3,49 +3,146 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>面向对象基础学习笔记</title>
+  <title>面向对象基础教程</title>
   <style>
-    :root { color-scheme: light; --bg:#f4f5f7; --paper:#fafbfc; --ink:#1f2933; --muted:#52606d; --line:#d5d8de; --accent:#4b5563; --accent-soft:#e5e7eb; --code-bg:#111827; --code-ink:#f9fafb; }
-    * { box-sizing: border-box; }
-    body { margin:0; background:linear-gradient(135deg,#f4f5f7 0%,#fafbfc 100%); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; line-height:1.75; }
-    main { width:min(980px,calc(100% - 32px)); margin:32px auto; padding:40px; background:var(--paper); border:1px solid var(--line); border-radius:20px; box-shadow:0 18px 50px rgba(31,41,51,.12); }
-    h1,h2,h3 { line-height:1.25; color:#111827; } h1 { margin:0 0 12px; font-size:clamp(2rem,4vw,3.2rem); letter-spacing:-.04em; } h2 { margin-top:44px; padding-top:20px; border-top:1px solid var(--line); font-size:1.55rem; } h3 { margin-top:28px; font-size:1.18rem; }
-    p { margin:12px 0; } ul { padding-left:1.25rem; } li { margin:6px 0; }
-    code { padding:.14rem .32rem; border-radius:5px; background:var(--accent-soft); color:#374151; font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; font-size:.92em; }
-    pre { overflow:auto; padding:18px 20px; border-radius:12px; background:var(--code-bg); color:var(--code-ink); line-height:1.6; } pre code { padding:0; background:transparent; color:inherit; font-size:.9rem; }
-    table { width:100%; border-collapse:collapse; margin:18px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; } th,td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { background:#e5e7eb; color:#1f2937; font-weight:700; } tr:last-child td { border-bottom:0; }
-    .lead { max-width:780px; color:var(--muted); font-size:1.08rem; } .meta { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0 30px; } .tag { padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#f3f4f6; color:#374151; font-size:.9rem; } .note { margin:18px 0; padding:16px 18px; border-left:5px solid var(--accent); border-radius:10px; background:#f3f4f6; } .summary { margin-top:28px; padding:20px; border-radius:14px; background:#e5e7eb; }
-    @media (max-width:680px) { main { width:min(100% - 18px,980px); margin:10px auto; padding:22px 16px; border-radius:14px; } table { display:block; overflow-x:auto; } }
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #475569;
+      --accent-soft: #f1f5f9;
+      --code-bg: #1e293b;
+      --code-ink: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
+    }
+
+    h1, h2, h3 { line-height: 1.25; color: var(--ink); }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+
+    code {
+      padding: 0.14rem 0.32rem;
+      border-radius: 5px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      line-height: 1.6;
+    }
+
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .note {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--accent);
+      border-radius: 10px;
+      background: var(--accent-soft);
+    }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: var(--accent-soft); }
+
+    @media (max-width: 680px) {
+      main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
+      table { display: block; overflow-x: auto; }
+    }
   </style>
 </head>
 <body>
-<main>
-<h1>面向对象基础学习笔记</h1>
-<p class="lead">面向对象的五个核心概念——封装、继承、多态、组合、接口——是所有设计模式的基石。掌握它们之间的区别和选择原则，能让你在设计模式的学习中事半功倍。</p>
-<div class="meta"><span class="tag">前置基础</span><span class="tag">OOP Basics</span><span class="tag">TypeScript + Python</span><span class="tag">封装·继承·多态·组合·接口</span></div>
+  <main>
+    <h1>面向对象基础教程</h1>
+    <p class="lead">面向对象的五个核心概念——封装、继承、多态、组合、接口——是所有设计模式的基石。掌握它们之间的区别和选择原则，能让你在设计模式的学习中事半功倍。</p>
+    <div class="meta">
+      <span class="tag">前置基础</span>
+      <span class="tag">OOP Basics</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">封装·继承·多态·组合·接口</span>
+    </div>
 
-<h2>今日目标</h2>
-<ul>
-  <li>理解封装、继承、多态、组合、接口的核心含义。</li>
-  <li>能用 TypeScript 和 Python 写出每种概念的示例。</li>
-  <li>知道继承和组合各自的适用场景。</li>
-  <li>理解为什么接口是设计模式中最重要的概念之一。</li>
-</ul>
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解封装、继承、多态、组合、接口的核心含义。</li>
+      <li>能用 TypeScript 和 Python 写出每种概念的示例。</li>
+      <li>知道继承和组合各自的适用场景。</li>
+      <li>理解为什么接口是设计模式中最重要的概念之一。</li>
+    </ul>
 
-<h2>1. 封装</h2>
-<p><strong>核心思想：</strong>把数据和操作封装在对象内部，外部只能通过公开方法访问，避免直接操作内部状态。</p>
-<p><strong>生活类比：</strong> ATM 机只暴露插卡口和出钞口，内部电路和线缆被外壳封住。你不需要知道钱是怎么从钱箱里数出来的。</p>
+    <h2>1. 封装</h2>
+    <p><strong>核心思想：</strong>把数据和操作封装在对象内部，外部只能通过公开方法访问，避免直接操作内部状态。</p>
+    <p><strong>生活类比：</strong> ATM 机只暴露插卡口和出钞口，内部电路和线缆被外壳封住。你不需要知道钱是怎么从钱箱里数出来的。</p>
 
-<h3>坏代码</h3>
-<pre><code class="language-ts">class BankAccount {
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">class BankAccount {
   balance = 0;
 }
 
 const account = new BankAccount();
 account.balance = -99999;  // 直接改，没有任何校验</code></pre>
 
-<h3>TypeScript 示例</h3>
-<pre><code class="language-ts">class BankAccount {
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">class BankAccount {
   private _balance = 0;
 
   get balance(): number {
@@ -64,8 +161,8 @@ account.balance = -99999;  // 直接改，没有任何校验</code></pre>
   }
 }</code></pre>
 
-<h3>Python 示例</h3>
-<pre><code class="language-python">class BankAccount:
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">class BankAccount:
     def __init__(self):
         self._balance = 0  # 前置下划线约定为"内部使用"
 
@@ -85,250 +182,180 @@ account.balance = -99999;  // 直接改，没有任何校验</code></pre>
             raise ValueError("余额不足")
         self._balance -= amount</code></pre>
 
-<div class="note"><strong>语言差异：</strong>TypeScript 有 <code>private</code> 关键字强制限制访问；Python 依靠命名约定（<code>_field</code>）和 <code>@property</code>，由开发者自觉遵守。</div>
+    <div class="note"><strong>语言差异：</strong>TypeScript 有 <code>private</code> 关键字强制限制访问；Python 依靠命名约定（<code>_field</code>）和 <code>@property</code>，由开发者自觉遵守。</div>
 
-<h2>2. 继承</h2>
-<p><strong>核心思想：</strong>子类可以从父类获取属性和方法，实现代码复用，表达"是一种"的关系。</p>
-<p><strong>生活类比：</strong>电动车和燃油车都"是一种"车，都有方向盘、刹车、加速踏板，但具体动力来源不同。</p>
+    <h2>2. 继承</h2>
+    <p><strong>核心思想：</strong>子类可以从父类获取属性和方法，实现代码复用，表达"是一种"的关系。</p>
+    <p><strong>生活类比：</strong>电动车和燃油车都"是一种"车，都有方向盘、刹车、加速踏板，但具体动力来源不同。</p>
 
-<h3>坏代码</h3>
-<pre><code class="language-ts">class Car {
+    <h3>坏代码</h3>
+    <pre><code class="language-ts">class Car {
   start() { /* ... */ }
   stop() { /* ... */ }
 }
 class ElectricCar {
   start() { /* 重复 Car 的逻辑 */ }
   stop() { /* 重复 Car 的逻辑 */ }
-  charge() { /* ... */ }
 }</code></pre>
 
-<h3>TypeScript 示例</h3>
-<pre><code class="language-ts">class Car {
-  brand: string;
-  constructor(brand: string) { this.brand = brand; }
-
-  start(): void { console.log(`${this.brand} 启动`); }
-  stop(): void { console.log(`${this.brand} 熄火`); }
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">class Car {
+  start(): void { console.log("启动"); }
+  stop(): void { console.log("停止"); }
 }
 
 class ElectricCar extends Car {
-  charge(): void { console.log(`${this.brand} 充电中`); }
+  charge(): void { console.log("充电中"); }
 }
 
-const tesla = new ElectricCar("特斯拉");
-tesla.start();   // 继承来的
-tesla.charge();  // 自己的</code></pre>
+const car = new ElectricCar();
+car.start();
+car.charge();</code></pre>
 
-<h3>Python 示例</h3>
-<pre><code class="language-python">class Car:
-    def __init__(self, brand: str):
-        self.brand = brand
-
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">class Car:
     def start(self) -> None:
-        print(f"{self.brand} 启动")
+        print("启动")
 
     def stop(self) -> None:
-        print(f"{self.brand} 熄火")
+        print("停止")
 
 
 class ElectricCar(Car):
     def charge(self) -> None:
-        print(f"{self.brand} 充电中")
+        print("充电中")
 
 
-tesla = ElectricCar("特斯拉")
-tesla.start()</code></pre>
+car = ElectricCar()
+car.start()
+car.charge()</code></pre>
 
-<div class="note"><strong>语言差异：</strong>两者写法接近。Python 支持多重继承，TypeScript 只能单继承类但可以多实现接口。</div>
+    <div class="note">继承的陷阱：过度使用继承会导致类层次过深、耦合过紧。如果子类只是"有一个"而不是"是一种"，应该用组合。</div>
 
-<h2>3. 多态</h2>
-<p><strong>核心思想：</strong>同一个方法名，不同对象可以有不同的实现方式。调用方只关心"能做这个动作"，不关心"具体怎么做"。</p>
-<p><strong>生活类比：</strong>老师对学生说"开始考试"，每个学生答题方式不同，但老师不需要知道每个人具体怎么做。</p>
+    <h2>3. 多态</h2>
+    <p><strong>核心思想：</strong>同一接口，不同实现。调用方只关心"能做什么"，不关心"具体是谁做的"。</p>
 
-<h3>坏代码</h3>
-<pre><code class="language-ts">function playSound(animal: any) {
-  if (animal.type === "dog") console.log("汪汪");
-  else if (animal.type === "cat") console.log("喵喵");
-  else if (animal.type === "duck") console.log("嘎嘎");
-}</code></pre>
-
-<h3>TypeScript 示例</h3>
-<pre><code class="language-ts">interface Animal {
-  speak(): string;
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface Animal {
+  speak(): void;
 }
 
 class Dog implements Animal {
-  speak(): string { return "汪汪"; }
+  speak(): void { console.log("汪汪"); }
 }
 
 class Cat implements Animal {
-  speak(): string { return "喵喵"; }
+  speak(): void { console.log("喵喵"); }
 }
 
-function makeItSpeak(animal: Animal): void {
-  console.log(animal.speak());
+function makeSound(animal: Animal): void {
+  animal.speak();
 }
 
-makeItSpeak(new Dog());  // 汪汪
-makeItSpeak(new Cat());  // 喵喵</code></pre>
+makeSound(new Dog());
+makeSound(new Cat());</code></pre>
 
-<h3>Python 示例</h3>
-<pre><code class="language-python">from typing import Protocol
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
 
 
 class Animal(Protocol):
-    def speak(self) -> str:
+    def speak(self) -> None:
         ...
 
 
 class Dog:
-    def speak(self) -> str:
-        return "汪汪"
+    def speak(self) -> None:
+        print("汪汪")
 
 
 class Cat:
-    def speak(self) -> str:
-        return "喵喵"
+    def speak(self) -> None:
+        print("喵喵")
 
 
-def make_it_speak(animal: Animal) -> None:
-    print(animal.speak())
+def make_sound(animal: Animal) -> None:
+    animal.speak()
 
 
-make_it_speak(Dog())
-make_it_speak(Cat())</code></pre>
+make_sound(Dog())
+make_sound(Cat())</code></pre>
 
-<div class="note"><strong>语言差异：</strong>TypeScript 多态依赖接口或继承；Python 依赖鸭子类型——只要对象有 <code>speak</code> 方法就能用，不需要显式声明接口。</div>
+    <div class="note">Python 的鸭子类型让多态更自然：不需要显式继承，只要有同名方法即可。</div>
 
-<h2>4. 组合</h2>
-<p><strong>核心思想：</strong>一个类持有另一个类的实例作为成员，而不是通过继承获得能力。表达"有一个"的关系。</p>
-<p><strong>生活类比：</strong>汽车"有一个"引擎，而不是"是一台"引擎。引擎坏了可以换，但如果汽车继承了引擎，换引擎就等于换车。</p>
+    <h2>4. 组合</h2>
+    <p><strong>核心思想：</strong>"有一个"比"是一种"更灵活。把对象作为属性组合起来，而不是继承。</p>
 
-<h3>坏代码</h3>
-<pre><code class="language-ts">class Engine { start() { /* ... */ } }
-
-class Car extends Engine {  // Car 是 Engine？不合理！
-  drive() { this.start(); }
-}</code></pre>
-
-<h3>TypeScript 示例</h3>
-<pre><code class="language-ts">class Engine {
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">class Engine {
   start(): void { console.log("引擎启动"); }
-  stop(): void { console.log("引擎熄火"); }
 }
 
 class Car {
   constructor(private engine: Engine) {}
-
-  drive(): void {
-    this.engine.start();
-    console.log("行驶中");
-    this.engine.stop();
-  }
+  start(): void { this.engine.start(); }
 }
 
 const car = new Car(new Engine());
-car.drive();</code></pre>
+car.start();</code></pre>
 
-<h3>Python 示例</h3>
-<pre><code class="language-python">class Engine:
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">class Engine:
     def start(self) -> None:
         print("引擎启动")
 
-    def stop(self) -> None:
-        print("引擎熄火")
-
 
 class Car:
-    def __init__(self, engine: Engine):
+    def __init__(self, engine: Engine) -> None:
         self.engine = engine
 
-    def drive(self) -> None:
+    def start(self) -> None:
         self.engine.start()
-        print("行驶中")
-        self.engine.stop()
 
 
 car = Car(Engine())
-car.drive()</code></pre>
+car.start()</code></pre>
 
-<div class="note"><strong>关键判断：</strong>如果两个类的关系是"A 是 B"，用继承；如果是"A 用到 B"，用组合。大多数情况下组合比继承更灵活。</div>
+    <div class="note"><strong>组合优于继承：</strong>组合让对象之间的关系更松散，运行时更容易替换部件。</div>
 
-<h2>5. 接口</h2>
-<p><strong>核心思想：</strong>定义一组方法签名，不提供实现。任何类只要符合这个契约，就能被调用方使用。接口让系统"面向契约编程"。</p>
-<p><strong>生活类比：</strong> USB 接口定义了"能插进去、能传数据"的规范，U 盘、鼠标、键盘都实现了这个接口，电脑不关心具体是什么设备。</p>
+    <h2>5. 接口</h2>
+    <p><strong>核心思想：</strong>定义"能做什么"的契约，不约束"怎么做"。</p>
 
-<h3>坏代码</h3>
-<pre><code class="language-ts">function saveData(storage: any) {
-  if (storage instanceof MySQL) storage.insert(data);
-  else if (storage instanceof Mongo) storage.create(data);
-  else if (storage instanceof Redis) storage.set(data);
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface PaymentMethod {
+  pay(amount: number): void;
+}
+
+class Alipay implements PaymentMethod {
+  pay(amount: number): void { console.log(`支付宝支付 ${amount}`); }
+}
+
+class WechatPay implements PaymentMethod {
+  pay(amount: number): void { console.log(`微信支付 ${amount}`); }
 }</code></pre>
 
-<h3>TypeScript 示例</h3>
-<pre><code class="language-ts">interface DataStorage {
-  save(data: string): void;
-}
-
-class MySQLStorage implements DataStorage {
-  save(data: string): void { console.log(`MySQL 存储: ${data}`); }
-}
-
-class MongoStorage implements DataStorage {
-  save(data: string): void { console.log(`Mongo 存储: ${data}`); }
-}
-
-function writeData(storage: DataStorage, data: string): void {
-  storage.save(data);
-}
-
-writeData(new MySQLStorage(), "用户数据");
-writeData(new MongoStorage(), "用户数据");</code></pre>
-
-<h3>Python 示例</h3>
-<pre><code class="language-python">from typing import Protocol
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from typing import Protocol
 
 
-class DataStorage(Protocol):
-    def save(self, data: str) -> None:
+class PaymentMethod(Protocol):
+    def pay(self, amount: int) -> None:
         ...
 
 
-class MySQLStorage:
-    def save(self, data: str) -> None:
-        print(f"MySQL 存储: {data}")
+class Alipay:
+    def pay(self, amount: int) -> None:
+        print(f"支付宝支付 {amount}")
 
 
-class MongoStorage:
-    def save(self, data: str) -> None:
-        print(f"Mongo 存储: {data}")
+class WechatPay:
+    def pay(self, amount: int) -> None:
+        print(f"微信支付 {amount}")</code></pre>
 
-
-def write_data(storage: DataStorage, data: str) -> None:
-    storage.save(data)
-
-
-write_data(MySQLStorage(), "用户数据")
-write_data(MongoStorage(), "用户数据")</code></pre>
-
-<div class="note"><strong>语言差异：</strong>TypeScript 有原生 <code>interface</code> 关键字，强制编译时检查；Python 用 <code>Protocol</code> 达到类似效果，但鸭子类型让你可以完全不写接口也能跑。设计模式中，接口是最常用的抽象手段。</div>
-
-<h2>六个概念的关系</h2>
-<table>
-  <thead><tr><th>概念</th><th>关系</th><th>关键词</th><th>用在哪</th></tr></thead>
-  <tbody>
-    <tr><td>封装</td><td>基础能力</td><td>隐藏细节，暴露接口</td><td>几乎每个类</td></tr>
-    <tr><td>继承</td><td>复用手段</td><td>"是一种"</td><td>模板方法、适配器等</td></tr>
-    <tr><td>多态</td><td>灵活切换</td><td>"同方法，不同行为"</td><td>策略、工厂、观察者等</td></tr>
-    <tr><td>组合</td><td>替代继承</td><td>"有一个"</td><td>桥接、装饰器、代理等</td></tr>
-    <tr><td>接口</td><td>契约</td><td>"定义能做什么，不说怎么做"</td><td>几乎所有设计模式</td></tr>
-  </tbody>
-</table>
-
-<section class="summary">
-<h2>今日总结</h2>
-<p>五个概念不是孤立的。真正的面向对象设计是在"该继承还是该组合"、"该暴露接口还是该封装"之间做选择。掌握这些概念后，你就能理解设计模式为什么是那些结构，而不是硬套模板。</p>
-</section>
-</main>
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>封装保护数据、继承复用代码、多态统一接口、组合灵活组装、接口定义契约。设计模式本质上是这些基础概念在不同场景下的组合应用。</p>
+    </div>
+  </main>
 </body>
 </html>
