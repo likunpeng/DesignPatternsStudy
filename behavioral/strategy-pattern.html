@@ -201,31 +201,31 @@
 
     <h2>7. TypeScript 示例</h2>
     <pre><code class="language-ts">interface DiscountStrategy {
-  calculate(): number;
+  calculate(amount: number): number;
 }
 
 class NormalDiscount implements DiscountStrategy {
-  calculate(): number { return 1; }
+  calculate(amount: number): number { return amount; }
 }
 
 class VipDiscount implements DiscountStrategy {
-  calculate(): number { return 0.9; }
+  calculate(amount: number): number { return amount * 0.9; }
 }
 
 class SvipDiscount implements DiscountStrategy {
-  calculate(): number { return 0.8; }
+  calculate(amount: number): number { return amount * 0.8; }
 }
 
 class DiscountContext {
   constructor(private strategy: DiscountStrategy) {}
 
-  getDiscount(): number {
-    return this.strategy.calculate();
+  getPrice(amount: number): number {
+    return this.strategy.calculate(amount);
   }
 }
 
 const context = new DiscountContext(new VipDiscount());
-console.log(context.getDiscount());</code></pre>
+console.log(context.getPrice(100)); // 90</code></pre>
     <p>新增黑金会员折扣时，只新增一个策略类，不需要改 <code>DiscountContext</code>。</p>
 
     <h2>8. Python 示例</h2>
@@ -234,46 +234,46 @@ console.log(context.getDiscount());</code></pre>
 
 class DiscountStrategy(ABC):
     @abstractmethod
-    def calculate(self) -&gt; float:
+    def calculate(self, amount: float) -&gt; float:
         pass
 
 
 class NormalDiscount(DiscountStrategy):
-    def calculate(self) -&gt; float:
-        return 1.0
+    def calculate(self, amount: float) -&gt; float:
+        return amount
 
 
 class VipDiscount(DiscountStrategy):
-    def calculate(self) -&gt; float:
-        return 0.9
+    def calculate(self, amount: float) -&gt; float:
+        return amount * 0.9
 
 
 class SvipDiscount(DiscountStrategy):
-    def calculate(self) -&gt; float:
-        return 0.8
+    def calculate(self, amount: float) -&gt; float:
+        return amount * 0.8
 
 
 class DiscountContext:
     def __init__(self, strategy: DiscountStrategy) -&gt; None:
         self.strategy = strategy
 
-    def get_discount(self) -&gt; float:
-        return self.strategy.calculate()
+    def get_price(self, amount: float) -&gt; float:
+        return self.strategy.calculate(amount)
 
 
 context = DiscountContext(VipDiscount())
-print(context.get_discount())</code></pre>
+print(context.get_price(100))  # 90.0</code></pre>
     <p>Python 也可以更轻量地直接传函数：</p>
-    <pre><code class="language-python">def normal_discount() -&gt; float:
-    return 1.0
+    <pre><code class="language-python">def normal_discount(amount: float) -&gt; float:
+    return amount
 
-def vip_discount() -&gt; float:
-    return 0.9
+def vip_discount(amount: float) -&gt; float:
+    return amount * 0.9
 
-def get_discount(strategy) -&gt; float:
-    return strategy()
+def get_price(strategy, amount: float) -&gt; float:
+    return strategy(amount)
 
-print(get_discount(vip_discount))</code></pre>
+print(get_price(vip_discount, 100))  # 90.0</code></pre>
     <p>这种函数式写法更短，也更符合 Python 的灵活风格。简单场景下不需要类。</p>
 
     <h2>9. 优缺点</h2>

@@ -43,16 +43,16 @@
 | 模式 | 文件 | 状态 | 更新时间 |
 |---|---|---|---|
 | 策略模式 | `behavioral/strategy-pattern.html` | 未学习 | - |
-| 模板方法模式 | - | 未学习 | - |
+| 模板方法模式 | `behavioral/template-method-pattern.html` | 未学习 | - |
 | 观察者模式 | `behavioral/observer-pattern.html` | 未学习 | - |
-| 责任链模式 | - | 未学习 | - |
-| 命令模式 | - | 未学习 | - |
-| 状态模式 | - | 未学习 | - |
-| 迭代器模式 | - | 未学习 | - |
-| 中介者模式 | - | 未学习 | - |
-| 备忘录模式 | - | 未学习 | - |
-| 访问者模式 | - | 未学习 | - |
-| 解释器模式 | - | 未学习 | - |
+| 责任链模式 | `behavioral/chain-of-responsibility-pattern.html` | 未学习 | - |
+| 命令模式 | `behavioral/command-pattern.html` | 未学习 | - |
+| 状态模式 | `behavioral/state-pattern.html` | 未学习 | - |
+| 迭代器模式 | `behavioral/iterator-pattern.html` | 未学习 | - |
+| 中介者模式 | `behavioral/mediator-pattern.html` | 未学习 | - |
+| 备忘录模式 | `behavioral/memento-pattern.html` | 未学习 | - |
+| 访问者模式 | `behavioral/visitor-pattern.html` | 未学习 | - |
+| 解释器模式 | `behavioral/interpreter-pattern.html` | 未学习 | - |
 
 ## 下一个建议学习
 

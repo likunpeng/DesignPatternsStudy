@@ -107,6 +107,16 @@
   <h1>桥接模式教程</h1><p class="lead">桥接模式解决的是“两个变化维度互相绑死，导致类数量爆炸”的问题。它把抽象和实现拆开，让它们可以独立变化。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Bridge Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">组合优于继承</span></div>
   <h2>今日目标</h2><ul><li>理解桥接模式为什么能减少继承层级。</li><li>识别两个独立变化维度。</li><li>能用组合把抽象层和实现层连接起来。</li><li>能区分桥接和适配器。</li></ul>
   <h2>1. 这个模式解决什么问题</h2><p>如果一个系统有两个独立变化维度，直接用继承会产生组合爆炸。</p><pre><code>通知类型：普通通知、紧急通知
+发送渠道：邮件、短信、微信
+
+继承方案需要：
+  NormalEmailNotification
+  NormalSmsNotification
+  NormalWechatNotification
+  UrgentEmailNotification
+  UrgentSmsNotification
+  UrgentWechatNotification
+每增加一种类型或渠道，都要翻倍。</code></pre>
   <h2>2. 一个生活类比</h2><p>遥控器和电视品牌是两个变化维度。遥控器可以有基础版、高级版；电视可以是不同品牌。如果每个遥控器都绑定一个电视品牌，类会越来越多。更好的做法是遥控器持有一个电视接口。</p>
   <h2>3. 适用场景</h2><ul><li>两个维度都可能扩展，并且可以独立变化。</li><li>继承层级已经因为组合关系变得臃肿。</li><li>希望运行时切换实现。</li><li>抽象逻辑和底层实现需要分开演进。</li></ul>
   <h2>4. 不适用场景</h2><ul><li>只有一个变化维度。</li><li>组合关系并不稳定，强行抽象会增加理解成本。</li><li>简单业务中几个类就能解决问题。</li></ul>

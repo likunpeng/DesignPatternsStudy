@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>责任链模式教程</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #7c3aed;
+      --accent-soft: #f5f3ff;
+      --code-bg: #1e293b;
+      --code-ink: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
+    }
+    h1, h2, h3 { line-height: 1.25; color: var(--ink); }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+    code { padding: 0.14rem 0.32rem; border-radius: 5px; background: var(--accent-soft); color: var(--accent); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.92em; }
+    pre { overflow: auto; padding: 18px 20px; border-radius: 12px; background: var(--code-bg); color: var(--code-ink); line-height: 1.6; }
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.9rem; }
+    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: var(--accent-soft); }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: var(--accent-soft); }
+    @media (max-width: 680px) { main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; } table { display: block; overflow-x: auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>责任链模式教程</h1>
+    <p class="lead">责任链模式解决的是"一个请求需要经过多个处理器处理，但发送方不知道谁来处理"的问题。请求沿着链传递，直到某个处理器处理它。</p>
+    <div class="meta">
+      <span class="tag">行为型模式</span>
+      <span class="tag">Chain of Responsibility Pattern</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">请求传递</span>
+    </div>
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解责任链模式解决的问题。</li>
+      <li>知道什么时候应该用链式处理而不是集中处理。</li>
+      <li>能用 TypeScript 实现责任链模式。</li>
+      <li>能用 Python 实现责任链模式。</li>
+      <li>知道责任链模式的适用和不适用场景。</li>
+    </ul>
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>想象一个审批流程：请假申请 → 组长审批 → 经理审批 → 总监审批。申请人只管提交，不知道谁会处理。处理者根据条件决定是自己处理还是传给下一个。</p>
+    <p>这种场景在日志处理、异常处理、权限校验等地方很常见。</p>
+    <h2>2. 坏代码示例</h2>
+    <p>如果用一个类处理所有逻辑：</p>
+    <pre><code class="language-ts">function handleRequest(request) {
+  if (handlerA.canHandle(request)) {
+    return handlerA.handle(request);
+  }
+  if (handlerB.canHandle(request)) {
+    return handlerB.handle(request);
+  }
+  if (handlerC.canHandle(request)) {
+    return handlerC.handle(request);
+  }
+  // 每次新增处理器都要改这里
+}</code></pre>
+    <p>问题：每次增加或调整处理器都要修改这个函数，违反开闭原则。而且调用方需要知道所有处理器。</p>
+    <h2>3. 一个生活类比</h2>
+    <p>公司客服转接系统：客户打电话进来，客服能解决就解决，解决不了就转给专家，专家解决不了就转给经理。这个过程中，客户只打了一个电话，不知道最终是谁处理的。</p>
+    <h2>4. 适用场景</h2>
+    <ul>
+      <li>有多个对象可以处理同一个请求，但不确定由哪个处理。</li>
+      <li>想让请求发送者和接收者解耦。</li>
+      <li>需要动态调整处理器顺序或增删处理器。</li>
+      <li>日志级别处理、权限校验、审批流程等。</li>
+    </ul>
+    <h2>5. 不适用场景</h2>
+    <ul>
+      <li>请求只需要一个处理器处理，不需要链式传递。</li>
+      <li>处理器数量固定且很少，直接 if-else 更简单。</li>
+      <li>需要同步处理所有处理器，不适合链式。</li>
+    </ul>
+    <h2>6. 核心结构</h2>
+    <table>
+      <thead><tr><th>角色</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td>Handler</td><td>定义处理请求的接口，持有下一个处理者的引用。</td></tr>
+        <tr><td>ConcreteHandler</td><td>实现具体处理逻辑，决定是否传递给下一个。</td></tr>
+        <tr><td>Client</td><td>创建链并发送请求，不需要知道谁处理。</td></tr>
+      </tbody>
+    </table>
+    <h2>7. 示例代码</h2>
+    <h3>TypeScript</h3>
+    <pre><code class="language-ts">interface Handler {
+  setNext(handler: Handler): Handler;
+  handle(request: string): string | null;
+}
+
+abstract class AbstractHandler implements Handler {
+  private nextHandler: Handler | null = null;
+
+  setNext(handler: Handler): Handler {
+    this.nextHandler = handler;
+    return handler;
+  }
+
+  handle(request: string): string | null {
+    if (this.nextHandler) {
+      return this.nextHandler.handle(request);
+    }
+    return null;
+  }
+}
+
+class AuthHandler extends AbstractHandler {
+  handle(request: string): string | null {
+    if (request === "login") {
+      return "已通过身份验证";
+    }
+    return super.handle(request);
+  }
+}
+
+class LogHandler extends AbstractHandler {
+  handle(request: string): string | null {
+    console.log("记录日志:", request);
+    return super.handle(request);
+  }
+}
+
+// 使用
+const auth = new AuthHandler();
+const log = new LogHandler();
+auth.setNext(log);
+console.log(auth.handle("login"));</code></pre>
+    <h3>Python</h3>
+    <pre><code class="language-python">from abc import ABC, abstractmethod
+
+class Handler(ABC):
+    def __init__(self):
+        self._next_handler = None
+
+    def set_next(self, handler):
+        self._next_handler = handler
+        return handler
+
+    @abstractmethod
+    def handle(self, request):
+        if self._next_handler:
+            return self._next_handler.handle(request)
+        return None
+
+class AuthHandler(Handler):
+    def handle(self, request):
+        if request == "login":
+            return "已通过身份验证"
+        return super().handle(request)
+
+class LogHandler(Handler):
+    def handle(self, request):
+        print(f"记录日志: {request}")
+        return super().handle(request)
+
+# 使用
+auth = AuthHandler()
+log = LogHandler()
+auth.set_next(log)
+print(auth.handle("login"))</code></pre>
+    <h2>8. 优缺点</h2>
+    <table>
+      <thead><tr><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>发送者和接收者解耦</td><td>链过长时性能可能受影响</td></tr>
+        <tr><td>符合开闭原则，易于增删处理器</td><td>调试困难，难以确定哪个处理器处理了请求</td></tr>
+        <tr><td>可以灵活调整处理器顺序</td><td>如果所有处理器都不处理请求，请求会丢失</td></tr>
+      </tbody>
+    </table>
+    <h2>9. 和相似模式的区别</h2>
+    <table>
+      <thead><tr><th>模式</th><th>区别</th></tr></thead>
+      <tbody>
+        <tr><td>策略模式</td><td>策略模式选择一个算法执行；责任链模式让请求在链中传递，多个处理器都可能处理。</td></tr>
+        <tr><td>装饰器模式</td><td>装饰器在原对象上添加功能；责任链决定是否传递请求。</td></tr>
+      </tbody>
+    </table>
+    <h2>10. 练习题</h2>
+    <p>场景：实现一个日志系统，支持 DEBUG、INFO、WARN、ERROR 四种级别，每个级别有对应的处理器，只处理该级别及以上的日志。写出代码结构。</p>
+    <div class="note">
+      <strong>参考答案：</strong>定义抽象 Handler 类，每个 ConcreteHandler 判断是否能处理该日志级别，能处理则处理，否则传递给下一个。如果都不处理，可以添加一个默认的 NullHandler 防止请求丢失。
+    </div>
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>责任链模式通过将请求沿着处理者链传递，实现发送者和接收者的解耦。适合请求处理者不确定、需要动态调整处理顺序或增删处理逻辑的场景。</p>
+    </div>
+  </main>
+</body>
+</html>

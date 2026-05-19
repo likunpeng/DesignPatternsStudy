@@ -226,6 +226,56 @@ print(config1 is config2)  # True</code></pre>
 app_config = _AppConfig()</code></pre>
     <p>Python 模块同样只加载一次，<code>app_config</code> 就是进程内唯一的实例。</p>
 
+    <h2>7.1 多线程环境下的单例</h2>
+    <p>在多线程环境下，上面的基础实现可能出现竞态条件：两个线程同时检查 <code>instance === null</code>，各自创建实例，导致产生两个实例。下面是更安全的实现。</p>
+    <h3>TypeScript（Node.js 环境）</h3>
+    <pre><code class="language-ts">class AppConfig {
+  private static instance: AppConfig;
+  private static lock = false;
+
+  env: string;
+  version: string;
+
+  private constructor() {
+    this.env = process.env.NODE_ENV ?? "development";
+    this.version = "1.0.0";
+  }
+
+  static getInstance(): AppConfig {
+    if (!AppConfig.instance) {
+      if (!AppConfig.lock) {
+        AppConfig.lock = true;
+        AppConfig.instance = new AppConfig();
+      }
+    }
+    return AppConfig.instance;
+  }
+}
+
+// 在 Node.js 中，由于事件循环是单线程的，基础实现通常已经足够安全。
+// 真正的多线程场景（如 Worker Threads）需要使用 SharedArrayBuffer + Atomics 或 worker-local 单例。</code></pre>
+    <h3>Python（使用 threading.Lock）</h3>
+    <pre><code class="language-python">import threading
+
+class AppConfig:
+    _instance: "AppConfig | None" = None
+    _lock = threading.Lock()
+
+    def __new__(cls) -&gt; "AppConfig":
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:  # 双重检查锁定
+                    cls._instance = super().__new__(cls)
+                    cls._instance.env = "development"
+                    cls._instance.version = "1.0.0"
+        return cls._instance
+
+
+config1 = AppConfig()
+config2 = AppConfig()
+print(config1 is config2)  # True</code></pre>
+    <div class="note">Python 版本使用了双重检查锁定（Double-Check Locking），既保证了线程安全，又避免了每次获取实例都加锁的性能开销。TypeScript/JavaScript 在 Node.js 主线程中是事件循环模型，不存在真正的线程竞争，但在 Worker Threads 环境中需要额外处理。</div>
+
     <h2>8. 优缺点</h2>
     <table>
       <thead><tr><th>优点</th><th>缺点</th></tr></thead>

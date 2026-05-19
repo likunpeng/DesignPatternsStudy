@@ -183,8 +183,8 @@ class OrderService {
 
 
 class OrderRepository:
-    def save(self) -&gt; None:
-        print("保存订单到数据库")
+    def save(self, order_data: dict) -&gt; None:
+        print(f"保存订单到数据库: {order_data}")
 
 
 class OrderNotifier:
@@ -200,7 +200,7 @@ class OrderService:
 
     def create(self, email: str, amount: int) -&gt; None:
         self.validator.validate(amount)
-        self.repository.save()
+        self.repository.save({"email": email, "amount": amount})
         self.notifier.send(email)</code></pre>
     <div class="note">判断标准不是“类越小越好”，而是“这个类是不是因为不同原因被反复修改”。</div>
 
@@ -377,9 +377,26 @@ class Coder(Protocol):
         ...
 
 
+class Deliverer(Protocol):
+    def deliver(self) -&gt; None:
+        ...
+
+
+class Cleaner(Protocol):
+    def clean(self) -&gt; None:
+        ...
+
+
 class Programmer:
     def code(self) -&gt; None:
-        print("写代码")</code></pre>
+        print("写代码")
+
+
+# 程序员不需要实现 deliver() 和 clean()
+# 如果需要，就单独定义对应角色的人
+class DeliveryPerson:
+    def deliver(self) -&gt; None:
+        print("送外卖")</code></pre>
     <div class="note">接口隔离的目标不是拆得越细越好，而是避免“实现一个接口，却被迫写一堆无意义的方法”。</div>
 
     <h2>5. 依赖倒置原则</h2>

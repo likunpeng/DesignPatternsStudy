@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>模板方法模式教程</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #7c3aed;
+      --accent-soft: #f5f3ff;
+      --code-bg: #1e293b;
+      --code-ink: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 40px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
+    }
+    h1, h2, h3 { line-height: 1.25; color: var(--ink); }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
+    h3 { margin-top: 28px; font-size: 1.18rem; }
+    p { margin: 12px 0; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 6px 0; }
+    code { padding: 0.14rem 0.32rem; border-radius: 5px; background: var(--accent-soft); color: var(--accent); font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.92em; }
+    pre { overflow: auto; padding: 18px 20px; border-radius: 12px; background: var(--code-bg); color: var(--code-ink); line-height: 1.6; }
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
+    .tag { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.9rem; }
+    .note { margin: 18px 0; padding: 16px 18px; border-left: 5px solid var(--accent); border-radius: 10px; background: var(--accent-soft); }
+    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: var(--accent-soft); }
+    @media (max-width: 680px) { main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; } table { display: block; overflow-x: auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>模板方法模式教程</h1>
+    <p class="lead">模板方法模式解决的是"多个类有相同的流程，但每一步的具体实现不同"的问题。它把不变的整体流程抽象到父类，把可变的细节留给子类。</p>
+    <div class="meta">
+      <span class="tag">行为型模式</span>
+      <span class="tag">Template Method Pattern</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">流程抽象</span>
+    </div>
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解模板方法模式解决的问题。</li>
+      <li>知道什么时候应该把公共流程提取到父类。</li>
+      <li>能用 TypeScript 实现模板方法模式。</li>
+      <li>能用 Python 实现模板方法模式。</li>
+      <li>知道模板方法模式的适用和不适用场景。</li>
+    </ul>
+    <h2>1. 这个模式解决什么问题</h2>
+    <p>多个类需要执行相同的操作步骤，但每一步的具体实现不同。比如：</p>
+    <ul>
+      <li>泡茶和泡咖啡的流程都是：烧水 → 泡 → 倒入杯中 → 加调料</li>
+      <li>编译 Java 和编译 Python 的流程都是：词法分析 → 语法分析 → 生成代码</li>
+      <li>电商下单和线下购买的流程都是：验证 → 扣款 → 发货</li>
+    </ul>
+    <p>如果每个类都重复写相同的流程代码，就会造成大量重复。而且当流程需要修改时，要改很多地方。</p>
+    <h2>2. 坏代码示例</h2>
+    <p>假设泡茶和泡咖啡各写一套代码：</p>
+    <pre><code class="language-ts">class Tea {
+  make() {
+    this.boilWater();
+    this.steep();
+    this.pourInCup();
+    this.addLemon();
+  }
+  // ... 其他方法
+}
+
+class Coffee {
+  make() {
+    this.boilWater();
+    this.brew();
+    this.pourInCup();
+    this.addMilk();
+  }
+  // ... 其他方法
+}</code></pre>
+    <p>问题：流程 <code>烧水 → 泡 → 倒入杯中 → 加调料</code> 重复了 2 次，如果需要修改流程（比如增加"清洗杯子"步骤），要改 2 个地方。</p>
+    <h2>3. 一个生活类比</h2>
+    <p>做早餐的流程：打开冰箱 → 取出食材 → 烹饪 → 装盘。不管是做煎蛋还是做三明治，这个流程都一样，变的只是每个步骤的具体操作。有一个"早餐制作模板"，可以套用到所有早餐上。</p>
+    <h2>4. 适用场景</h2>
+    <ul>
+      <li>多个类有相同的操作步骤。</li>
+      <li>步骤顺序重要，不能随意调换。</li>
+      <li>不变的部分应该集中管理，可变的部分由子类实现。</li>
+      <li>需要控制子类的扩展方式（通过钩子方法）。</li>
+    </ul>
+    <h2>5. 不适用场景</h2>
+    <ul>
+      <li>各个类的操作步骤完全不同，没有公共流程。</li>
+      <li>想要使用继承但 JavaScript/TypeScript 的类继承机制受限。</li>
+      <li>只需要组合，不需要继承层次结构。</li>
+    </ul>
+    <h2>6. 核心结构</h2>
+    <table>
+      <thead><tr><th>角色</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td>AbstractClass</td><td>定义模板方法和骨架步骤，调用抽象方法或钩子方法。</td></tr>
+        <tr><td>ConcreteClass</td><td>实现各个步骤的具体逻辑。</td></tr>
+        <tr><td>Template Method</td><td>定义算法骨架的方法，一般不允许重写。</td></tr>
+        <tr><td>Primitive Operation</td><td>子类必须实现的抽象方法。</td></tr>
+        <tr><td>Hook</td><td>可选的钩子方法，子类可以选择重写。</td></tr>
+      </tbody>
+    </table>
+    <h2>7. 示例代码</h2>
+    <h3>TypeScript</h3>
+    <pre><code class="language-ts">abstract class CaffeineBeverage {
+  prepare() {
+    this.boilWater();
+    this.brew();
+    this.pourInCup();
+    if (this.customerWantsCondiments()) {
+      this.addCondiments();
+    }
+  }
+
+  abstract brew(): void;
+  abstract addCondiments(): void;
+
+  boilWater() { console.log("烧水"); }
+  pourInCup() { console.log("倒入杯中"); }
+
+  customerWantsCondiments(): boolean { return true; }
+}
+
+class Coffee extends CaffeineBeverage {
+  brew() { console.log("冲泡咖啡"); }
+  addCondiments() { console.log("加入牛奶"); }
+  customerWantsCondiments(): boolean { return confirm("要加牛奶吗？"); }
+}
+
+class Tea extends CaffeineBeverage {
+  brew() { console.log("浸泡茶叶"); }
+  addCondiments() { console.log("加入柠檬"); }
+}</code></pre>
+    <h3>Python</h3>
+    <pre><code class="language-python">from abc import ABC, abstractmethod
+
+class CaffeineBeverage(ABC):
+    def prepare(self):
+        self.boil_water()
+        self.brew()
+        self.pour_in_cup()
+        if self.customer_wants_condiments():
+            self.add_condiments()
+
+    @abstractmethod
+    def brew(self): pass
+
+    @abstractmethod
+    def add_condiments(self): pass
+
+    def boil_water(self): print("烧水")
+    def pour_in_cup(self): print("倒入杯中")
+    def customer_wants_condiments(self): return True
+
+class Coffee(CaffeineBeverage):
+    def brew(self): print("冲泡咖啡")
+    def add_condiments(self): print("加入牛奶")
+
+class Tea(CaffeineBeverage):
+    def brew(self): print("浸泡茶叶")
+    def add_condiments(self): print("加入柠檬")</code></pre>
+    <h2>8. 优缺点</h2>
+    <table>
+      <thead><tr><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>消除重复代码，把公共流程集中到父类</td><td>类数量增加，每个具体步骤都要一个类</td></tr>
+        <tr><td>符合开闭原则，易于扩展新子类</td><td>模板方法默认不允许重写，灵活性受限</td></tr>
+        <tr><td>通过钩子方法可以让子类控制算法步骤</td><td>继承层次过深可能导致代码难理解</td></tr>
+      </tbody>
+    </table>
+    <h2>9. 和相似模式的区别</h2>
+    <table>
+      <thead><tr><th>模式</th><th>区别</th></tr></thead>
+      <tbody>
+        <tr><td>策略模式</td><td>策略模式把不同的算法封装成独立类，可以互相替换；模板方法通过继承实现，算法步骤固定。</td></tr>
+        <tr><td>工厂方法</td><td>工厂方法专注于对象创建；模板方法专注于算法流程。</td></tr>
+      </tbody>
+    </table>
+    <h2>10. 练习题</h2>
+    <p>场景：实现一个数据导出功能，支持导出为 CSV 和 JSON 两种格式。两种格式的流程都是：获取数据 → 格式化 → 写入文件。写出代码结构。</p>
+    <div class="note">
+      <strong>参考答案：</strong>定义抽象类 <code>DataExporter</code>，包含模板方法 <code>export()</code>，调用抽象方法 <code>fetchData()</code>、<code>format()</code>、<code>writeToFile()</code>。然后创建 <code>CsvExporter</code> 和 <code>JsonExporter</code> 两个子类实现具体逻辑。
+    </div>
+    <div class="summary">
+      <h2>今日总结</h2>
+      <p>模板方法模式通过继承机制，把不变的整体流程提取到父类，把可变的细节留给子类实现。它遵循"复用相同逻辑，个性化不同细节"的思想，适合流程固定但步骤多变的场景。</p>
+    </div>
+  </main>
+</body>
+</html>

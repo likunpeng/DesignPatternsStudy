@@ -143,7 +143,7 @@
     </ul>
     <p>如果业务代码里到处直接 <code>new</code> 具体类，后续新增类型时就容易到处改。</p>
 
-    <h2>2. 坏代码示例</h2>
+    <h3>坏代码示例</h3>
     <p>假设系统需要根据通知类型发送消息：</p>
     <pre><code class="language-ts">class EmailNotifier {
   send(message: string): void {
@@ -168,16 +168,10 @@ function notify(type: string, message: string): void {
     notifier.send(message);
   }
 }</code></pre>
-    <p>这段代码的问题是：</p>
-    <ul>
-      <li><code>notify</code> 同时负责业务流程和对象创建。</li>
-      <li>新增通知渠道时，必须修改 <code>notify</code>。</li>
-      <li>创建逻辑一旦变复杂，会污染主流程。</li>
-      <li>如果多个地方都要创建通知器，判断逻辑会重复。</li>
-    </ul>
+    <p>这段代码的问题是：<code>notify</code> 同时负责业务流程和对象创建，新增通知渠道时必须修改 <code>notify</code>，创建逻辑变复杂后会污染主流程。</p>
     <div class="note">这里的问题不只是有 <code>if-else</code>，而是创建具体对象的职责放错了地方。</div>
 
-    <h2>3. 一个生活类比</h2>
+    <h2>2. 一个生活类比</h2>
     <p>你去咖啡店点咖啡。</p>
     <p>你不会自己去磨豆、控制水温、打奶泡。你只需要说：“我要一杯拿铁。”</p>
     <p>咖啡店负责创建咖啡。你负责喝咖啡。</p>
@@ -188,7 +182,7 @@ function notify(type: string, message: string): void {
       <li>你不关心咖啡怎么被创建，只关心拿到能喝的咖啡。</li>
     </ul>
 
-    <h2>4. 适用场景</h2>
+    <h2>3. 适用场景</h2>
     <ul>
       <li>创建对象的过程比较复杂。</li>
       <li>业务代码不应该知道具体类的创建细节。</li>
@@ -205,7 +199,7 @@ function notify(type: string, message: string): void {
       <li>缓存实现：内存缓存、Redis 缓存、本地文件缓存。</li>
     </ul>
 
-    <h2>5. 不适用场景</h2>
+    <h2>4. 不适用场景</h2>
     <ul>
       <li>只有一个具体类，没有变化点。</li>
       <li>创建对象只是简单 <code>new</code> 一下。</li>
@@ -216,7 +210,7 @@ function notify(type: string, message: string): void {
     <pre><code class="language-ts">const user = new User(name);</code></pre>
     <p>这种代码没有必要专门写一个 <code>UserFactory</code>。设计模式不是为了隐藏 <code>new</code>，而是为了管理复杂的创建逻辑。</p>
 
-    <h2>6. 核心结构</h2>
+    <h2>5. 核心结构</h2>
     <p>工厂方法模式的核心是：</p>
     <pre><code>把对象创建这件事交给工厂，让业务代码依赖抽象，而不是直接依赖具体类。</code></pre>
     <p>在通知场景里：</p>
@@ -227,7 +221,7 @@ function notify(type: string, message: string): void {
       <li><code>EmailNotifierFactory</code> 和 <code>SmsNotifierFactory</code> 是具体工厂。</li>
     </ul>
 
-    <h2>7. TypeScript 示例</h2>
+    <h2>6. TypeScript 示例</h2>
     <pre><code class="language-ts">interface Notifier {
   send(message: string): void;
 }
@@ -276,7 +270,7 @@ notifyUser(new SmsNotifierFactory(), "验证码是 123456");</code></pre>
       <li><code>notifyUser</code>：只负责使用通知器，不负责判断具体创建哪一种通知器。</li>
     </ul>
 
-    <h2>8. Python 示例</h2>
+    <h2>7. Python 示例</h2>
     <pre><code class="language-python">from abc import ABC, abstractmethod
 
 
@@ -330,16 +324,7 @@ notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
     raise ValueError(f"未知通知类型: {kind}")</code></pre>
     <p>这个写法不是严格的工厂方法模式，但在小项目里经常更实用。</p>
 
-    <h2>9. TypeScript 和 Python 的区别</h2>
-    <ul>
-      <li>TypeScript 更适合用 <code>interface</code> 明确约束产品和工厂结构。</li>
-      <li>Python 可以用抽象基类，也可以直接依赖鸭子类型。</li>
-      <li>TypeScript 的类型约束更强，适合多人协作时维护扩展点。</li>
-      <li>Python 简单场景下不一定需要工厂类，一个工厂函数就够了。</li>
-      <li>两种语言都不应该为了展示模式而强行增加类数量。</li>
-    </ul>
-
-    <h2>10. 优缺点</h2>
+    <h2>8. 优缺点</h2>
     <table>
       <thead>
         <tr>
@@ -366,8 +351,11 @@ notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
         </tr>
       </tbody>
     </table>
+    <div class="note">
+      <strong>TypeScript vs Python 实现差异：</strong>TypeScript 更适合用 <code>interface</code> 明确约束产品和工厂结构，类型约束更强；Python 可以用抽象基类或直接依赖鸭子类型，简单场景下一个工厂函数就够了。两种语言都不应该为了展示模式而增加类数量。
+    </div>
 
-    <h2>11. 和策略模式的区别</h2>
+    <h2>9. 和相似模式的区别</h2>
     <p>工厂方法模式和策略模式都可能减少 <code>if-else</code>，但它们解决的问题不同。</p>
     <table>
       <thead>
@@ -450,7 +438,6 @@ class AlipayStrategyFactory implements PayStrategyFactory {
 checkout(new WechatPayStrategyFactory(), 100);</code></pre>
     <p>如果只是支付规则不同，但对象创建很简单，可以只用策略模式，不一定需要工厂方法。如果创建策略时还要读取配置、初始化 SDK、设置密钥、选择环境，就可以考虑再引入工厂。</p>
 
-    <h2>12. 和其他容易混淆模式的区别</h2>
     <h3>和简单工厂的区别</h3>
     <p>简单工厂通常是一个函数或一个类，根据参数返回不同对象。</p>
     <pre><code class="language-ts">function createNotifier(type: string): Notifier {
@@ -556,7 +543,7 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
       </tbody>
     </table>
 
-    <h2>13. 对比小结</h2>
+    <h3>对比小结</h3>
     <table>
       <thead>
         <tr>
@@ -593,7 +580,7 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
     </table>
     <div class="note">不要只因为看到 <code>if-else</code> 就套模式。先判断这个 <code>if-else</code> 到底是在处理创建问题，还是行为问题。</div>
 
-    <h2>14. 今日练习</h2>
+    <h2>10. 练习题</h2>
     <p>把下面的文件导出逻辑改造成工厂方法模式。</p>
     <pre><code class="language-ts">function exportFile(type: string, data: string): void {
   if (type === "pdf") {
@@ -623,7 +610,7 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
       <li>什么时候用简单工厂函数反而更合适？</li>
     </ul>
 
-    <h2>15. 参考答案或改进建议</h2>
+    <h3>参考答案</h3>
     <p>如果导出逻辑很简单，一个简单工厂函数可能更合适。</p>
     <pre><code class="language-ts">type ExportType = "pdf" | "excel" | "csv";
 

@@ -142,7 +142,7 @@
       <li>同一个对象有多种配置方式，但最终产物类型相同。</li>
     </ul>
 
-    <h2>2. 坏代码示例</h2>
+    <h3>坏代码示例</h3>
     <p>假设我们要创建一份报表配置：</p>
     <pre><code class="language-ts">class Report {
   constructor(
@@ -165,16 +165,10 @@ const report = new Report(
   "A4",
   "内部资料",
 );</code></pre>
-    <p>这段代码的问题是：</p>
-    <ul>
-      <li>参数太多，调用方很难看出每个参数代表什么。</li>
-      <li><code>true, true, "dark", "A4"</code> 这种调用可读性差。</li>
-      <li>新增一个参数时，很多调用点可能都要改。</li>
-      <li>默认值、校验逻辑容易散落在调用方。</li>
-    </ul>
+    <p>这段代码的问题是：参数太多，<code>true, true, "dark", "A4"</code> 调用可读性差，新增参数时很多调用点要改，默认值和校验逻辑容易散落在调用方。</p>
     <div class="note">建造者模式不是为了“少写代码”，而是为了让复杂对象的创建过程更明确、更可维护。</div>
 
-    <h2>3. 一个生活类比</h2>
+    <h2>2. 一个生活类比</h2>
     <p>你去买一台定制电脑。</p>
     <p>你不是一次性说出所有零件型号，而是一步步选择：</p>
     <ul>
@@ -187,7 +181,7 @@ const report = new Report(
     <p>最后商家根据这些配置组装成一台完整电脑。</p>
     <p>这里的“配置过程”就是建造过程，最终的电脑就是被创建出来的复杂对象。</p>
 
-    <h2>4. 适用场景</h2>
+    <h2>3. 适用场景</h2>
     <ul>
       <li>对象参数很多，尤其是可选参数很多。</li>
       <li>创建对象需要多个步骤。</li>
@@ -204,7 +198,7 @@ const report = new Report(
       <li>页面组件配置：主题、布局、模块、权限、埋点。</li>
     </ul>
 
-    <h2>5. 不适用场景</h2>
+    <h2>4. 不适用场景</h2>
     <ul>
       <li>对象只有两三个参数，而且含义很清楚。</li>
       <li>构造过程没有步骤，也没有复杂校验。</li>
@@ -221,7 +215,7 @@ const report = new Report(
 const user: User = { id: "u1", name: "张三" };</code></pre>
     <p>这种简单对象不需要建造者模式。</p>
 
-    <h2>6. 核心结构</h2>
+    <h2>5. 核心结构</h2>
     <p>建造者模式通常包含这些角色：</p>
     <ul>
       <li>产品：最终被创建出来的复杂对象。</li>
@@ -231,7 +225,7 @@ const user: User = { id: "u1", name: "张三" };</code></pre>
     </ul>
     <pre><code>设置标题 -> 设置作者 -> 设置图表 -> 设置主题 -> build() -> 得到报表</code></pre>
 
-    <h2>7. TypeScript 示例</h2>
+    <h2>6. TypeScript 示例</h2>
     <pre><code class="language-ts">type ReportOptions = {
   title: string;
   author: string;
@@ -320,7 +314,7 @@ report.print();</code></pre>
       <li><code>build</code>：统一校验并返回最终对象。</li>
     </ul>
 
-    <h2>8. Python 示例</h2>
+    <h2>7. Python 示例</h2>
     <pre><code class="language-python">from dataclasses import dataclass
 
 
@@ -424,16 +418,7 @@ report = Report(
 )</code></pre>
     <p>如果只是参数多但没有复杂构建过程，Python 的命名参数通常比建造者模式更直接。</p>
 
-    <h2>9. TypeScript 和 Python 的区别</h2>
-    <ul>
-      <li>TypeScript 常用 Builder 解决参数多、配置复杂、需要链式调用的场景。</li>
-      <li>Python 有命名参数、默认参数和 <code>dataclass</code>，很多简单场景不需要 Builder。</li>
-      <li>TypeScript 的 <code>this</code> 返回类型可以让链式调用有较好的类型提示。</li>
-      <li>Python 的 Builder 更适合存在复杂校验、构建步骤或复用构建流程的场景。</li>
-      <li>两种语言都应该优先考虑配置对象或命名参数，只有复杂度足够高时再引入 Builder。</li>
-    </ul>
-
-    <h2>10. 优缺点</h2>
+    <h2>8. 优缺点</h2>
     <table>
       <thead>
         <tr>
@@ -460,8 +445,11 @@ report = Report(
         </tr>
       </tbody>
     </table>
+    <div class="note">
+      <strong>TypeScript vs Python 实现差异：</strong>TypeScript 常用 Builder 解决参数多、配置复杂、需要链式调用的场景；Python 有命名参数、默认参数和 <code>dataclass</code>，很多场景不需要 Builder。Python 的 Builder 更适合存在复杂校验、构建步骤或复用流程的场景。两种语言都应该优先考虑配置对象或命名参数，只有复杂度足够高时再引入 Builder。
+    </div>
 
-    <h2>11. 和工厂方法模式的区别</h2>
+    <h2>9. 和相似模式的区别</h2>
     <table>
       <thead>
         <tr>
@@ -496,7 +484,7 @@ report = Report(
     <pre><code>如果问题是“对象参数太多，怎么组装更清楚”，更像建造者模式。
 如果问题是“根据类型创建哪个类”，更像工厂方法模式。</code></pre>
 
-    <h2>12. 和抽象工厂模式的区别</h2>
+    <h3>和抽象工厂模式的区别</h3>
     <p>抽象工厂通常创建一组相关产品，建造者通常创建一个复杂产品。</p>
     <table>
       <thead>
@@ -530,7 +518,7 @@ report = Report(
       </tbody>
     </table>
 
-    <h2>13. 和配置对象的区别</h2>
+    <h3>和配置对象模式的区别</h3>
     <p>很多时候，配置对象比建造者模式更简单。</p>
     <pre><code class="language-ts">type ReportOptions = {
   title: string;
@@ -552,7 +540,7 @@ function createReport(options: ReportOptions): Report {
     <p>如果只是为了避免长参数列表，配置对象通常已经够了。</p>
     <p>只有当配置过程需要步骤、校验、组合、复用流程时，建造者模式才更有价值。</p>
 
-    <h2>14. 今日练习</h2>
+    <h2>10. 练习题</h2>
     <p>把下面的 HTTP 请求配置改造成建造者模式。</p>
     <pre><code class="language-ts">class HttpRequest {
   constructor(
@@ -587,7 +575,7 @@ const request = new HttpRequest(
       <li>如果请求构建过程有签名、鉴权、默认 Header，Builder 是否更合适？</li>
     </ul>
 
-    <h2>15. 参考答案或改进建议</h2>
+    <h3>参考答案</h3>
     <p>TypeScript 可以这样改：</p>
     <pre><code class="language-ts">class HttpRequestBuilder {
   private url = "";
