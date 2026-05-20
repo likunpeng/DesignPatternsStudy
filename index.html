@@ -374,46 +374,13 @@
   设计模式教程 · 持续更新中
 </footer>
 
+<script src="assets/patterns-data.js"></script>
 <script>
-const PATTERNS = [
-  // 前置基础
-  { cat: "fundamentals", catZh: "前置基础", icon: "📐", name: "面向对象基础", nameEn: "OOP Basics", file: "fundamentals/oop-basics.html", status: "learned", date: "2026-05-18" },
-  { cat: "fundamentals", catZh: "前置基础", icon: "📐", name: "设计原则", nameEn: "Design Principles", file: "fundamentals/design-principles.html", status: "learned", date: "2026-05-18" },
-  // 创建型
-  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "单例模式", nameEn: "Singleton", file: "creational/singleton-pattern.html" },
-  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "简单工厂模式", nameEn: "Simple Factory", file: "creational/simple-factory-pattern.html" },
-  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "工厂方法模式", nameEn: "Factory Method", file: "creational/factory-method-pattern.html" },
-  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "抽象工厂模式", nameEn: "Abstract Factory", file: "creational/abstract-factory-pattern.html" },
-  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "建造者模式", nameEn: "Builder", file: "creational/builder-pattern.html", status: "learned", date: "2026-05-18" },
-  { cat: "creational", catZh: "创建型模式", icon: "🔨", name: "原型模式", nameEn: "Prototype", file: "creational/prototype-pattern.html" },
-  // 结构型
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "适配器模式", nameEn: "Adapter", file: "structural/adapter-pattern.html", status: "learned", date: "2026-05-18" },
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "装饰器模式", nameEn: "Decorator", file: "structural/decorator-pattern.html" },
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "代理模式", nameEn: "Proxy", file: "structural/proxy-pattern.html" },
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "外观模式", nameEn: "Facade", file: "structural/facade-pattern.html" },
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "桥接模式", nameEn: "Bridge", file: "structural/bridge-pattern.html" },
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "组合模式", nameEn: "Composite", file: "structural/composite-pattern.html" },
-  { cat: "structural", catZh: "结构型模式", icon: "🧩", name: "享元模式", nameEn: "Flyweight", file: "structural/flyweight-pattern.html" },
-  // 行为型
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "策略模式", nameEn: "Strategy", file: "behavioral/strategy-pattern.html", status: "learned", date: "2026-05-18" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "模板方法模式", nameEn: "Template Method", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "观察者模式", nameEn: "Observer", file: "behavioral/observer-pattern.html", status: "learned", date: "2026-05-18" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "责任链模式", nameEn: "Chain of Responsibility", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "命令模式", nameEn: "Command", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "状态模式", nameEn: "State", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "迭代器模式", nameEn: "Iterator", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "中介者模式", nameEn: "Mediator", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "备忘录模式", nameEn: "Memento", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "访问者模式", nameEn: "Visitor", file: "" },
-  { cat: "behavioral", catZh: "行为型模式", icon: "⚡", name: "解释器模式", nameEn: "Interpreter", file: "" },
-];
-
-const CATEGORIES = [
-  { key: "fundamentals", zh: "前置基础", icon: "📐", accent: "var(--accent-fundamentals)" },
-  { key: "creational", zh: "创建型模式", icon: "🔨", accent: "var(--accent-creational)" },
-  { key: "structural", zh: "结构型模式", icon: "🧩", accent: "var(--accent-structural)" },
-  { key: "behavioral", zh: "行为型模式", icon: "⚡", accent: "var(--accent-behavioral)" },
-];
+const PATTERNS = (window.PATTERN_DATA || []).map((pattern) => ({ ...pattern }));
+const CATEGORIES = (window.PATTERN_CATEGORIES || []).map((category) => ({
+  ...category,
+  accent: `var(--accent-${category.key})`,
+}));
 
 const STORAGE_KEY = "design-pattern-progress";
 const TOTAL = PATTERNS.length;

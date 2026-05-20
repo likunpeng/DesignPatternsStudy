@@ -1,109 +1,7 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>外观模式教程</title><style>
-    :root {
-      color-scheme: light;
-      --bg: #f8fafc;
-      --paper: #ffffff;
-      --ink: #1e293b;
-      --muted: #64748b;
-      --line: #e2e8f0;
-      --accent: #059669;
-      --accent-soft: #ecfdf5;
-      --code-bg: #1e293b;
-      --code-ink: #f8fafc;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      line-height: 1.75;
-    }
-
-    main {
-      width: min(980px, calc(100% - 32px));
-      margin: 32px auto;
-      padding: 40px;
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
-    }
-
-    h1, h2, h3 { line-height: 1.25; color: var(--ink); }
-    h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
-    h2 { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 1.55rem; }
-    h3 { margin-top: 28px; font-size: 1.18rem; }
-    p { margin: 12px 0; }
-    ul { padding-left: 1.25rem; }
-    li { margin: 6px 0; }
-
-    code {
-      padding: 0.14rem 0.32rem;
-      border-radius: 5px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-      font-size: 0.92em;
-    }
-
-    pre {
-      overflow: auto;
-      padding: 18px 20px;
-      border-radius: 12px;
-      background: var(--code-bg);
-      color: var(--code-ink);
-      line-height: 1.6;
-    }
-
-    pre code { padding: 0; background: transparent; color: inherit; font-size: 0.9rem; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 18px 0;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-    }
-
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
-    tr:last-child td { border-bottom: 0; }
-
-    .lead { max-width: 780px; color: var(--muted); font-size: 1.08rem; }
-    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 30px; }
-    .tag {
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-size: 0.9rem;
-    }
-    .note {
-      margin: 18px 0;
-      padding: 16px 18px;
-      border-left: 5px solid var(--accent);
-      border-radius: 10px;
-      background: var(--accent-soft);
-    }
-    .summary { margin-top: 28px; padding: 20px; border-radius: 14px; background: var(--accent-soft); }
-
-    @media (max-width: 680px) {
-      main { width: min(100% - 18px, 980px); margin: 10px auto; padding: 22px 16px; border-radius: 14px; }
-      table { display: block; overflow-x: auto; }
-    }
-  </style></head><body><main>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>外观模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head><body><main>
   <h1>外观模式教程</h1><p class="lead">外观模式解决的是“子系统太复杂，调用方不应该了解所有细节”的问题。它提供一个更高层、更简单的入口。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Facade Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">简化入口</span></div>
   <h2>今日目标</h2><ul><li>理解外观模式如何降低调用方复杂度。</li><li>知道外观不是封锁底层能力，而是提供常用路径。</li><li>能用外观封装一组服务调用。</li><li>能区分外观和适配器。</li></ul>
   <h2>1. 这个模式解决什么问题</h2><p>一个业务动作可能要协调很多子系统。调用方如果直接调用每个子系统，就会知道太多细节，顺序、异常处理和组合规则都会散落在各处。</p><pre><code>下单 = 校验库存 + 创建订单 + 扣减库存 + 发起支付 + 发送通知</code></pre><p>外观模式把这些步骤封装成一个简单方法，例如 <code>placeOrder()</code>。</p>
@@ -178,4 +76,8 @@ facade.checkout("book-1")</code></pre>
   <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>外观</td><td>简化复杂流程</td><td>提供更易用的高层入口。</td></tr><tr><td>适配器</td><td>接口兼容</td><td>解决接口不匹配，而不是流程复杂。</td></tr><tr><td>中介者</td><td>对象协作解耦</td><td>中介者管理对象间双向协作，外观主要给外部使用。</td></tr></tbody></table>
   <h2>10. 练习题</h2><p>把“上传头像”封装成外观：压缩图片、上传文件、更新用户资料、清理缓存。请设计一个 <code>AvatarFacade</code>。</p><div class="note">参考思路：外观提供 <code>updateAvatar(userId, file)</code>，内部协调图片服务、存储服务、用户服务和缓存服务。</div>
   <div class="summary"><h2>今日总结</h2><p>外观模式的核心是“给复杂子系统一个简单入口”。它不是隐藏所有能力，而是把常用流程变成稳定、清晰的业务 API。</p></div>
-</main></body></html>
+</main>  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+</body></html>

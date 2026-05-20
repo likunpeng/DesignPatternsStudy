@@ -8,7 +8,7 @@
 fundamentals/      前置基础（2 篇）
 creational/       创建型模式（6 篇）
 structural/        结构型模式（7 篇）
-behavioral/        行为型模式（2 篇，持续更新中）
+behavioral/        行为型模式（11 篇）
 learning-progress.md  学习进度追踪
 AGENTS.md          写作规范和教学原则
 ```
@@ -56,16 +56,16 @@ AGENTS.md          写作规范和教学原则
 ### 行为型模式
 
 - [策略模式](behavioral/strategy-pattern.html)
-- 模板方法模式（待补充）
+- [模板方法模式](behavioral/template-method-pattern.html)
 - [观察者模式](behavioral/observer-pattern.html)
-- 责任链模式（待补充）
-- 命令模式（待补充）
-- 状态模式（待补充）
-- 迭代器模式（待补充）
-- 中介者模式（待补充）
-- 备忘录模式（待补充）
-- 访问者模式（待补充）
-- 解释器模式（待补充）
+- [责任链模式](behavioral/chain-of-responsibility-pattern.html)
+- [命令模式](behavioral/command-pattern.html)
+- [状态模式](behavioral/state-pattern.html)
+- [迭代器模式](behavioral/iterator-pattern.html)
+- [中介者模式](behavioral/mediator-pattern.html)
+- [备忘录模式](behavioral/memento-pattern.html)
+- [访问者模式](behavioral/visitor-pattern.html)
+- [解释器模式](behavioral/interpreter-pattern.html)
 
 ## 当前进度
 
