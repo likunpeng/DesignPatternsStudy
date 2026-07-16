@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>架构决策记录</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>架构决策记录</h1><p class="lead">ADR 用来记录重要架构决策的背景、选项、选择和后果。它让团队和 AI 都知道“为什么当时这么设计”。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Architecture Decision Records</span><span class="tag">TypeScript + Python</span><span class="tag">决策留痕</span></div>
+<h2>今日目标</h2><ul><li>理解 ADR 解决的是决策上下文丢失问题。</li><li>掌握一份轻量 ADR 的结构。</li><li>知道哪些决策值得记录，哪些不用记录。</li><li>学会让 AI 在修改架构前先读取 ADR。</li></ul>
+<h2>1. 这个方法解决什么问题</h2><p>项目过一段时间后，团队常常只看到结果，看不到当时的取舍。后来的人或 AI 可能会把旧决策当成“历史包袱”随意推翻，导致架构反复摇摆。</p>
+<h2>2. 一个生活类比</h2><p>城市道路为什么单行、为什么某段限速，背后有交通流量、事故记录和建设成本。只看路牌不知道原因，改起来就容易出问题。</p>
+<h2>3. 适用场景</h2><ul><li>选择模块化单体还是微服务。</li><li>选择同步调用还是事件驱动。</li><li>确定核心目录结构、依赖方向、技术栈。</li><li>决定是否引入缓存、消息队列、搜索引擎。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>小的代码风格选择。</li><li>临时实验，还没有进入长期方案。</li><li>没有实际影响的偏好讨论。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>部分</th><th>要写什么</th></tr></thead><tbody><tr><td>状态</td><td>草案、已接受、已废弃。</td></tr><tr><td>背景</td><td>遇到什么问题，有哪些约束。</td></tr><tr><td>选项</td><td>考虑过哪些方案。</td></tr><tr><td>决策</td><td>最终选什么。</td></tr><tr><td>后果</td><td>收益、代价、后续影响。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type Adr = {
+  title: string;
+  status: "proposed" | "accepted" | "deprecated";
+  context: string;
+  decision: string;
+  consequences: string[];
+};
+
+const adr001: Adr = {
+  title: "订单模块先采用模块化单体",
+  status: "accepted",
+  context: "订单、库存、支付边界仍在变化，团队暂不具备多服务运维能力。",
+  decision: "先在单体内按模块边界拆分，不立即拆微服务。",
+  consequences: ["发布更简单", "未来拆服务时需要保持模块边界清晰"],
+};</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from dataclasses import dataclass
+
+@dataclass
+class Adr:
+    title: str
+    status: str
+    context: str
+    decision: str
+    consequences: list[str]
+
+adr_001 = Adr(
+    title="订单模块先采用模块化单体",
+    status="accepted",
+    context="边界仍在变化，团队暂不具备多服务运维能力。",
+    decision="先在单体内按模块边界拆分。",
+    consequences=["发布更简单", "未来拆服务时要保持边界清晰"],
+)</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>保留决策上下文，减少重复争论。</td><td>需要维护，过期 ADR 要标记。</td></tr><tr><td>适合给 AI 作为架构上下文。</td><td>写太多会变成文档负担。</td></tr></tbody></table>
+<h2>8. 和普通文档的区别</h2><table><thead><tr><th>普通架构文档</th><th>ADR</th></tr></thead><tbody><tr><td>描述当前系统是什么样</td><td>解释为什么做这个决策</td></tr><tr><td>通常较长</td><td>一条决策一篇，短而聚焦</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“是否引入 Redis 缓存商品详情”写一份 ADR，至少包含背景、选项、决策和后果。</p>
+<h2>10. 参考答案或改进建议</h2><p>如果商品详情读多写少、数据库压力明确，可以接受 Redis；后果是需要处理缓存失效、降级和一致性。若压力没有数据支撑，应先加监控再决策。</p>
+<section class="summary"><h2>今日总结</h2><p>ADR 的价值是记录取舍。AI 时代尤其重要，因为 AI 需要知道哪些边界是刻意选择，而不是随手生成的历史代码。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

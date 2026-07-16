@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 时代架构方法论</title>
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head>
+<body data-category="architecture">
+  <main>
+    <h1>AI 时代架构方法论</h1>
+    <p class="lead">AI 会让写代码变快，但不会自动让系统更清晰。AI 时代的架构重点，是把业务边界、依赖规则和验收标准写成 AI 也能遵守的约束。</p>
+    <div class="meta"><span class="tag">架构学习</span><span class="tag">AI-Era Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">协作编程</span></div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解 AI 协作为什么会改变架构学习重点。</li>
+      <li>掌握“人负责判断，AI 负责生成和辅助验证”的分工。</li>
+      <li>学会把架构原则写成可执行的上下文规则。</li>
+      <li>建立一套检查 AI 生成代码的架构评审清单。</li>
+    </ul>
+
+    <h2>1. 这个方法论解决什么问题</h2>
+    <p>AI 很擅长生成局部代码，但如果没有架构约束，它也会快速制造隐形耦合。以前一个人手写代码，坏设计扩散得慢；AI 协助后，错误抽象、错误依赖和重复模式会被更快复制到更多文件。</p>
+    <p>所以 AI 时代的架构问题不是“AI 能不能写代码”，而是：</p>
+    <ul>
+      <li>AI 应该在哪些边界内生成代码。</li>
+      <li>哪些业务规则必须由人确认。</li>
+      <li>哪些架构规则必须写进项目上下文。</li>
+      <li>AI 生成后，如何验证它没有破坏长期演进能力。</li>
+    </ul>
+
+    <h2>2. 一个生活类比</h2>
+    <p>AI 像一个速度很快的施工队。它能砌墙、铺线、装门窗，但如果没有图纸、承重边界和验收标准，施工越快，返工越大。架构师的价值不是亲手搬砖，而是确定哪里能改、哪里不能改、怎么验收。</p>
+
+    <h2>3. 适用场景</h2>
+    <ul>
+      <li>团队已经开始使用 AI 辅助写代码、重构、补测试。</li>
+      <li>项目有多个模块，AI 容易跨层修改或误放业务逻辑。</li>
+      <li>希望让 AI 生成代码更稳定，而不是每次靠临时提示词纠偏。</li>
+      <li>需要把架构规范沉淀到 README、AGENTS、ADR 和代码模板里。</li>
+    </ul>
+
+    <h2>4. 不适用场景</h2>
+    <ul>
+      <li>一次性脚本、原型验证、临时数据处理，不需要重架构约束。</li>
+      <li>业务还没有稳定概念，过早固化目录和规则会拖慢探索。</li>
+      <li>团队还没有基本测试和代码评审习惯，只写 AI 规则收益有限。</li>
+    </ul>
+
+    <h2>5. 核心结构</h2>
+    <table>
+      <thead><tr><th>层次</th><th>人的职责</th><th>AI 的职责</th><th>产出物</th></tr></thead>
+      <tbody>
+        <tr><td>业务判断</td><td>定义目标、边界、取舍</td><td>整理方案、补充风险</td><td>需求说明、取舍记录</td></tr>
+        <tr><td>架构约束</td><td>规定依赖方向和模块职责</td><td>按规则生成目录、接口、代码</td><td>AGENTS、README、ADR</td></tr>
+        <tr><td>代码实现</td><td>审查关键路径和业务规则</td><td>实现样板、适配器、测试</td><td>代码、测试、迁移步骤</td></tr>
+        <tr><td>质量验收</td><td>判断是否可演进</td><td>执行检查、找重复、找风险</td><td>评审清单、测试报告</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. 示例代码</h2>
+    <p>下面的例子不是展示“AI API”，而是展示如何把架构约束写成代码边界。AI 生成订单功能时，应该只能让入口层调用用例层，不能让入口层直接调用数据库。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">// application/ports.ts
+export interface OrderRepository {
+  save(order: Order): Promise&lt;void&gt;;
+}
+
+export type Order = { id: string; userId: string; amount: number };
+
+// application/create-order.ts
+export class CreateOrderUseCase {
+  constructor(private orders: OrderRepository) {}
+
+  async execute(input: { userId: string; amount: number }): Promise&lt;Order&gt; {
+    if (input.amount &lt;= 0) {
+      throw new Error("订单金额必须大于 0");
+    }
+
+    const order = { id: crypto.randomUUID(), ...input };
+    await this.orders.save(order);
+    return order;
+  }
+}
+
+// infrastructure/mysql-order-repository.ts
+export class MysqlOrderRepository implements OrderRepository {
+  async save(order: Order): Promise&lt;void&gt; {
+    console.log("保存到 MySQL", order);
+  }
+}</code></pre>
+    <p>给 AI 的规则应该明确：<code>application</code> 可以定义端口，但不能导入 <code>infrastructure</code>；<code>infrastructure</code> 负责实现端口。</p>
+
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from dataclasses import dataclass
+from typing import Protocol
+from uuid import uuid4
+
+
+@dataclass
+class Order:
+    id: str
+    user_id: str
+    amount: int
+
+
+class OrderRepository(Protocol):
+    def save(self, order: Order) -> None:
+        ...
+
+
+class CreateOrderUseCase:
+    def __init__(self, orders: OrderRepository):
+        self.orders = orders
+
+    def execute(self, user_id: str, amount: int) -> Order:
+        if amount &lt;= 0:
+            raise ValueError("订单金额必须大于 0")
+
+        order = Order(str(uuid4()), user_id, amount)
+        self.orders.save(order)
+        return order</code></pre>
+    <p>Python 项目也一样：AI 可以生成具体仓储实现，但核心用例只依赖 <code>Protocol</code>，这样测试时可以传入内存实现。</p>
+
+    <h2>7. AI 协作下的架构规则模板</h2>
+    <p>可以把下面这类规则写进项目的 <code>AGENTS.md</code> 或模块 README：</p>
+    <pre><code>架构规则：
+1. 新增业务功能先查找所属模块，不要创建平行的新模块。
+2. controller 只做参数解析、鉴权入口和响应转换，不写业务规则。
+3. application/use-cases 负责编排流程，可以依赖 domain 和 ports。
+4. domain 放核心业务规则，不允许 import framework、database、sdk。
+5. infrastructure 实现数据库、缓存、第三方 SDK 和消息队列适配器。
+6. 新增外部系统必须先定义端口接口，再写适配器。
+7. 修改跨模块依赖时，必须说明为什么现有边界不够。
+8. 生成代码后必须补核心规则测试。</code></pre>
+
+    <h2>8. 优缺点</h2>
+    <table>
+      <thead><tr><th>收益</th><th>代价</th></tr></thead>
+      <tbody>
+        <tr><td>AI 生成代码更稳定，不容易跨层乱改。</td><td>需要持续维护上下文文档，不能写完就不管。</td></tr>
+        <tr><td>新人和 AI 都能沿着同一套规则工作。</td><td>规则太多会降低探索效率。</td></tr>
+        <tr><td>架构评审从主观感觉变成可检查清单。</td><td>清单只能辅助判断，不能替代业务取舍。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 和传统架构学习的区别</h2>
+    <table>
+      <thead><tr><th>维度</th><th>传统架构学习</th><th>AI 时代架构学习</th></tr></thead>
+      <tbody>
+        <tr><td>核心能力</td><td>设计系统并亲自实现关键结构</td><td>设计系统，并约束 AI 持续生成正确代码</td></tr>
+        <tr><td>文档作用</td><td>给人阅读和评审</td><td>同时给人和 AI 作为上下文规则</td></tr>
+        <tr><td>风险来源</td><td>人写得慢、经验不足</td><td>AI 写得快但可能局部最优、隐形耦合</td></tr>
+        <tr><td>验收重点</td><td>功能是否完成</td><td>功能完成且边界、依赖、测试没有退化</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10. 一个练习题</h2>
+    <p>选一个你当前项目里的模块，写一段“给 AI 的架构约束”。至少回答这些问题：</p>
+    <ul>
+      <li>这个模块负责什么，不负责什么。</li>
+      <li>它可以依赖哪些目录，不能依赖哪些目录。</li>
+      <li>业务规则应该放在哪里。</li>
+      <li>接入外部 SDK 时必须走什么接口或适配器。</li>
+      <li>AI 生成代码后必须补哪些测试。</li>
+    </ul>
+
+    <h2>11. 参考答案或改进建议</h2>
+    <p>以下是一个订单模块的简化版本：</p>
+    <pre><code>订单模块 AI 约束：
+- order/api 只处理 HTTP 参数、鉴权结果和响应格式。
+- order/application 放 CreateOrder、CancelOrder 等用例。
+- order/domain 放 Order、OrderItem、Price、OrderStatus 和核心规则。
+- order/infrastructure 放数据库、消息、支付、库存适配器。
+- domain 不允许 import api、infrastructure、数据库客户端或第三方 SDK。
+- 新增支付渠道时，先定义 PaymentGateway 端口，再新增适配器。
+- 修改订单状态流转必须补状态流转测试。
+- 如果需要跨模块调用库存，必须通过库存模块公开的端口或应用服务。</code></pre>
+    <p>好的 AI 架构规则不是越长越好，而是能让 AI 在写代码前知道“边界在哪里、依赖怎么走、什么必须测试”。</p>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>AI 时代的架构能力，是把人类的业务判断和长期演进经验，转化为 AI 可以执行的上下文、约束和验收标准。你不需要和 AI 比谁写代码更快，而是要学会定义边界、控制生成空间、审查关键取舍，让 AI 在正确的架构轨道上加速。</p>
+    </section>
+  </main>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+</body>
+</html>

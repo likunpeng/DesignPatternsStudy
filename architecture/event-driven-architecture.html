@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>事件驱动架构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>事件驱动架构</h1><p class="lead">事件驱动架构用“已经发生的事实”连接模块或服务，让发送方不需要知道所有后续处理者。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Event-Driven Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">异步解耦</span></div>
+<h2>今日目标</h2><ul><li>理解事件和命令的区别。</li><li>知道事件驱动适合异步解耦，不适合所有流程。</li><li>了解 Outbox 作为可靠发布的常见做法。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>订单创建后可能要扣库存、发短信、加积分、推送物流。如果订单模块直接调用所有模块，会越来越耦合。事件让订单模块只发布“订单已创建”。</p>
+<h2>2. 一个生活类比</h2><p>公司发布公告后，各部门根据公告自行处理，不需要公告发布者逐个指挥每个部门。</p>
+<h2>3. 适用场景</h2><ul><li>一个业务事实触发多个后续动作。</li><li>后续动作可以异步完成。</li><li>模块之间需要降低直接依赖。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>必须立即强一致的流程。</li><li>调用链很短且同步更清晰。</li><li>团队缺少消息可靠性和监控能力。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td>Event</td><td>已经发生的事实。</td></tr><tr><td>Publisher</td><td>发布事件。</td></tr><tr><td>Subscriber</td><td>订阅并处理事件。</td></tr><tr><td>Event Bus</td><td>传递事件。</td></tr><tr><td>Outbox</td><td>把业务数据和待发送事件一起落库，提高可靠性。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type OrderCreated = { type: "OrderCreated"; orderId: string };
+interface EventBus { publish(event: OrderCreated): Promise&lt;void&gt;; }
+class CreateOrderUseCase {
+  constructor(private bus: EventBus) {}
+  async execute() { await this.bus.publish({ type: "OrderCreated", orderId: "1" }); }
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">class EventBus:
+    def publish(self, event: dict) -> None:
+        print(event)
+
+class CreateOrderUseCase:
+    def __init__(self, bus: EventBus):
+        self.bus = bus
+    def execute(self) -> None:
+        self.bus.publish({"type": "OrderCreated", "orderId": "1"})</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>模块解耦，扩展订阅者方便。</td><td>流程变隐式，排查更难。</td></tr><tr><td>适合异步和削峰。</td><td>需要处理重复消息、顺序、失败重试。</td></tr></tbody></table>
+<h2>8. 和命令的区别</h2><table><thead><tr><th>命令</th><th>事件</th></tr></thead><tbody><tr><td>要求某人做某事。</td><td>声明某事已经发生。</td></tr><tr><td>通常有明确接收者。</td><td>可以有多个订阅者。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>订单支付成功后，设计一个事件和三个订阅者。</p>
+<h2>10. 参考答案或改进建议</h2><p>事件为 PaymentSucceeded；订阅者可以是订单状态更新、积分发放、通知发送。支付模块不应直接知道所有后续动作。</p>
+<section class="summary"><h2>今日总结</h2><p>事件驱动适合解耦异步后续动作，但它不是万能方案。可靠发布、幂等和监控是落地关键。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>六边形架构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>六边形架构</h1><p class="lead">六边形架构也叫端口与适配器架构。它把业务核心放在中间，所有外部输入输出都通过端口和适配器连接。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Hexagonal Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">端口与适配器</span></div>
+<h2>今日目标</h2><ul><li>理解端口和适配器如何隔离外部系统。</li><li>知道输入端口和输出端口的区别。</li><li>能把数据库、HTTP、消息、第三方 SDK 放到外侧。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>业务代码经常被 Web 框架、数据库、消息队列、第三方 SDK 绑死。六边形架构让业务核心只依赖端口，外部技术通过适配器接入。</p>
+<h2>2. 一个生活类比</h2><p>电脑主机有 USB、HDMI、电源等标准接口。外设可以换，但主机核心不需要知道每个外设内部怎么工作。</p>
+<h2>3. 适用场景</h2><ul><li>需要替换数据库、支付、短信等外部实现。</li><li>同一业务需要支持 HTTP、CLI、消息消费等多个入口。</li><li>希望核心业务可以脱离框架测试。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>简单 CRUD，没有外部依赖变化。</li><li>团队无法维护端口命名和适配器组织。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Application Core</td><td>用例和领域规则。</td></tr><tr><td>Input Port</td><td>外部触发业务的入口。</td></tr><tr><td>Output Port</td><td>业务需要调用的外部能力抽象。</td></tr><tr><td>Adapter</td><td>把 HTTP、DB、SDK 转成端口调用。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type Order = { id: string; amount: number };
+interface OrderRepository { save(order: Order): Promise&lt;void&gt;; }
+
+class CreateOrderUseCase {
+  constructor(private orders: OrderRepository) {}
+  async execute(amount: number) {
+    const order = { id: crypto.randomUUID(), amount };
+    await this.orders.save(order);
+    return order;
+  }
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+from uuid import uuid4
+
+class OrderRepository(Protocol):
+    def save(self, order: dict) -> None: ...
+
+class CreateOrderUseCase:
+    def __init__(self, orders: OrderRepository):
+        self.orders = orders
+    def execute(self, amount: int) -> dict:
+        order = {"id": str(uuid4()), "amount": amount}
+        self.orders.save(order)
+        return order</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>业务核心稳定，外部实现可替换。</td><td>端口和适配器数量增加。</td></tr><tr><td>适合 AI 生成代码时约束依赖方向。</td><td>简单项目可能显得绕。</td></tr></tbody></table>
+<h2>8. 和 Clean Architecture 的区别</h2><table><thead><tr><th>Clean Architecture</th><th>六边形架构</th></tr></thead><tbody><tr><td>强调同心圆和内外层依赖。</td><td>强调端口与适配器连接外部世界。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为短信发送设计一个输出端口和两个适配器：阿里云短信、腾讯云短信。</p>
+<h2>10. 参考答案或改进建议</h2><p>定义 <code>SmsSender.send(phone, content)</code> 端口；业务只依赖端口；两个云厂商 SDK 分别放到 adapter 中实现端口。</p>
+<section class="summary"><h2>今日总结</h2><p>六边形架构的核心是隔离外部世界。端口属于业务需要，适配器属于技术实现。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

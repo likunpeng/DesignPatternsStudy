@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MVVM 架构模式</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>MVVM 架构模式</h1><p class="lead">MVVM 用 ViewModel 承载展示状态和交互逻辑，让 View 通过绑定或订阅状态来更新界面。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">MVVM</span><span class="tag">TypeScript + Python</span><span class="tag">状态驱动 UI</span></div>
+<h2>今日目标</h2><ul><li>理解 ViewModel 和 Model 的区别。</li><li>知道哪些状态应该放 ViewModel，哪些应该放 Domain。</li><li>避免 ViewModel 变成新的上帝对象。</li></ul>
+<h2>1. 这个模式解决什么问题</h2><p>现代 UI 常由状态驱动。MVVM 把页面展示状态、加载状态、错误状态和交互命令放进 ViewModel，View 只负责绑定和展示。</p>
+<h2>2. 一个生活类比</h2><p>仪表盘 View 显示速度、油量、警告灯；ViewModel 像把汽车内部数据转换成仪表盘可展示状态的控制模块。</p>
+<h2>3. 适用场景</h2><ul><li>React、Vue、SwiftUI、Android 等状态驱动 UI。</li><li>页面状态复杂，有加载、筛选、分页、错误。</li><li>需要把展示状态和 UI 组件分离。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>简单静态页面。</li><li>把所有业务规则都塞进 ViewModel。</li><li>ViewModel 直接依赖数据库或 SDK。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>View</td><td>绑定状态、触发命令。</td></tr><tr><td>ViewModel</td><td>展示状态、交互命令、派生数据。</td></tr><tr><td>Model/UseCase</td><td>业务规则和数据能力。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type User = { name: string };
+class UserViewModel {
+  loading = false;
+  error = "";
+  user: User | null = null;
+  constructor(private loadUser: () =&gt; Promise&lt;User&gt;) {}
+  async init() {
+    this.loading = true;
+    try { this.user = await this.loadUser(); }
+    catch { this.error = "加载失败"; }
+    finally { this.loading = false; }
+  }
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">class UserViewModel:
+    def __init__(self, load_user):
+        self.load_user = load_user
+        self.loading = False
+        self.error = ""
+        self.user = None
+    def init(self):
+        self.loading = True
+        try:
+            self.user = self.load_user()
+        except Exception:
+            self.error = "加载失败"
+        finally:
+            self.loading = False</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>适合状态驱动 UI，View 更简单。</td><td>ViewModel 容易膨胀。</td></tr><tr><td>展示状态易测试。</td><td>复杂业务仍需 UseCase/Domain 承接。</td></tr></tbody></table>
+<h2>8. 和 MVP 的区别</h2><table><thead><tr><th>MVP</th><th>MVVM</th></tr></thead><tbody><tr><td>Presenter 主动调用 View 方法。</td><td>View 绑定 ViewModel 状态。</td></tr><tr><td>适合被动 View。</td><td>适合响应式 UI。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“订单列表页”设计 ViewModel 状态：加载、列表、筛选条件、错误、分页。</p>
+<h2>10. 参考答案或改进建议</h2><p>ViewModel 可以持有 query、loading、error、orders、page，并提供 load、refresh、changeFilter 命令。订单能否取消这类核心规则不应只放 ViewModel。</p>
+<section class="summary"><h2>今日总结</h2><p>MVVM 的核心是展示状态模型。AI 生成页面时，应要求 ViewModel 管状态和交互，业务规则继续交给 UseCase 或 Domain。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

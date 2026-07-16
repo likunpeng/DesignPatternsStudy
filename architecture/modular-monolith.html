@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>模块化单体</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>模块化单体</h1><p class="lead">模块化单体是在一个部署单元内建立清晰业务模块边界。它通常比过早微服务更现实，也更适合多数中小团队。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Modular Monolith</span><span class="tag">TypeScript + Python</span><span class="tag">模块边界</span></div>
+<h2>今日目标</h2><ul><li>理解模块化单体和普通单体的区别。</li><li>掌握模块边界、公开接口、内部实现的划分。</li><li>知道什么时候再考虑拆微服务。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>普通单体容易变成所有模块互相调用、共享数据库表、边界不清。模块化单体保留单体部署简单性，同时用模块边界控制复杂度。</p>
+<h2>2. 一个生活类比</h2><p>同一栋办公楼里可以有财务、人事、销售不同部门。它们共享大楼基础设施，但职责和资料边界清楚。</p>
+<h2>3. 适用场景</h2><ul><li>业务还在演进，不适合过早拆服务。</li><li>团队规模不大，但模块复杂度上升。</li><li>希望未来可拆服务，但现在先稳定边界。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>已有明确独立扩展和独立发布需求。</li><li>团队能成熟运维多个服务且边界已稳定。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>部分</th><th>职责</th></tr></thead><tbody><tr><td>Module API</td><td>模块对外公开能力。</td></tr><tr><td>Application</td><td>模块内部用例。</td></tr><tr><td>Domain</td><td>模块核心规则。</td></tr><tr><td>Infrastructure</td><td>模块内部持久化和适配器。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">// order/public-api.ts
+export interface OrderModule {
+  createOrder(input: { userId: string; amount: number }): Promise&lt;string&gt;;
+}
+
+// 其他模块只能依赖 public-api，不直接 import order/internal。</code></pre><h3>Python 示例</h3><pre><code class="language-python">class OrderModule:
+    def create_order(self, user_id: str, amount: int) -> str:
+        return "order-id"
+
+# 其他模块只调用 OrderModule 的公开方法，不访问 order 内部仓储。</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>部署简单，边界比普通单体清楚。</td><td>需要纪律维护模块依赖。</td></tr><tr><td>为未来拆服务打基础。</td><td>无法解决所有独立扩展需求。</td></tr></tbody></table>
+<h2>8. 和微服务的区别</h2><table><thead><tr><th>模块化单体</th><th>微服务</th></tr></thead><tbody><tr><td>一个部署单元，进程内调用。</td><td>多个部署单元，网络调用。</td></tr><tr><td>适合边界探索期。</td><td>适合边界成熟后。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>把电商系统拆成订单、库存、支付三个模块，说明每个模块公开什么 API。</p>
+<h2>10. 参考答案或改进建议</h2><p>订单公开 create/cancel/query；库存公开 reserve/release；支付公开 pay/refund/queryPayment。模块间不要直接访问彼此内部表和类。</p>
+<section class="summary"><h2>今日总结</h2><p>模块化单体是最常用、最务实的架构形态之一。先把模块边界做好，再考虑是否需要微服务。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

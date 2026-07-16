@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>后端架构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>后端架构</h1><p class="lead">后端架构关注业务流程、数据一致性、外部系统集成、事务边界和可观测性。它的目标是让系统在变化和故障下仍然可维护。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Backend Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">事务与集成</span></div>
+<h2>今日目标</h2><ul><li>理解 Controller、Use Case、Repository、Gateway 的职责。</li><li>知道事务、缓存、消息、鉴权应该放在哪里。</li><li>避免把后端写成巨型 Service。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>后端复杂度主要来自状态变化和系统集成。订单创建可能涉及库存、支付、优惠、消息、风控。没有清晰边界时，一个 Service 会越来越大。</p>
+<h2>2. 一个生活类比</h2><p>物流中心不是一个人完成所有事，而是收单、分拣、打包、运输、签收各有流程和记录。后端也需要明确流程和责任。</p>
+<h2>3. 适用场景</h2><ul><li>业务流程有多个步骤。</li><li>涉及事务、缓存、消息或外部系统。</li><li>需要审计、监控、失败补偿。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>非常简单的内部工具。</li><li>无状态代理服务。</li><li>过早引入消息和复杂补偿。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>模块</th><th>职责</th></tr></thead><tbody><tr><td>Controller</td><td>协议转换，不写业务。</td></tr><tr><td>Use Case</td><td>流程编排和事务边界。</td></tr><tr><td>Domain</td><td>核心规则。</td></tr><tr><td>Repository</td><td>数据持久化抽象。</td></tr><tr><td>Gateway</td><td>外部服务抽象。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">interface InventoryGateway { reserve(sku: string, qty: number): Promise&lt;void&gt;; }
+interface OrderRepo { save(order: { sku: string; qty: number }): Promise&lt;void&gt;; }
+
+class PlaceOrderUseCase {
+  constructor(private inventory: InventoryGateway, private orders: OrderRepo) {}
+  async execute(input: { sku: string; qty: number }) {
+    if (input.qty &lt;= 0) throw new Error("数量不合法");
+    await this.inventory.reserve(input.sku, input.qty);
+    await this.orders.save(input);
+  }
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+
+class InventoryGateway(Protocol):
+    def reserve(self, sku: str, qty: int) -> None: ...
+
+class OrderRepo(Protocol):
+    def save(self, order: dict) -> None: ...
+
+class PlaceOrderUseCase:
+    def __init__(self, inventory: InventoryGateway, orders: OrderRepo):
+        self.inventory = inventory
+        self.orders = orders
+    def execute(self, sku: str, qty: int) -> None:
+        if qty &lt;= 0:
+            raise ValueError("数量不合法")
+        self.inventory.reserve(sku, qty)
+        self.orders.save({"sku": sku, "qty": qty})</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>流程清楚，故障点可定位。</td><td>需要明确事务和补偿策略。</td></tr><tr><td>外部系统隔离。</td><td>接口和适配器会增加数量。</td></tr></tbody></table>
+<h2>8. 和前端架构的区别</h2><table><thead><tr><th>后端更关注</th><th>原因</th></tr></thead><tbody><tr><td>数据一致性</td><td>后端是状态最终落点。</td></tr><tr><td>事务边界</td><td>失败后要知道哪些操作提交了。</td></tr><tr><td>可观测性</td><td>线上问题需要日志、指标、链路追踪。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>设计“退款”后端流程，列出用例、仓储、支付网关、消息通知的职责。</p>
+<h2>10. 参考答案或改进建议</h2><p>RefundUseCase 编排退款；PaymentGateway 调支付平台；OrderRepo 更新订单；消息通知通过端口发布。支付回调也应进入用例，而不是直接改数据库。</p>
+<section class="summary"><h2>今日总结</h2><p>后端架构的核心是流程和状态。把事务边界、外部依赖和领域规则分清楚，系统才经得起业务变化和线上故障。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

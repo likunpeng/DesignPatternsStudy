@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>微服务边界</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>微服务边界</h1><p class="lead">微服务不是把代码拆成很多仓库，而是围绕业务能力、数据归属和团队协作建立边界。边界不清，拆得越多越痛苦。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Microservice Boundaries</span><span class="tag">TypeScript + Python</span><span class="tag">服务拆分</span></div>
+<h2>今日目标</h2><ul><li>理解什么时候不该拆微服务。</li><li>掌握按业务能力和数据所有权划分边界。</li><li>知道服务间通信和一致性的基本取舍。</li></ul>
+<h2>1. 这个方法解决什么问题</h2><p>单体过大时，团队协作、发布和模块演进会互相阻塞。微服务通过服务边界降低协作耦合，但会引入网络、数据一致性和运维复杂度。</p>
+<h2>2. 一个生活类比</h2><p>公司扩大后会分部门，但不是把每个人随机分开。财务、销售、仓储各有职责和数据。如果边界乱，跨部门沟通成本会爆炸。</p>
+<h2>3. 适用场景</h2><ul><li>单体模块边界已经清晰。</li><li>不同业务能力有独立发布需求。</li><li>团队规模和组织边界需要拆分。</li><li>某些模块有独立扩展性或稳定性要求。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>业务早期快速试错。</li><li>连单体内部边界都不清楚。</li><li>团队没有自动化测试、监控和部署能力。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>判断点</th><th>问题</th></tr></thead><tbody><tr><td>业务能力</td><td>这个服务负责哪项完整业务能力？</td></tr><tr><td>数据归属</td><td>谁拥有并修改这份数据？</td></tr><tr><td>通信方式</td><td>同步调用还是异步事件？</td></tr><tr><td>一致性</td><td>必须强一致还是最终一致？</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">// 订单服务只发布事实，不直接修改库存库。
+
+interface EventBus { publish(event: OrderPlaced): Promise&lt;void&gt;; }
+
+class PlaceOrderUseCase {
+  constructor(private bus: EventBus) {}
+  async execute(input: OrderPlaced) {
+    // 保存订单省略
+    await this.bus.publish(input);
+  }
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+
+class EventBus(Protocol):
+    def publish(self, event: dict) -> None: ...
+
+class PlaceOrderUseCase:
+    def __init__(self, bus: EventBus):
+        self.bus = bus
+    def execute(self, order_id: str, sku: str, qty: int) -> None:
+        self.bus.publish({"type": "OrderPlaced", "orderId": order_id, "sku": sku, "qty": qty})</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>独立发布、独立扩展、团队自治。</td><td>分布式事务、网络失败、观测成本增加。</td></tr><tr><td>业务边界更清楚。</td><td>边界错了会形成分布式泥团。</td></tr></tbody></table>
+<h2>8. 和模块化单体的区别</h2><table><thead><tr><th>维度</th><th>模块化单体</th><th>微服务</th></tr></thead><tbody><tr><td>部署</td><td>一起部署</td><td>独立部署</td></tr><tr><td>调用</td><td>进程内调用</td><td>网络调用或消息</td></tr><tr><td>适合阶段</td><td>早中期更稳</td><td>边界成熟后再拆</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>电商系统里订单、库存、支付是否应该拆成服务？分别拥有哪份数据？</p>
+<h2>10. 参考答案或改进建议</h2><p>订单拥有订单数据，库存拥有库存数据，支付拥有支付交易数据。订单不应直接改库存库，而是调用库存能力或发布事件。早期可以先做模块化单体，边界稳定后再拆服务。</p>
+<section class="summary"><h2>今日总结</h2><p>微服务的第一原则是边界，而不是技术栈。没有清晰业务能力和数据归属，就不要急着拆。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

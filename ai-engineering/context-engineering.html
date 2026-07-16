@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>上下文工程</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="ai-engineering"><main><h1>上下文工程</h1><p class="lead">上下文工程是把项目规则、架构边界、决策记录和代码约束组织起来，让 AI 在正确的信息环境中工作。</p>
+<div class="meta"><span class="tag">AI 工程能力</span><span class="tag">Context Engineering</span><span class="tag">TypeScript + Python</span><span class="tag">AI 协作上下文</span></div>
+<h2>今日目标</h2><ul><li>理解上下文质量决定 AI 产出质量。</li><li>知道 AGENTS、README、ADR、模块说明各放什么。</li><li>能写一段模块级 AI 约束。</li></ul>
+<h2>1. 这个能力解决什么问题</h2><p>AI 不知道项目历史、模块边界和团队约定时，会按通用经验乱写。上下文工程让规则可见、可复用、可执行。</p>
+<h2>2. 一个生活类比</h2><p>新同事入职需要项目文档、代码规范和业务背景。AI 也需要这些上下文，只是它读得更快。</p>
+<h2>3. 适用场景</h2><ul><li>项目长期使用 AI 协作。</li><li>多人维护同一代码库。</li><li>架构规则经常被误改。</li><li>希望 AI 自动遵守目录和依赖约束。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>一次性实验。</li><li>没有稳定规则的早期探索。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>文档</th><th>职责</th></tr></thead><tbody><tr><td>AGENTS.md</td><td>AI 工作规则和项目约束。</td></tr><tr><td>README</td><td>项目入口和运行方式。</td></tr><tr><td>ADR</td><td>重要架构决策原因。</td></tr><tr><td>模块 README</td><td>模块职责、依赖、禁止事项。</td></tr><tr><td>测试说明</td><td>验证方式和质量门槛。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type ModuleRule = {
+  module: string;
+  owns: string[];
+  forbiddenImports: string[];
+};
+
+const orderRule: ModuleRule = {
+  module: "order",
+  owns: ["订单创建", "订单取消"],
+  forbiddenImports: ["payment/infrastructure", "inventory/database"],
+};</code></pre><h3>Python 示例</h3><pre><code class="language-python">order_rule = {
+    "module": "order",
+    "owns": ["订单创建", "订单取消"],
+    "forbiddenImports": ["payment.infrastructure", "inventory.database"],
+}</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>AI 更容易遵守项目规则。</td><td>上下文需要持续更新。</td></tr><tr><td>减少重复解释。</td><td>文档过多会造成噪音。</td></tr></tbody></table>
+<h2>8. 和普通文档的区别</h2><table><thead><tr><th>普通文档</th><th>上下文工程</th></tr></thead><tbody><tr><td>主要给人读。</td><td>同时给人和 AI 执行。</td></tr><tr><td>偏说明。</td><td>偏约束、入口、决策和验证。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为订单模块写一段 AI 约束，说明它负责什么、不能依赖什么、改动后必须测什么。</p>
+<h2>10. 参考答案或改进建议</h2><p>订单模块负责订单生命周期；不能直接访问支付和库存数据库；跨模块通过端口或公开 API；修改状态流转必须补测试；新增外部依赖必须写适配器。</p>
+<section class="summary"><h2>今日总结</h2><p>上下文工程是 AI 时代的软件工程基础设施。规则写得清楚，AI 才能稳定地在正确边界内工作。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

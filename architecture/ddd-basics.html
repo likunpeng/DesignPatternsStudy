@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DDD 入门</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>DDD 入门</h1><p class="lead">DDD 不是把所有类都改名成领域对象，而是用业务语言建立模型，把核心规则放到真正表达业务概念的代码里。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Domain-Driven Design Basics</span><span class="tag">TypeScript + Python</span><span class="tag">领域建模</span></div>
+<h2>今日目标</h2><ul><li>理解实体、值对象、聚合、领域服务的基本含义。</li><li>知道 DDD 适合复杂业务，不适合所有 CRUD。</li><li>能用订单场景做一个最小领域模型。</li></ul>
+<h2>1. 这个方法解决什么问题</h2><p>当业务规则散落在 Service、SQL、前端和定时任务里，系统就很难回答“订单到底什么时候能取消”。DDD 通过领域模型集中表达核心规则。</p>
+<h2>2. 一个生活类比</h2><p>医院系统不能只说“表 A、表 B、状态字段”。医生关心的是患者、诊断、处方、复诊。领域语言让业务和代码说同一种话。</p>
+<h2>3. 适用场景</h2><ul><li>业务规则复杂且经常变化。</li><li>团队需要和业务专家长期沟通。</li><li>系统有多个子域，例如订单、库存、支付、履约。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>简单数据管理系统。</li><li>没有复杂规则，主要是增删改查。</li><li>团队把 DDD 当术语堆砌，不愿做业务分析。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td>实体</td><td>有唯一身份，生命周期变化，例如 Order。</td></tr><tr><td>值对象</td><td>无身份，用值表达概念，例如 Money、Address。</td></tr><tr><td>聚合</td><td>一致性边界，例如 Order 和 OrderItem。</td></tr><tr><td>领域服务</td><td>不自然属于某个实体的领域规则。</td></tr><tr><td>仓储</td><td>持久化聚合的抽象。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">class Money {
+  constructor(public cents: number) { if (cents < 0) throw new Error("金额不能为负"); }
+}
+
+class Order {
+  private status: "created" | "paid" | "cancelled" = "created";
+  constructor(public id: string, private total: Money) {}
+  cancel() {
+    if (this.status === "paid") throw new Error("已支付订单不能直接取消");
+    this.status = "cancelled";
+  }
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Money:
+    cents: int
+    def __post_init__(self):
+        if self.cents < 0:
+            raise ValueError("金额不能为负")
+
+class Order:
+    def __init__(self, id: str, total: Money):
+        self.id = id
+        self.total = total
+        self.status = "created"
+    def cancel(self) -> None:
+        if self.status == "paid":
+            raise ValueError("已支付订单不能直接取消")
+        self.status = "cancelled"</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>业务规则集中，表达力强。</td><td>建模需要业务理解。</td></tr><tr><td>代码语言贴近业务语言。</td><td>简单系统会显得复杂。</td></tr></tbody></table>
+<h2>8. 和数据库建模的区别</h2><table><thead><tr><th>维度</th><th>数据库模型</th><th>领域模型</th></tr></thead><tbody><tr><td>关注</td><td>存储结构、查询效率</td><td>业务概念、规则和行为</td></tr><tr><td>例子</td><td>order_status 字段</td><td>Order.cancel()</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“优惠券”建模：哪些是实体，哪些是值对象？“过期不能使用”规则应该放在哪里？</p>
+<h2>10. 参考答案或改进建议</h2><p>Coupon 通常是实体；Money、DateRange 可以是值对象；是否可用应放在 Coupon 或领域服务中，而不是散落在 Controller。</p>
+<section class="summary"><h2>今日总结</h2><p>DDD 的起点不是目录，而是业务语言。只有当模型能表达业务规则时，DDD 才有价值。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

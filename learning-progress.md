@@ -56,7 +56,49 @@
 
 ## 下一个建议学习
 
-所有模式教程已完成！可以复习已学内容或继续深入学习。
+建议学习 AI 时代架构方法论：`architecture/ai-era-architecture.html`。
+
+## 架构学习
+
+| 主题 | 文件 | 状态 | 更新时间 |
+|---|---|---|---|
+| 架构学习路线 | `architecture/learning-roadmap.html` | 未学习 | - |
+| AI 时代架构方法论 | `architecture/ai-era-architecture.html` | 未学习 | - |
+| 分层架构 | `architecture/layered-architecture.html` | 未学习 | - |
+| 依赖倒置与依赖注入 | `architecture/dependency-inversion-di.html` | 未学习 | - |
+| Clean Architecture | `architecture/clean-architecture.html` | 未学习 | - |
+| 六边形架构 | `architecture/hexagonal-architecture.html` | 未学习 | - |
+| DDD 入门 | `architecture/ddd-basics.html` | 未学习 | - |
+| 前端架构 | `architecture/frontend-architecture.html` | 未学习 | - |
+| MVC 架构模式 | `architecture/mvc-pattern.html` | 未学习 | - |
+| MVP 架构模式 | `architecture/mvp-pattern.html` | 未学习 | - |
+| MVVM 架构模式 | `architecture/mvvm-pattern.html` | 未学习 | - |
+| Flux/Redux 单向数据流 | `architecture/flux-redux.html` | 未学习 | - |
+| VIP/VIPER 架构模式 | `architecture/vip-viper-pattern.html` | 未学习 | - |
+| UI 架构模式对比 | `architecture/ui-architecture-comparison.html` | 未学习 | - |
+| AI 协作下的 UI 架构 | `architecture/ai-assisted-ui-architecture.html` | 未学习 | - |
+| 后端架构 | `architecture/backend-architecture.html` | 未学习 | - |
+| 模块化单体 | `architecture/modular-monolith.html` | 未学习 | - |
+| CQRS 读写分离 | `architecture/cqrs.html` | 未学习 | - |
+| 事件驱动架构 | `architecture/event-driven-architecture.html` | 未学习 | - |
+| BFF 架构 | `architecture/bff.html` | 未学习 | - |
+| 微服务边界 | `architecture/microservice-boundaries.html` | 未学习 | - |
+| 架构决策记录 | `architecture/adr.html` | 未学习 | - |
+| 测试策略与架构质量 | `architecture/testing-strategy.html` | 未学习 | - |
+| 架构评审清单 | `architecture/architecture-review-checklist.html` | 未学习 | - |
+| 演进式架构 | `architecture/evolutionary-architecture.html` | 未学习 | - |
+| 架构综合实践 | `architecture/architecture-practice.html` | 未学习 | - |
+
+## AI 工程能力
+
+| 主题 | 文件 | 状态 | 更新时间 |
+|---|---|---|---|
+| 代码坏味道与重构 | `ai-engineering/code-smells-and-refactoring.html` | 未学习 | - |
+| 设计模式选择方法 | `ai-engineering/pattern-selection.html` | 未学习 | - |
+| AI 代码评审方法 | `ai-engineering/ai-code-review.html` | 未学习 | - |
+| 从 Prompt 到架构方案 | `ai-engineering/prompt-to-architecture.html` | 未学习 | - |
+| 上下文工程 | `ai-engineering/context-engineering.html` | 未学习 | - |
+| 测试驱动的 AI 重构 | `ai-engineering/test-driven-ai-refactoring.html` | 未学习 | - |
 
 ## 更新示例
 

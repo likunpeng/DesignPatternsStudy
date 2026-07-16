@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CQRS 读写分离</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>CQRS 读写分离</h1><p class="lead">CQRS 把改变系统状态的命令和读取数据的查询分开。它适合读写复杂度差异明显的业务，但不应该滥用到所有 CRUD。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">CQRS</span><span class="tag">TypeScript + Python</span><span class="tag">读写分离</span></div>
+<h2>今日目标</h2><ul><li>理解 Command 和 Query 的职责差异。</li><li>知道轻量 CQRS 和复杂 CQRS 的区别。</li><li>判断什么时候不需要 CQRS。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>很多系统写入需要严格业务规则，读取需要复杂聚合和性能优化。把读写强行放一个模型里，会让模型又复杂又难优化。</p>
+<h2>2. 一个生活类比</h2><p>银行柜台办理转账需要严格校验，这是命令；手机 App 查看流水需要快速展示，这是查询。两者关注点不同。</p>
+<h2>3. 适用场景</h2><ul><li>写入规则复杂，查询展示复杂。</li><li>读多写少，读模型需要缓存或宽表。</li><li>命令流程需要审计和权限控制。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>简单 CRUD。</li><li>读写模型几乎一样。</li><li>团队不想处理数据同步和一致性。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Command</td><td>表达要改变什么。</td></tr><tr><td>Command Handler</td><td>执行业务规则和状态变化。</td></tr><tr><td>Query</td><td>表达要查询什么。</td></tr><tr><td>Read Model</td><td>为展示优化的数据结构。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type CreateOrderCommand = { userId: string; amount: number };
+class CreateOrderHandler { handle(command: CreateOrderCommand) { return "order-id"; } }
+
+type OrderListQuery = { userId: string };
+class OrderQueryService { list(query: OrderListQuery) { return [{ id: "1", amountText: "99 元" }]; } }</code></pre><h3>Python 示例</h3><pre><code class="language-python">class CreateOrderHandler:
+    def handle(self, command: dict) -> str:
+        return "order-id"
+
+class OrderQueryService:
+    def list(self, query: dict) -> list[dict]:
+        return [{"id": "1", "amountText": "99 元"}]</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>写入规则和读取展示各自清晰。</td><td>模型变多，复杂度增加。</td></tr><tr><td>读模型可以针对性能优化。</td><td>可能引入最终一致性。</td></tr></tbody></table>
+<h2>8. 和普通分层的区别</h2><table><thead><tr><th>普通分层</th><th>CQRS</th></tr></thead><tbody><tr><td>同一服务同时处理读写。</td><td>命令和查询分开建模。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“订单列表”和“创建订单”分别设计 Query 和 Command。</p>
+<h2>10. 参考答案或改进建议</h2><p>CreateOrderCommand 包含用户、商品、数量；OrderListQuery 包含用户、状态、分页。创建订单返回订单 ID，列表查询返回展示模型。</p>
+<section class="summary"><h2>今日总结</h2><p>CQRS 的价值是分离不同复杂度。读写一样简单时不要用；读写差异明显时，它能让模型更清楚。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

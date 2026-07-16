@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Clean Architecture</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>Clean Architecture</h1><p class="lead">Clean Architecture 的重点是保护业务规则，让框架、数据库、UI 和第三方服务都成为可替换的外层细节。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Clean Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">内外层依赖</span></div>
+<h2>今日目标</h2><ul><li>理解依赖只能从外层指向内层。</li><li>区分 Entity、Use Case、Interface Adapter、Framework。</li><li>知道 Clean Architecture 什么时候值得用。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>很多项目把业务规则写进 Controller、ORM Model 或页面组件里，导致换框架、换数据库、做测试时非常痛苦。Clean Architecture 把核心规则放在内层，让外层围绕它适配。</p>
+<h2>2. 一个生活类比</h2><p>公司核心制度不应该写在某个办公软件里。换办公软件时，制度不应该跟着重写。制度是内层，工具是外层。</p>
+<h2>3. 适用场景</h2><ul><li>业务规则复杂，生命周期长。</li><li>外部技术可能变化。</li><li>需要高质量自动化测试。</li><li>多个入口复用同一业务流程。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>纯展示型页面或简单后台。</li><li>业务规则很薄，主要是表单 CRUD。</li><li>团队无法接受额外层次和抽象。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>层</th><th>职责</th></tr></thead><tbody><tr><td>Entities</td><td>企业级业务规则和核心对象。</td></tr><tr><td>Use Cases</td><td>应用级流程编排。</td></tr><tr><td>Interface Adapters</td><td>Controller、Presenter、Repository 实现。</td></tr><tr><td>Frameworks</td><td>数据库、Web 框架、UI、外部服务。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">class Account {
+  constructor(public id: string, public balance: number) {}
+  withdraw(amount: number) {
+    if (amount &lt;= 0 || amount > this.balance) throw new Error("余额不足");
+    this.balance -= amount;
+  }
+}
+
+interface AccountRepo { get(id: string): Promise&lt;Account&gt;; save(account: Account): Promise&lt;void&gt;; }
+
+class WithdrawUseCase {
+  constructor(private accounts: AccountRepo) {}
+  async execute(accountId: string, amount: number) {
+    const account = await this.accounts.get(accountId);
+    account.withdraw(amount);
+    await this.accounts.save(account);
+  }
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+
+class Account:
+    def __init__(self, id: str, balance: int):
+        self.id = id
+        self.balance = balance
+    def withdraw(self, amount: int) -> None:
+        if amount &lt;= 0 or amount > self.balance:
+            raise ValueError("余额不足")
+        self.balance -= amount
+
+class AccountRepo(Protocol):
+    def get(self, id: str) -> Account: ...
+    def save(self, account: Account) -> None: ...</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>核心规则独立、可测试、可复用。</td><td>结构更重，初期开发慢。</td></tr><tr><td>技术替换成本低。</td><td>边界设计需要经验。</td></tr></tbody></table>
+<h2>8. 和分层架构的区别</h2><table><thead><tr><th>维度</th><th>分层架构</th><th>Clean Architecture</th></tr></thead><tbody><tr><td>重点</td><td>按职责分层</td><td>内层业务规则不依赖外层细节</td></tr><tr><td>依赖</td><td>常见为上层调用下层</td><td>源码依赖必须向内</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>设计“取消订单”用例，说明订单状态规则、库存释放、退款调用分别属于哪一层。</p>
+<h2>10. 参考答案或改进建议</h2><p>订单能否取消属于 Entity/Domain；取消流程属于 Use Case；库存和退款是端口；具体库存系统和支付 SDK 是外层适配器。</p>
+<section class="summary"><h2>今日总结</h2><p>Clean Architecture 的核心是依赖方向。业务规则越重要，越应该放在内层；框架和数据库越具体，越应该放在外层。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

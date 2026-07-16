@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>架构综合实践</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>架构综合实践</h1><p class="lead">架构综合实践的目标，是把需求、边界、代码结构、测试和演进计划串起来，而不是只画一张漂亮架构图。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Architecture Practice</span><span class="tag">TypeScript + Python</span><span class="tag">从需求到落地</span></div>
+<h2>今日目标</h2><ul><li>掌握一份小型架构方案的基本结构。</li><li>能从需求识别变化点和风险点。</li><li>把架构设计落到目录、接口、测试和验收标准。</li></ul>
+<h2>1. 这个实践解决什么问题</h2><p>很多架构学习停留在概念。真正落地时，需要回答：为什么这样拆、代码放哪里、怎么测试、以后怎么扩展、AI 生成代码要遵守什么规则。</p>
+<h2>2. 一个生活类比</h2><p>旅行计划不能只有目的地，还要有路线、预算、交通、备选方案和风险预案。架构方案也不能只有图。</p>
+<h2>3. 适用场景</h2><ul><li>新模块启动前。</li><li>旧模块重构前。</li><li>引入外部系统或新业务流程前。</li><li>需要让 AI 协助实现前。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>非常小的修复或文案调整。</li><li>需求还没形成基本共识。</li><li>只需要技术 Spike，不需要长期方案。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>部分</th><th>要回答的问题</th></tr></thead><tbody><tr><td>背景目标</td><td>为什么做，成功标准是什么？</td></tr><tr><td>边界范围</td><td>做什么，不做什么？</td></tr><tr><td>领域模型</td><td>核心概念和规则是什么？</td></tr><tr><td>模块设计</td><td>目录、依赖、接口怎么组织？</td></tr><tr><td>质量策略</td><td>测试、日志、监控怎么覆盖？</td></tr><tr><td>演进计划</td><td>哪些先做，哪些预留？</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">// 方案落地时，先定义用例输入输出和端口。
+interface TicketRepo { save(ticket: { id: string; title: string }): Promise&lt;void&gt;; }
+interface Notifier { notify(userId: string, message: string): Promise&lt;void&gt;; }
+
+class SubmitTicketUseCase {
+  constructor(private tickets: TicketRepo, private notifier: Notifier) {}
+  async execute(input: SubmitTicketInput) {
+    if (!input.title.trim()) throw new Error("标题不能为空");
+    await this.tickets.save({ id: crypto.randomUUID(), title: input.title });
+    await this.notifier.notify(input.userId, "工单已提交");
+  }
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+from uuid import uuid4
+
+class TicketRepo(Protocol):
+    def save(self, ticket: dict) -> None: ...
+
+class SubmitTicketUseCase:
+    def __init__(self, tickets: TicketRepo):
+        self.tickets = tickets
+    def execute(self, title: str) -> None:
+        if not title.strip():
+            raise ValueError("标题不能为空")
+        self.tickets.save({"id": str(uuid4()), "title": title})</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>设计能落到代码和测试。</td><td>需要花时间做前置分析。</td></tr><tr><td>便于团队和 AI 按同一规则实现。</td><td>方案需要随业务反馈调整。</td></tr></tbody></table>
+<h2>8. 和只写技术方案的区别</h2><table><thead><tr><th>普通技术方案</th><th>架构实践方案</th></tr></thead><tbody><tr><td>偏工具和实现步骤</td><td>同时说明业务边界、依赖方向和演进成本</td></tr><tr><td>容易忽略测试和验收</td><td>明确质量策略和完成标准</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“工单系统”写一份小型架构方案：包括模块边界、核心实体、用例、外部依赖、测试策略。</p>
+<h2>10. 参考答案或改进建议</h2><p>核心实体可以是 Ticket、Comment、Assignee；用例包括 SubmitTicket、AssignTicket、CloseTicket；外部依赖包括通知和附件存储；测试应覆盖状态流转、权限和通知失败。</p>
+<section class="summary"><h2>今日总结</h2><p>架构综合实践的关键是闭环：从需求到边界，从边界到代码，从代码到测试，从测试到演进。能落地的架构才有价值。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

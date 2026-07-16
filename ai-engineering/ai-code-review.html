@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AI 代码评审方法</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="ai-engineering"><main><h1>AI 代码评审方法</h1><p class="lead">AI 生成代码后，评审重点不是“它写了多少”，而是边界、行为、风险和测试是否可靠。</p>
+<div class="meta"><span class="tag">AI 工程能力</span><span class="tag">AI Code Review</span><span class="tag">TypeScript + Python</span><span class="tag">质量验收</span></div>
+<h2>今日目标</h2><ul><li>掌握 AI 代码评审的检查维度。</li><li>识别看似正确但有隐患的代码。</li><li>学会让 AI 先自查再提交。</li></ul>
+<h2>1. 这个方法解决什么问题</h2><p>AI 代码可能语法正确、功能看似完成，但隐藏边界破坏、异常遗漏、安全问题和测试缺口。评审是把生成速度转化为可靠交付的关键。</p>
+<h2>2. 一个生活类比</h2><p>流水线生产很快，但出厂前仍要质检。速度越快，质检越重要。</p>
+<h2>3. 适用场景</h2><ul><li>AI 修改多个文件。</li><li>AI 新增业务流程。</li><li>AI 重构核心模块。</li><li>AI 生成测试或架构代码。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>纯格式化或文案改动。</li><li>临时实验代码。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>维度</th><th>检查问题</th></tr></thead><tbody><tr><td>行为</td><td>是否满足需求和边界条件？</td></tr><tr><td>架构</td><td>依赖方向是否正确？</td></tr><tr><td>测试</td><td>核心规则是否有测试？</td></tr><tr><td>安全</td><td>输入、权限、敏感信息是否处理？</td></tr><tr><td>维护</td><td>是否引入重复和过度抽象？</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type ReviewResult = { passed: boolean; risks: string[] };
+function review(hasTests: boolean, crossesLayer: boolean): ReviewResult {
+  const risks = [];
+  if (!hasTests) risks.push("缺少核心测试");
+  if (crossesLayer) risks.push("可能破坏分层依赖");
+  return { passed: risks.length === 0, risks };
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">def review(has_tests: bool, crosses_layer: bool) -> dict:
+    risks = []
+    if not has_tests:
+        risks.append("缺少核心测试")
+    if crosses_layer:
+        risks.append("可能破坏分层依赖")
+    return {"passed": len(risks) == 0, "risks": risks}</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>降低 AI 生成代码的隐性风险。</td><td>需要评审者理解上下文。</td></tr><tr><td>可沉淀为检查清单。</td><td>不能只靠 AI 自评。</td></tr></tbody></table>
+<h2>8. 和普通 Code Review 的区别</h2><table><thead><tr><th>普通 Review</th><th>AI Review</th></tr></thead><tbody><tr><td>更关注人写错哪里。</td><td>更关注 AI 是否误解上下文和边界。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>AI 新增了退款功能，你会检查哪些点？</p>
+<h2>10. 参考答案或改进建议</h2><p>检查退款状态流转、幂等、权限、支付网关适配、失败重试、测试覆盖、是否直接改外部模块数据、是否记录关键日志。</p>
+<section class="summary"><h2>今日总结</h2><p>AI 代码评审的核心是风险识别。不要只看代码能不能跑，要看它是否破坏系统长期可维护性。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

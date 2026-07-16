@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>测试策略与架构质量</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>测试策略与架构质量</h1><p class="lead">测试不是补作业，而是架构边界能否长期成立的保护网。没有测试，架构只能靠记忆和自觉维持。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Testing Strategy</span><span class="tag">TypeScript + Python</span><span class="tag">质量保护</span></div>
+<h2>今日目标</h2><ul><li>理解不同测试层级保护不同架构边界。</li><li>知道领域规则、用例流程、适配器、服务契约分别怎么测。</li><li>学会给 AI 生成代码设置测试要求。</li></ul>
+<h2>1. 这个策略解决什么问题</h2><p>代码能跑不代表架构健康。业务规则可能散落，依赖方向可能倒置，外部适配可能没有保护。测试策略把这些风险变成可执行检查。</p>
+<h2>2. 一个生活类比</h2><p>建筑不是盖完看起来漂亮就行，还要做承重、消防、电路和防水验收。测试就是软件架构的验收体系。</p>
+<h2>3. 适用场景</h2><ul><li>业务规则有长期维护价值。</li><li>AI 或多人频繁改代码。</li><li>系统接入外部服务、数据库、消息队列。</li><li>重构前需要安全网。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>一次性脚本。</li><li>探索性原型。</li><li>完全没有稳定规则的早期实验。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>测试类型</th><th>保护对象</th></tr></thead><tbody><tr><td>单元测试</td><td>领域规则、纯函数、值对象。</td></tr><tr><td>用例测试</td><td>应用流程和端口协作。</td></tr><tr><td>集成测试</td><td>数据库、缓存、第三方适配器。</td></tr><tr><td>契约测试</td><td>服务间 API 或事件格式。</td></tr><tr><td>E2E 测试</td><td>关键用户路径。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">class Order {
+  constructor(public status: "created" | "paid" | "cancelled") {}
+  cancel() {
+    if (this.status === "paid") throw new Error("已支付不能取消");
+    this.status = "cancelled";
+  }
+}
+
+function testCancelCreatedOrder() {
+  const order = new Order("created");
+  order.cancel();
+  console.assert(order.status === "cancelled");
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">class Order:
+    def __init__(self, status: str):
+        self.status = status
+    def cancel(self) -> None:
+        if self.status == "paid":
+            raise ValueError("已支付不能取消")
+        self.status = "cancelled"
+
+def test_cancel_created_order():
+    order = Order("created")
+    order.cancel()
+    assert order.status == "cancelled"</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>重构更安全，AI 改动更可控。</td><td>需要持续维护测试数据和边界。</td></tr><tr><td>能暴露架构耦合问题。</td><td>过多 E2E 会慢且脆弱。</td></tr></tbody></table>
+<h2>8. 和只测功能的区别</h2><table><thead><tr><th>只测功能</th><th>架构测试策略</th></tr></thead><tbody><tr><td>关注结果是否正确</td><td>同时关注规则位置、依赖方向、外部适配</td></tr><tr><td>偏黑盒</td><td>组合单元、用例、集成、契约测试</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“订单取消”设计测试：领域规则测什么，用例测什么，集成测试测什么？</p>
+<h2>10. 参考答案或改进建议</h2><p>领域测试验证不同状态能否取消；用例测试验证取消后保存订单并发布事件；集成测试验证仓储能正确持久化；如果有消息事件，应加契约测试保护事件格式。</p>
+<section class="summary"><h2>今日总结</h2><p>测试策略是架构的一部分。好的测试不是数量多，而是能保护核心规则、模块边界和关键集成点。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

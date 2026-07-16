@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>代码坏味道与重构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="ai-engineering"><main><h1>代码坏味道与重构</h1><p class="lead">AI 能快速生成代码，但也可能快速制造坏味道。程序员需要识别结构问题，并用小步重构把代码带回可维护状态。</p>
+<div class="meta"><span class="tag">AI 工程能力</span><span class="tag">Code Smells & Refactoring</span><span class="tag">TypeScript + Python</span><span class="tag">结构治理</span></div>
+<h2>今日目标</h2><ul><li>识别 AI 常见坏味道：大函数、胖类、重复逻辑、错误依赖、过度抽象。</li><li>知道坏味道和设计模式之间的关系。</li><li>掌握小步、安全、可回滚的重构方法。</li></ul>
+<h2>1. 这个能力解决什么问题</h2><p>AI 生成代码通常先追求完成任务，不一定关注长期结构。坏味道不会马上报错，但会让下一次改动更贵。</p>
+<h2>2. 一个生活类比</h2><p>房间临时堆东西最快，但堆久了找东西越来越难。重构就是在不改变用途的前提下重新收纳。</p>
+<h2>3. 适用场景</h2><ul><li>AI 一次生成了很长函数。</li><li>多个文件出现重复逻辑。</li><li>业务代码直接依赖数据库、SDK、页面框架。</li><li>新增需求时总要改同一个大类。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>还没有测试保护的高风险核心流程，先补测试。</li><li>一次性脚本，维护周期很短。</li><li>为了“看起来高级”而抽象。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>坏味道</th><th>常见处理</th></tr></thead><tbody><tr><td>大函数</td><td>按意图拆函数，先保留行为。</td></tr><tr><td>重复逻辑</td><td>抽规则函数或策略。</td></tr><tr><td>胖类</td><td>按变化原因拆职责。</td></tr><tr><td>错误依赖</td><td>引入端口和适配器。</td></tr><tr><td>过度抽象</td><td>删除没有变化支撑的层。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">function validateAmount(amount: number) {
+  if (amount &lt;= 0) throw new Error("金额必须大于 0");
+}
+
+function createOrder(amount: number) {
+  validateAmount(amount);
+  return { amount, status: "created" };
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">def validate_amount(amount: int) -> None:
+    if amount &lt;= 0:
+        raise ValueError("金额必须大于 0")
+
+def create_order(amount: int) -> dict:
+    validate_amount(amount)
+    return {"amount": amount, "status": "created"}</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>代码更容易理解、测试、扩展。</td><td>需要避免一次性大改。</td></tr><tr><td>能纠正 AI 生成代码的结构问题。</td><td>没有测试时容易引入回归。</td></tr></tbody></table>
+<h2>8. 和设计模式的关系</h2><table><thead><tr><th>重构</th><th>设计模式</th></tr></thead><tbody><tr><td>先发现具体坏味道。</td><td>作为解决某类坏味道的工具。</td></tr><tr><td>不一定引入新抽象。</td><td>可能增加结构和类。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>找一段 AI 生成的大函数，标出其中的校验、业务规则、外部调用和响应转换。</p>
+<h2>10. 参考答案或改进建议</h2><p>先不要急着套模式。把函数按意图拆开，补测试，再判断重复变化点是否值得引入策略、适配器或用例层。</p>
+<section class="summary"><h2>今日总结</h2><p>AI 时代重构能力更重要。你不需要比 AI 写得快，但要能判断哪些代码正在变成未来的维护成本。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

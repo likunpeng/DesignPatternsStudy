@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>架构评审清单</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>架构评审清单</h1><p class="lead">架构评审清单把“感觉不对”变成可检查的问题，尤其适合审查 AI 生成或重构后的代码。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Architecture Review Checklist</span><span class="tag">TypeScript + Python</span><span class="tag">质量评审</span></div>
+<h2>今日目标</h2><ul><li>建立一套通用架构评审问题。</li><li>能识别边界破坏、依赖倒置失败、过度抽象。</li><li>学会把清单用于 AI 代码审查。</li></ul>
+<h2>1. 这个清单解决什么问题</h2><p>架构问题常常不表现为立刻报错，而是未来难改、难测、难拆。清单帮助你在合并前发现长期风险。</p>
+<h2>2. 一个生活类比</h2><p>飞机起飞前要按清单检查，不是因为飞行员不专业，而是复杂系统不能只靠记忆。架构评审也是一样。</p>
+<h2>3. 适用场景</h2><ul><li>新增模块、重构模块、接入外部系统。</li><li>AI 一次性修改多个文件。</li><li>准备拆服务或调整目录结构。</li><li>核心业务流程上线前。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>纯文案、样式、配置的小改动。</li><li>无长期维护价值的一次性实验。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>维度</th><th>问题</th></tr></thead><tbody><tr><td>边界</td><td>这个模块负责什么，不负责什么？</td></tr><tr><td>依赖</td><td>源码依赖方向是否正确？</td></tr><tr><td>规则</td><td>业务规则是否放在领域或用例层？</td></tr><tr><td>外部系统</td><td>是否通过端口和适配器隔离？</td></tr><tr><td>测试</td><td>核心规则和关键流程是否有测试？</td></tr><tr><td>演进</td><td>新增变化是否更容易，而不是更难？</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type ReviewItem = { question: string; passed: boolean; note?: string };
+
+const checklist: ReviewItem[] = [
+  { question: "业务层是否避免直接依赖数据库客户端？", passed: true },
+  { question: "新增第三方 SDK 是否被适配器隔离？", passed: false, note: "短信 SDK 直接出现在 use case 中" },
+];
+
+const failed = checklist.filter((item) => !item.passed);</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">checklist = [
+    {"question": "业务规则是否集中？", "passed": True},
+    {"question": "外部 SDK 是否被隔离？", "passed": False, "note": "支付 SDK 泄漏到用例层"},
+]
+
+failed = [item for item in checklist if not item["passed"]]</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>评审更稳定，减少主观争论。</td><td>清单不能替代业务判断。</td></tr><tr><td>适合 AI 生成代码后的验收。</td><td>过度机械执行会拖慢小改动。</td></tr></tbody></table>
+<h2>8. 和代码 Review 的区别</h2><table><thead><tr><th>代码 Review</th><th>架构评审</th></tr></thead><tbody><tr><td>关注实现正确性、可读性、Bug</td><td>关注边界、依赖、演进和长期成本</td></tr><tr><td>通常针对改动文件</td><td>可能需要看模块和系统上下文</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>审查“新增支付渠道”方案，列出至少 6 个架构评审问题。</p>
+<h2>10. 参考答案或改进建议</h2><p>是否定义 PaymentGateway 端口；是否避免业务层直接依赖 SDK；是否有失败重试和幂等；是否有回调验签；是否有测试；是否记录 ADR；是否影响已有支付方式。</p>
+<section class="summary"><h2>今日总结</h2><p>架构评审清单的价值，是把长期风险提前暴露。AI 写得越快，越需要稳定的评审标准。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

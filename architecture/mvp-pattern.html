@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MVP 架构模式</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>MVP 架构模式</h1><p class="lead">MVP 让 View 尽量被动，Presenter 负责展示逻辑和交互流程，因此更容易测试复杂表单和传统客户端页面。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">MVP</span><span class="tag">TypeScript + Python</span><span class="tag">可测试表现逻辑</span></div>
+<h2>今日目标</h2><ul><li>理解 MVP 如何解决胖 View 和胖 Controller。</li><li>知道 Passive View 和 Supervising Controller 的差异。</li><li>能写一个可测试 Presenter。</li></ul>
+<h2>1. 这个模式解决什么问题</h2><p>复杂表单里，校验、加载、提交、错误提示都写在 View 中会很难测试。MVP 把这些展示逻辑放进 Presenter，View 只暴露接口。</p>
+<h2>2. 一个生活类比</h2><p>主持人 Presenter 控制节目流程，舞台 View 只负责呈现灯光、字幕和演员位置。舞台不决定节目流程。</p>
+<h2>3. 适用场景</h2><ul><li>传统桌面、移动端、复杂表单。</li><li>View 框架绑定能力较弱。</li><li>需要对交互逻辑做单元测试。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>响应式绑定非常成熟的现代前端，MVVM 可能更自然。</li><li>页面很简单，Presenter 会显得多余。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>View</td><td>展示和转发用户事件。</td></tr><tr><td>Presenter</td><td>处理展示逻辑，调用 Model 或 UseCase。</td></tr><tr><td>Model</td><td>数据和业务能力。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">interface LoginView { showLoading(): void; showError(msg: string): void; }
+class LoginPresenter {
+  constructor(private view: LoginView) {}
+  submit(email: string) {
+    if (!email.includes("@")) return this.view.showError("邮箱不合法");
+    this.view.showLoading();
+  }
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+
+class LoginView(Protocol):
+    def show_loading(self) -> None: ...
+    def show_error(self, msg: str) -> None: ...
+
+class LoginPresenter:
+    def __init__(self, view: LoginView):
+        self.view = view
+    def submit(self, email: str) -> None:
+        if "@" not in email:
+            self.view.show_error("邮箱不合法")
+            return
+        self.view.show_loading()</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>Presenter 易测试，View 更薄。</td><td>接口和样板代码较多。</td></tr><tr><td>适合复杂交互。</td><td>双向调用关系需要管理。</td></tr></tbody></table>
+<h2>8. 和 MVC/MVVM 的区别</h2><table><thead><tr><th>模式</th><th>区别</th></tr></thead><tbody><tr><td>MVC</td><td>Controller 常直接协调 Model 和 View。</td></tr><tr><td>MVVM</td><td>View 绑定 ViewModel 状态，减少手动调用 View。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>把注册表单的校验、加载、错误提示拆到 Presenter 中。</p>
+<h2>10. 参考答案或改进建议</h2><p>View 暴露 showLoading、showError、showSuccess；Presenter 校验输入并调用注册用例；注册规则复杂时应继续下沉到 UseCase 或 Domain。</p>
+<section class="summary"><h2>今日总结</h2><p>MVP 的关键是让 View 被动化。AI 生成客户端页面时，可以要求交互流程进入 Presenter，而不是散落在 UI 事件里。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

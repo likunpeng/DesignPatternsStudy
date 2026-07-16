@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>VIP/VIPER 架构模式</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>VIP/VIPER 架构模式</h1><p class="lead">VIP/VIPER 用更严格的单向职责拆分复杂页面，常见于 iOS、Android 和大型客户端模块。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">VIP/VIPER</span><span class="tag">TypeScript + Python</span><span class="tag">复杂页面模块化</span></div>
+<h2>今日目标</h2><ul><li>理解 VIP/VIPER 为什么比 MVC/MVVM 更重。</li><li>知道 Interactor、Presenter、Router 的职责。</li><li>判断什么时候值得使用。</li></ul>
+<h2>1. 这个模式解决什么问题</h2><p>复杂 App 页面可能同时有网络请求、状态转换、导航、弹窗、权限和业务流程。VIP/VIPER 把这些职责拆开，避免 ViewController 或 ViewModel 巨大化。</p>
+<h2>2. 一个生活类比</h2><p>大型活动需要导演、主持、后勤、路线引导和现场执行分工。一个人全包会失控。</p>
+<h2>3. 适用场景</h2><ul><li>复杂移动端页面或多步骤流程。</li><li>页面需要强测试和多人协作。</li><li>导航、展示、业务流程都比较重。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>普通列表页或简单表单。</li><li>团队无法维护大量样板代码。</li><li>Web 前端已有更合适的状态管理方案。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>View</td><td>展示和收集输入。</td></tr><tr><td>Interactor</td><td>业务用例和数据交互。</td></tr><tr><td>Presenter</td><td>把结果转换成展示模型。</td></tr><tr><td>Router</td><td>导航和模块组装。</td></tr><tr><td>Entity</td><td>业务数据结构。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type Order = { id: string; amount: number };
+class OrderPresenter { present(order: Order) { return { title: `订单 ${order.id}`, amountText: `${order.amount} 元` }; } }
+class OrderInteractor {
+  constructor(private presenter: OrderPresenter) {}
+  loadOrder() { return this.presenter.present({ id: "1", amount: 99 }); }
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">class OrderPresenter:
+    def present(self, order: dict) -> dict:
+        return {"title": f"订单 {order['id']}", "amountText": f"{order['amount']} 元"}
+
+class OrderInteractor:
+    def __init__(self, presenter: OrderPresenter):
+        self.presenter = presenter
+    def load_order(self) -> dict:
+        return self.presenter.present({"id": "1", "amount": 99})</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>职责极清晰，复杂页面可测试。</td><td>样板代码多，简单页面过度设计。</td></tr><tr><td>导航和业务流程分离。</td><td>学习成本高。</td></tr></tbody></table>
+<h2>8. 和 MVVM 的区别</h2><table><thead><tr><th>MVVM</th><th>VIP/VIPER</th></tr></thead><tbody><tr><td>ViewModel 承载状态和交互。</td><td>Interactor、Presenter、Router 进一步拆分。</td></tr><tr><td>更轻量。</td><td>更严格，适合复杂模块。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>把“提交订单确认页”拆成 View、Interactor、Presenter、Router。</p>
+<h2>10. 参考答案或改进建议</h2><p>View 收集确认操作；Interactor 调用提交订单用例；Presenter 生成成功/失败展示模型；Router 负责跳转支付页或结果页。</p>
+<section class="summary"><h2>今日总结</h2><p>VIP/VIPER 不是越复杂越高级，而是在页面足够复杂时，用严格分工换取可测试和可维护。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

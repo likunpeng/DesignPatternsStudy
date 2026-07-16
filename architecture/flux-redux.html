@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Flux/Redux 单向数据流</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>Flux/Redux 单向数据流</h1><p class="lead">Flux/Redux 的核心是让状态变化按单一方向流动：View 发出 Action，状态按规则更新，再驱动 View 渲染。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Flux / Redux</span><span class="tag">TypeScript + Python</span><span class="tag">前端状态架构</span></div>
+<h2>今日目标</h2><ul><li>理解为什么复杂前端需要单向数据流。</li><li>掌握 Action、Reducer、Store、View 的职责。</li><li>知道什么时候不需要 Redux 这类方案。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>复杂页面中，多个组件互相改状态会导致数据来源不清。单向数据流让状态变化可追踪、可回放、可测试。</p>
+<h2>2. 一个生活类比</h2><p>报销流程不是每个人直接改账本，而是提交申请，财务按规则处理，账本更新后大家看到新状态。</p>
+<h2>3. 适用场景</h2><ul><li>多个组件共享复杂状态。</li><li>状态变化需要可追踪。</li><li>需要撤销、回放、调试状态变化。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>局部表单状态。</li><li>简单页面只有少量组件。</li><li>为了跟风引入全局状态。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>View</td><td>展示状态，派发 Action。</td></tr><tr><td>Action</td><td>描述发生了什么。</td></tr><tr><td>Reducer</td><td>根据旧状态和 Action 生成新状态。</td></tr><tr><td>Store</td><td>保存全局或模块状态。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type State = { count: number };
+type Action = { type: "increment" } | { type: "reset" };
+
+function reducer(state: State, action: Action): State {
+  if (action.type === "increment") return { count: state.count + 1 };
+  if (action.type === "reset") return { count: 0 };
+  return state;
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">def reducer(state: dict, action: dict) -> dict:
+    if action["type"] == "increment":
+        return {"count": state["count"] + 1}
+    if action["type"] == "reset":
+        return {"count": 0}
+    return state</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>状态变化清晰、可测试。</td><td>样板代码可能增加。</td></tr><tr><td>适合复杂共享状态。</td><td>简单页面会过度设计。</td></tr></tbody></table>
+<h2>8. 和 MVVM 的区别</h2><table><thead><tr><th>MVVM</th><th>Flux/Redux</th></tr></thead><tbody><tr><td>ViewModel 管页面状态和命令。</td><td>Action/Reducer/Store 管状态变化链路。</td></tr><tr><td>适合页面级状态。</td><td>适合复杂共享状态。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为购物车设计 Action 和 Reducer：添加商品、修改数量、清空购物车。</p>
+<h2>10. 参考答案或改进建议</h2><p>Action 描述 addItem、changeQty、clearCart；Reducer 不直接请求接口，只根据 Action 更新状态。异步请求应放在副作用层或 use case。</p>
+<section class="summary"><h2>今日总结</h2><p>单向数据流的价值是让状态变化可追踪。AI 生成前端状态代码时，应该明确状态只能通过规定动作改变。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

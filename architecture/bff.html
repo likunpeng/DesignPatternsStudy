@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BFF 架构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>BFF 架构</h1><p class="lead">BFF 是 Backend for Frontend，为不同前端提供贴合页面和端能力的后端接口，避免前端直接拼多个后端服务。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Backend for Frontend</span><span class="tag">TypeScript + Python</span><span class="tag">前后端协作</span></div>
+<h2>今日目标</h2><ul><li>理解 BFF 解决多端数据适配问题。</li><li>知道 BFF 不应该承载核心业务规则。</li><li>能设计一个页面聚合接口。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>Web、App、小程序需要的数据形状不同。如果前端直接调多个后端服务，会出现重复拼装、权限分散、接口不稳定。BFF 在后端聚合并适配前端需要的数据。</p>
+<h2>2. 一个生活类比</h2><p>同一份食材，堂食、外卖、儿童餐的打包方式不同。BFF 就像面向不同就餐场景的打包台。</p>
+<h2>3. 适用场景</h2><ul><li>多端应用数据需求不同。</li><li>页面需要聚合多个后端服务。</li><li>前端不适合直接暴露复杂服务接口。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>只有一个简单前端。</li><li>后端接口已经刚好满足页面需求。</li><li>把核心业务规则都塞进 BFF。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>部分</th><th>职责</th></tr></thead><tbody><tr><td>Frontend</td><td>展示和交互。</td></tr><tr><td>BFF</td><td>聚合、裁剪、适配数据。</td></tr><tr><td>Domain Service</td><td>核心业务能力。</td></tr><tr><td>Auth/Policy</td><td>统一鉴权和接口保护。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">async function getOrderPage(orderId: string) {
+  const order = await fetch(`/orders/${orderId}`).then((r) =&gt; r.json());
+  const coupons = await fetch(`/coupons?user=${order.userId}`).then((r) =&gt; r.json());
+  return { title: `订单 ${order.id}`, order, coupons };
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">def get_order_page(order: dict, coupons: list[dict]) -> dict:
+    return {
+        "title": f"订单 {order['id']}",
+        "order": order,
+        "coupons": coupons,
+    }</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>前端更简单，接口更贴合页面。</td><td>BFF 容易变成业务垃圾桶。</td></tr><tr><td>适合多端差异。</td><td>需要治理重复聚合逻辑。</td></tr></tbody></table>
+<h2>8. 和 API Gateway 的区别</h2><table><thead><tr><th>BFF</th><th>API Gateway</th></tr></thead><tbody><tr><td>面向具体前端体验和数据形状。</td><td>面向统一入口、路由、限流、鉴权。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>为“订单详情页”设计 Web BFF 和 App BFF 的差异。</p>
+<h2>10. 参考答案或改进建议</h2><p>Web 可能需要更完整的操作区和表格字段；App 需要更轻量的数据和移动端按钮状态。核心订单规则仍在订单服务，不应放进 BFF。</p>
+<section class="summary"><h2>今日总结</h2><p>BFF 的价值是适配前端，而不是替代领域服务。它应聚合和裁剪数据，不应承载核心业务规则。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

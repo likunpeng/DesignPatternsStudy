@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>演进式架构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>演进式架构</h1><p class="lead">演进式架构强调先满足当前真实需求，再通过测试、边界和重构逐步演进，避免一开始设计过重，也避免长期不治理。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Evolutionary Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">渐进演进</span></div>
+<h2>今日目标</h2><ul><li>理解架构不是一次性设计完成。</li><li>知道何时保持简单，何时重构升级。</li><li>掌握从单体到模块化单体再到微服务的常见路径。</li><li>学会用 AI 辅助安全演进，而不是盲目重写。</li></ul>
+<h2>1. 这个方法解决什么问题</h2><p>过早设计会浪费成本，完全不设计会形成泥团。演进式架构在二者之间建立机制：先简单实现，但保留测试、边界和决策记录，让系统能安全改变。</p>
+<h2>2. 一个生活类比</h2><p>城市不是一天建成的。先有道路和基础设施，再根据人口增长修地铁、分区和立交桥。软件架构也应随真实压力演进。</p>
+<h2>3. 适用场景</h2><ul><li>业务还在变化，但有长期发展可能。</li><li>旧系统需要逐步治理，不能推倒重写。</li><li>团队希望避免过早微服务化。</li><li>AI 协助重构，需要明确安全步骤。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>有强监管或强安全要求，必须前置完整设计。</li><li>一次性项目。</li><li>没有测试和监控，演进风险不可控。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>阶段</th><th>重点</th></tr></thead><tbody><tr><td>简单单体</td><td>快速验证业务，不提前拆服务。</td></tr><tr><td>分层单体</td><td>明确入口、用例、领域、基础设施。</td></tr><tr><td>模块化单体</td><td>按业务能力拆模块，控制模块依赖。</td></tr><tr><td>服务化</td><td>边界稳定后按数据归属独立部署。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">// 演进前：一个函数里混合规则和实现。
+async function createOrder(amount: number) {
+  if (amount &lt;= 0) throw new Error("金额不合法");
+  console.log("保存订单");
+}
+
+// 演进后：先抽出用例和端口，不急着拆微服务。
+interface OrderRepo { save(amount: number): Promise&lt;void&gt;; }
+class CreateOrderUseCase {
+  constructor(private repo: OrderRepo) {}
+  async execute(amount: number) {
+    if (amount &lt;= 0) throw new Error("金额不合法");
+    await this.repo.save(amount);
+  }
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+
+class OrderRepo(Protocol):
+    def save(self, amount: int) -> None: ...
+
+class CreateOrderUseCase:
+    def __init__(self, repo: OrderRepo):
+        self.repo = repo
+    def execute(self, amount: int) -> None:
+        if amount &lt;= 0:
+            raise ValueError("金额不合法")
+        self.repo.save(amount)</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>避免过早复杂化。</td><td>需要持续治理，不能放任不管。</td></tr><tr><td>适合真实业务不确定性。</td><td>如果没有测试，演进会变成冒险。</td></tr></tbody></table>
+<h2>8. 和一次性大设计的区别</h2><table><thead><tr><th>一次性大设计</th><th>演进式架构</th></tr></thead><tbody><tr><td>试图提前预测所有变化</td><td>识别关键变化点，逐步调整</td></tr><tr><td>前期成本高</td><td>前期轻量，但要求持续反馈</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>一个订单模块现在所有逻辑都在一个 Service 里。请设计三步演进路线，不允许直接拆微服务。</p>
+<h2>10. 参考答案或改进建议</h2><p>第一步补核心规则测试；第二步抽出用例和仓储端口；第三步按订单、支付、库存建立模块边界。只有当边界稳定、数据归属清楚、团队具备运维能力后，再考虑拆服务。</p>
+<section class="summary"><h2>今日总结</h2><p>演进式架构不是“不设计”，而是用测试、边界和决策记录支撑持续改变。AI 可以加速重构，但演进路线必须由人把关。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

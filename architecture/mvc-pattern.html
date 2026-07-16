@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MVC 架构模式</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>MVC 架构模式</h1><p class="lead">MVC 把应用拆成 Model、View、Controller，用来避免界面展示、用户输入和业务数据混在一起。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">MVC</span><span class="tag">TypeScript + Python</span><span class="tag">表现层架构</span></div>
+<h2>今日目标</h2><ul><li>理解 MVC 解决的职责混乱问题。</li><li>知道 Controller 为什么容易变胖。</li><li>能判断现代 Web/前端中的 MVC 变体。</li></ul>
+<h2>1. 这个模式解决什么问题</h2><p>当页面代码同时处理输入、渲染、业务规则和数据访问时，任何改动都会影响整块代码。MVC 通过分工降低耦合。</p>
+<h2>2. 一个生活类比</h2><p>餐厅里菜单是 View，厨房和菜品规则是 Model，服务员接单并协调厨房是 Controller。服务员不应该亲自修改菜谱。</p>
+<h2>3. 适用场景</h2><ul><li>Web 应用、桌面应用、传统服务端渲染。</li><li>页面交互不算特别复杂，但需要基本分层。</li><li>希望把输入处理和数据模型分开。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>复杂响应式状态页面，MVVM 或单向数据流更清晰。</li><li>Controller 已经变成巨型流程编排器。</li><li>简单静态页面。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Model</td><td>数据和业务规则。</td></tr><tr><td>View</td><td>展示数据，不决定业务规则。</td></tr><tr><td>Controller</td><td>接收输入，调用 Model，选择 View。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">class UserModel { constructor(public name: string) {} }
+function userView(user: UserModel) { return `&lt;h1&gt;${user.name}&lt;/h1&gt;`; }
+function userController(id: string) {
+  const user = new UserModel(`用户 ${id}`);
+  return userView(user);
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">class UserModel:
+    def __init__(self, name: str):
+        self.name = name
+
+def user_view(user: UserModel) -> str:
+    return f"&lt;h1&gt;{user.name}&lt;/h1&gt;"
+
+def user_controller(id: str) -> str:
+    user = UserModel(f"用户 {id}")
+    return user_view(user)</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>结构直观，入门成本低。</td><td>Controller 容易变胖。</td></tr><tr><td>适合传统 Web 分层。</td><td>复杂 UI 状态表达不如 MVVM 清晰。</td></tr></tbody></table>
+<h2>8. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>区别</th></tr></thead><tbody><tr><td>MVP</td><td>View 更被动，Presenter 更容易测试。</td></tr><tr><td>MVVM</td><td>ViewModel 暴露可绑定状态。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>找一个登录页面，指出其中哪些代码属于 View、Controller、Model。</p>
+<h2>10. 参考答案或改进建议</h2><p>输入框和按钮是 View；提交事件处理是 Controller；用户、登录规则和认证结果是 Model 或业务服务。不要把密码规则直接散落在模板里。</p>
+<section class="summary"><h2>今日总结</h2><p>MVC 是表现层分工的起点。AI 协作时要明确：View 不写业务规则，Controller 不直接变成所有逻辑的垃圾桶。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

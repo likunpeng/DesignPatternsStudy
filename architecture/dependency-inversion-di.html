@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>依赖倒置与依赖注入</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>依赖倒置与依赖注入</h1><p class="lead">依赖倒置让高层业务不绑死底层实现；依赖注入则是把具体实现从外部传进来，让替换和测试变得可控。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Dependency Inversion & DI</span><span class="tag">TypeScript + Python</span><span class="tag">端口与实现</span></div>
+<h2>今日目标</h2><ul><li>区分依赖倒置原则和依赖注入手段。</li><li>知道什么时候需要接口，什么时候直接传函数即可。</li><li>能用端口隔离数据库、缓存、第三方 SDK。</li></ul>
+<h2>1. 这个方法解决什么问题</h2><p>业务代码直接 new 数据库客户端、支付 SDK 或邮件服务，会让测试和替换变困难。依赖倒置要求业务依赖抽象，具体实现依赖业务定义的端口。</p>
+<h2>2. 一个生活类比</h2><p>插座定义了用电协议，电器不需要知道电来自火电、水电还是太阳能。电器依赖插座标准，不依赖发电厂实现。</p>
+<h2>3. 适用场景</h2><ul><li>外部依赖可能替换，例如支付、短信、存储。</li><li>核心业务需要单元测试。</li><li>一个端口有多个实现，例如真实实现、内存实现、Mock 实现。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>稳定且无替换价值的语言标准库。</li><li>只有一个很简单的纯函数依赖。</li><li>为所有类都建接口，导致阅读成本高于收益。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>概念</th><th>含义</th></tr></thead><tbody><tr><td>高层模块</td><td>业务用例、领域规则。</td></tr><tr><td>低层模块</td><td>数据库、HTTP、消息、SDK。</td></tr><tr><td>端口</td><td>高层定义的抽象能力。</td></tr><tr><td>注入</td><td>启动或组装阶段传入具体实现。</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">interface EmailSender { send(to: string, content: string): Promise&lt;void&gt;; }
+
+class RegisterUserUseCase {
+  constructor(private email: EmailSender) {}
+  async execute(user: { email: string }) {
+    // 保存用户省略
+    await this.email.send(user.email, "欢迎注册");
+  }
+}
+
+class SmtpEmailSender implements EmailSender {
+  async send(to: string, content: string) { console.log("SMTP", to, content); }
+}
+
+const useCase = new RegisterUserUseCase(new SmtpEmailSender());</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+
+class EmailSender(Protocol):
+    def send(self, to: str, content: str) -> None: ...
+
+class RegisterUserUseCase:
+    def __init__(self, email: EmailSender):
+        self.email = email
+    def execute(self, email: str) -> None:
+        self.email.send(email, "欢迎注册")
+
+class ConsoleEmailSender:
+    def send(self, to: str, content: str) -> None:
+        print("send", to, content)</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>业务可测试，可替换实现。</td><td>需要组装依赖。</td></tr><tr><td>外部系统变化被隔离。</td><td>接口过多会显得啰嗦。</td></tr></tbody></table>
+<h2>8. 和相似概念的区别</h2><table><thead><tr><th>概念</th><th>区别</th></tr></thead><tbody><tr><td>依赖倒置</td><td>设计原则，规定依赖方向。</td></tr><tr><td>依赖注入</td><td>实现手段，把依赖从外部传入。</td></tr><tr><td>IoC 容器</td><td>自动管理对象创建和注入，不是必须。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>把订单支付逻辑改成依赖 <code>PaymentGateway</code> 端口，而不是直接调用支付宝 SDK。</p>
+<h2>10. 参考答案或改进建议</h2><p>在 application 层定义 <code>PaymentGateway.pay(orderId, amount)</code>，支付宝、微信支付各写一个 infrastructure 适配器。用例只依赖端口，测试时传入内存实现。</p>
+<section class="summary"><h2>今日总结</h2><p>依赖倒置的核心不是“到处写 interface”，而是业务规则不要被外部实现牵着走。依赖注入只是让这个原则真正落地。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

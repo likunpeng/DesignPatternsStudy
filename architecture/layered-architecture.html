@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>分层架构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main>
+<h1>分层架构</h1><p class="lead">分层架构解决的是“代码职责混在一起”的问题。它用稳定的依赖方向，把入口、业务流程、核心规则和外部实现分开。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">Layered Architecture</span><span class="tag">TypeScript + Python</span><span class="tag">职责分层</span></div>
+<h2>今日目标</h2><ul><li>理解分层不是按文件夹好看地拆分，而是控制依赖方向。</li><li>能判断 Controller、Application、Domain、Infrastructure 各放什么。</li><li>知道小项目什么时候可以简化分层。</li></ul>
+<h2>1. 这个架构解决什么问题</h2><p>最常见的坏味道是接口层直接写业务规则、直接查数据库、直接调第三方 SDK。短期很快，长期会让测试、替换和复用都变难。</p>
+<h2>2. 一个生活类比</h2><p>餐厅里顾客点餐、服务员传单、后厨做菜、采购进货是不同职责。让服务员顺手改菜单价格、进厨房做菜、联系供应商，流程会很快失控。</p>
+<h2>3. 适用场景</h2><ul><li>业务流程不止简单 CRUD。</li><li>同一业务需要被 HTTP、定时任务、消息消费复用。</li><li>希望核心规则可测试，不依赖真实数据库。</li><li>团队多人协作，需要统一放置规则。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>一次性脚本或很薄的管理后台。</li><li>只有数据录入和查询，业务规则极少。</li><li>团队还无法维护抽象，强行四层会增加沟通成本。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>层</th><th>职责</th><th>不该做的事</th></tr></thead><tbody><tr><td>Interface/API</td><td>参数解析、鉴权入口、响应转换</td><td>写核心业务规则</td></tr><tr><td>Application</td><td>编排用例流程、事务边界</td><td>关心数据库细节</td></tr><tr><td>Domain</td><td>实体、值对象、领域规则</td><td>依赖框架和 SDK</td></tr><tr><td>Infrastructure</td><td>数据库、缓存、消息、第三方适配</td><td>决定业务规则</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type Order = { id: string; amount: number; status: "created" };
+interface OrderRepository { save(order: Order): Promise&lt;void&gt;; }
+
+class CreateOrderUseCase {
+  constructor(private orders: OrderRepository) {}
+  async execute(amount: number): Promise&lt;Order&gt; {
+    if (amount &lt;= 0) throw new Error("金额必须大于 0");
+    const order = { id: crypto.randomUUID(), amount, status: "created" as const };
+    await this.orders.save(order);
+    return order;
+  }
+}
+
+async function createOrderController(body: { amount: number }, useCase: CreateOrderUseCase) {
+  const order = await useCase.execute(body.amount);
+  return { code: 0, data: order };
+}</code></pre>
+<h3>Python 示例</h3><pre><code class="language-python">from typing import Protocol
+from uuid import uuid4
+
+class OrderRepository(Protocol):
+    def save(self, order: dict) -> None: ...
+
+class CreateOrderUseCase:
+    def __init__(self, orders: OrderRepository):
+        self.orders = orders
+    def execute(self, amount: int) -> dict:
+        if amount &lt;= 0:
+            raise ValueError("金额必须大于 0")
+        order = {"id": str(uuid4()), "amount": amount, "status": "created"}
+        self.orders.save(order)
+        return order</code></pre>
+<p>关键点：入口层只调用用例；用例依赖仓储接口；真实数据库实现放在基础设施层。</p>
+<h2>7. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>职责清晰，测试更容易。</td><td>文件和接口数量增加。</td></tr><tr><td>外部实现可替换。</td><td>简单 CRUD 可能过度设计。</td></tr></tbody></table>
+<h2>8. 和相似架构的区别</h2><table><thead><tr><th>架构</th><th>重点</th></tr></thead><tbody><tr><td>三层架构</td><td>表现层、业务层、数据层，适合入门。</td></tr><tr><td>Clean Architecture</td><td>更强调内层业务规则不依赖外层实现。</td></tr><tr><td>六边形架构</td><td>更强调端口和适配器。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>把“用户注册”拆成 API、Application、Domain、Infrastructure 四层，说明密码规则、保存用户、发送欢迎邮件分别放在哪里。</p>
+<h2>10. 参考答案或改进建议</h2><p>密码格式校验可以在用例入口做，密码强度和用户状态规则应靠近 Domain；保存用户是 Repository 端口；邮件发送是 Notifier 端口，由 Infrastructure 实现。</p>
+<section class="summary"><h2>今日总结</h2><p>分层架构的价值不是目录多，而是让变化有固定位置。入口变化不影响业务规则，数据库变化不影响用例，业务规则能独立测试。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

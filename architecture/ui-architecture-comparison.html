@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>UI 架构模式对比</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
+<body data-category="architecture"><main><h1>UI 架构模式对比</h1><p class="lead">MVC、MVP、MVVM、VIP/VIPER 不是谁替代谁，而是在不同复杂度和技术环境下，对表现层职责分工的不同选择。</p>
+<div class="meta"><span class="tag">架构学习</span><span class="tag">UI Architecture Comparison</span><span class="tag">TypeScript + Python</span><span class="tag">选型对比</span></div>
+<h2>今日目标</h2><ul><li>能判断不同 UI 架构模式的适用场景。</li><li>避免简单页面过度设计。</li><li>知道 AI 生成 UI 时应该给出哪种边界约束。</li></ul>
+<h2>1. 这个对比解决什么问题</h2><p>很多人把 MVC/MVVM 当成框架口号，而不是解决问题的工具。对比的目的，是根据页面复杂度、测试需求和团队习惯选合适模式。</p>
+<h2>2. 一个生活类比</h2><p>小摊一个人能完成点单和出餐；餐厅需要服务员和后厨；大型宴会需要主持、调度、后勤和路线规划。组织方式取决于复杂度。</p>
+<h2>3. 适用场景</h2><ul><li>设计前端、移动端、桌面应用模块。</li><li>重构胖组件、胖 Controller、胖 ViewModel。</li><li>为 AI 生成页面制定规则。</li></ul>
+<h2>4. 不适用场景</h2><ul><li>只想找一个“最佳模式”。</li><li>项目没有复杂交互，简单组件足够。</li></ul>
+<h2>5. 核心结构</h2><table><thead><tr><th>模式</th><th>适合</th><th>主要风险</th></tr></thead><tbody><tr><td>MVC</td><td>传统 Web、基础分层</td><td>Controller 变胖</td></tr><tr><td>MVP</td><td>复杂表单、可测试交互</td><td>接口样板多</td></tr><tr><td>MVVM</td><td>响应式 UI、状态驱动页面</td><td>ViewModel 膨胀</td></tr><tr><td>VIP/VIPER</td><td>复杂 App 模块</td><td>过重、文件多</td></tr></tbody></table>
+<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">type UiPattern = "MVC" | "MVP" | "MVVM" | "VIP";
+function choosePattern(complexity: "low" | "medium" | "high", reactive: boolean): UiPattern {
+  if (complexity === "high") return "VIP";
+  if (reactive) return "MVVM";
+  if (complexity === "medium") return "MVP";
+  return "MVC";
+}</code></pre><h3>Python 示例</h3><pre><code class="language-python">def choose_pattern(complexity: str, reactive: bool) -> str:
+    if complexity == "high":
+        return "VIP"
+    if reactive:
+        return "MVVM"
+    if complexity == "medium":
+        return "MVP"
+    return "MVC"</code></pre>
+<h2>7. 优缺点</h2><table><thead><tr><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>选型更有依据。</td><td>需要结合团队技术栈判断。</td></tr><tr><td>避免模式滥用。</td><td>同一项目可能混合多种模式。</td></tr></tbody></table>
+<h2>8. 和系统架构模式的区别</h2><table><thead><tr><th>UI 架构</th><th>系统架构</th></tr></thead><tbody><tr><td>关注页面展示、状态和交互。</td><td>关注模块、服务、数据和部署边界。</td></tr></tbody></table>
+<h2>9. 一个练习题</h2><p>订单详情页有加载、取消、支付、退款、客服入口和多种状态展示，你会选哪种 UI 架构？为什么？</p>
+<h2>10. 参考答案或改进建议</h2><p>Web 前端可选 MVVM 或单向数据流；复杂 App 可选 VIP/VIPER；如果只是服务端渲染的简单详情页，MVC 足够。重点是不要让 View 同时承担所有职责。</p>
+<section class="summary"><h2>今日总结</h2><p>UI 架构模式没有银弹。选型要看复杂度、测试要求、框架能力和团队维护成本。</p></section>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>

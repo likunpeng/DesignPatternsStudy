@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>架构学习路线</title>
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head>
+<body data-category="architecture">
+  <main>
+    <h1>架构学习路线</h1>
+    <p class="lead">架构学习不是先背名词，而是学会把业务变化、代码边界、团队协作和部署运行放在同一张图里思考。</p>
+    <div class="meta"><span class="tag">架构学习</span><span class="tag">Architecture Roadmap</span><span class="tag">TypeScript + Python</span><span class="tag">从代码设计到系统设计</span></div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>建立一条从设计模式到系统架构的学习路线。</li>
+      <li>理解架构学习每个阶段要解决的真实问题。</li>
+      <li>知道每个阶段应该产出什么，而不是只看概念。</li>
+      <li>用一个最小分层示例连接设计原则和架构实践。</li>
+    </ul>
+
+    <h2>1. 架构学习解决什么问题</h2>
+    <p>设计模式通常解决局部代码变化，架构解决的是更大范围的问题：模块怎么分、依赖怎么走、业务规则放哪里、外部系统怎么隔离、团队怎么并行开发、系统怎么测试和演进。</p>
+    <p>如果只会写功能，不会设计边界，项目变大后常见问题是：</p>
+    <ul>
+      <li>Controller、Service、工具类越来越胖。</li>
+      <li>业务逻辑散落在页面、接口、数据库脚本和消息消费里。</li>
+      <li>换数据库、换支付 SDK、拆服务时牵一发而动全身。</li>
+      <li>测试只能依赖真实外部环境，回归成本越来越高。</li>
+    </ul>
+
+    <h2>2. 一个生活类比</h2>
+    <p>设计模式像装修技巧：怎么做隔断、怎么收纳、怎么走线。架构像楼房设计：承重墙在哪里、上下水怎么走、消防通道怎么留、以后扩建会不会影响主体结构。</p>
+    <p>装修技巧很重要，但如果楼房结构错了，后面每次改造都会非常痛苦。</p>
+
+    <h2>3. 学习路线总览</h2>
+    <table>
+      <thead><tr><th>阶段</th><th>主题</th><th>重点问题</th><th>建议产出</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>架构基础</td><td>什么是边界、依赖、模块、接口</td><td>画出一个小项目的模块依赖图</td></tr>
+        <tr><td>2</td><td><a href="ai-era-architecture.html">AI 时代架构方法论</a></td><td>如何约束 AI 生成空间、组织上下文和验收产出</td><td>写一份 AI 可执行的架构规则</td></tr>
+        <tr><td>3</td><td><a href="layered-architecture.html">分层架构</a></td><td>Controller、Service、Repository 各放什么</td><td>重构一个订单流程</td></tr>
+        <tr><td>4</td><td><a href="dependency-inversion-di.html">依赖倒置与依赖注入</a></td><td>业务层如何不依赖数据库和第三方 SDK</td><td>把外部依赖封装成端口</td></tr>
+        <tr><td>5</td><td><a href="clean-architecture.html">Clean Architecture</a></td><td>业务规则如何保持稳定</td><td>实现一个用例层</td></tr>
+        <tr><td>6</td><td><a href="hexagonal-architecture.html">六边形架构</a></td><td>如何用端口和适配器隔离外部系统</td><td>定义一个端口和适配器</td></tr>
+        <tr><td>7</td><td><a href="ddd-basics.html">DDD 入门</a></td><td>实体、值对象、聚合、领域服务怎么用</td><td>建一个领域模型</td></tr>
+        <tr><td>8</td><td><a href="frontend-architecture.html">前端架构</a></td><td>页面、组件、状态、请求如何分层</td><td>拆一个业务页面</td></tr>
+        <tr><td>9</td><td><a href="mvc-pattern.html">MVC 架构模式</a></td><td>Model、View、Controller 如何分工</td><td>识别胖 Controller</td></tr>
+        <tr><td>10</td><td><a href="mvp-pattern.html">MVP 架构模式</a></td><td>如何让 View 被动化，让 Presenter 可测试</td><td>拆一个复杂表单</td></tr>
+        <tr><td>11</td><td><a href="mvvm-pattern.html">MVVM 架构模式</a></td><td>ViewModel 如何承载展示状态和交互逻辑</td><td>设计页面状态模型</td></tr>
+        <tr><td>12</td><td><a href="flux-redux.html">Flux/Redux 单向数据流</a></td><td>复杂前端状态如何单向流转</td><td>画出状态更新链路</td></tr>
+        <tr><td>13</td><td><a href="vip-viper-pattern.html">VIP/VIPER 架构模式</a></td><td>复杂页面如何用单向依赖拆分职责</td><td>拆一个 App 页面模块</td></tr>
+        <tr><td>14</td><td><a href="ui-architecture-comparison.html">UI 架构模式对比</a></td><td>什么时候选 MVC、MVP、MVVM、VIP</td><td>完成模式选型表</td></tr>
+        <tr><td>15</td><td><a href="ai-assisted-ui-architecture.html">AI 协作下的 UI 架构</a></td><td>如何约束 AI 不把页面、状态、请求和业务规则写乱</td><td>写 UI 生成规则</td></tr>
+        <tr><td>16</td><td><a href="backend-architecture.html">后端架构</a></td><td>事务、鉴权、缓存、消息如何组织</td><td>设计一个后端模块</td></tr>
+        <tr><td>17</td><td><a href="modular-monolith.html">模块化单体</a></td><td>如何在单体内建立清晰业务模块边界</td><td>拆一个模块化单体结构</td></tr>
+        <tr><td>18</td><td><a href="cqrs.html">CQRS 读写分离</a></td><td>读模型和写模型复杂度不同时如何分离</td><td>设计命令和查询模型</td></tr>
+        <tr><td>19</td><td><a href="event-driven-architecture.html">事件驱动架构</a></td><td>如何用事件解耦模块和异步流程</td><td>定义领域事件</td></tr>
+        <tr><td>20</td><td><a href="bff.html">BFF 架构</a></td><td>如何为不同前端提供适配后的后端接口</td><td>设计一个页面聚合接口</td></tr>
+        <tr><td>21</td><td><a href="microservice-boundaries.html">微服务边界</a></td><td>什么时候拆服务，怎么避免分布式泥团</td><td>画出服务边界和数据归属</td></tr>
+        <tr><td>22</td><td><a href="adr.html">架构决策记录</a></td><td>为什么这样设计，为什么不选其他方案</td><td>写一份 ADR</td></tr>
+        <tr><td>23</td><td><a href="testing-strategy.html">测试策略与架构质量</a></td><td>如何用测试保护边界、规则和外部适配</td><td>设计测试金字塔</td></tr>
+        <tr><td>24</td><td><a href="architecture-review-checklist.html">架构评审清单</a></td><td>如何评审人或 AI 生成的架构改动</td><td>形成可复用检查表</td></tr>
+        <tr><td>25</td><td><a href="evolutionary-architecture.html">演进式架构</a></td><td>如何从简单方案逐步演进，而不是一开始过度设计</td><td>设计重构路线</td></tr>
+        <tr><td>26</td><td><a href="architecture-practice.html">综合实践</a></td><td>从需求到架构方案如何落地</td><td>完成一份小型架构设计文档</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. 不建议一开始学什么</h2>
+    <ul>
+      <li>不要一开始就钻微服务治理。没有模块边界能力，微服务只会把复杂度放大。</li>
+      <li>不要先背 DDD 名词。先从订单、支付、库存这类业务规则里找变化点。</li>
+      <li>不要只看架构图。架构图必须能对应到代码目录、依赖方向、测试方式和发布方式。</li>
+      <li>不要把架构当模板。小项目用重架构会拖慢交付，大项目没边界会拖垮维护。</li>
+    </ul>
+
+    <h2>5. 核心结构：从设计模式到架构</h2>
+    <table>
+      <thead><tr><th>已学内容</th><th>架构中的落点</th><th>典型例子</th></tr></thead>
+      <tbody>
+        <tr><td>单一职责</td><td>模块职责划分</td><td>订单模块不处理短信发送细节</td></tr>
+        <tr><td>开闭原则</td><td>插件化和策略扩展</td><td>新增支付方式不改结算主流程</td></tr>
+        <tr><td>依赖倒置</td><td>端口与适配器</td><td>业务层依赖 PaymentGateway 接口</td></tr>
+        <tr><td>适配器模式</td><td>外部系统隔离</td><td>把第三方短信 SDK 包成 SmsSender</td></tr>
+        <tr><td>外观模式</td><td>子系统入口</td><td>提供统一 CheckoutFacade</td></tr>
+        <tr><td>策略模式</td><td>业务规则扩展</td><td>折扣、运费、风控规则可替换</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. 示例代码</h2>
+    <p>下面用一个“创建订单”的最小例子说明：架构不是把代码拆得越多越好，而是让业务规则不直接绑死数据库和通知渠道。</p>
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">type OrderInput = { userId: string; amount: number };
+type Order = { id: string; userId: string; amount: number };
+
+interface OrderRepository {
+  save(order: Order): void;
+}
+
+interface Notifier {
+  send(userId: string, message: string): void;
+}
+
+class CreateOrderUseCase {
+  constructor(
+    private orders: OrderRepository,
+    private notifier: Notifier,
+  ) {}
+
+  execute(input: OrderInput): Order {
+    if (input.amount &lt;= 0) {
+      throw new Error("订单金额必须大于 0");
+    }
+
+    const order = { id: crypto.randomUUID(), ...input };
+    this.orders.save(order);
+    this.notifier.send(input.userId, "订单创建成功");
+    return order;
+  }
+}</code></pre>
+    <p><code>CreateOrderUseCase</code> 是用例层，负责业务流程；<code>OrderRepository</code> 和 <code>Notifier</code> 是端口，真正的数据库和短信服务可以在外层实现。</p>
+
+    <h3>Python 示例</h3>
+    <pre><code class="language-python">from dataclasses import dataclass
+from typing import Protocol
+from uuid import uuid4
+
+
+@dataclass
+class Order:
+    id: str
+    user_id: str
+    amount: int
+
+
+class OrderRepository(Protocol):
+    def save(self, order: Order) -> None:
+        ...
+
+
+class Notifier(Protocol):
+    def send(self, user_id: str, message: str) -> None:
+        ...
+
+
+class CreateOrderUseCase:
+    def __init__(self, orders: OrderRepository, notifier: Notifier):
+        self.orders = orders
+        self.notifier = notifier
+
+    def execute(self, user_id: str, amount: int) -> Order:
+        if amount &lt;= 0:
+            raise ValueError("订单金额必须大于 0")
+
+        order = Order(str(uuid4()), user_id, amount)
+        self.orders.save(order)
+        self.notifier.send(user_id, "订单创建成功")
+        return order</code></pre>
+    <p>Python 可以用 <code>Protocol</code> 表达端口，也可以在更小的项目里直接传函数。重点不是形式，而是业务规则不要直接写死外部实现。</p>
+
+    <h2>7. 优缺点</h2>
+    <table>
+      <thead><tr><th>收益</th><th>代价</th></tr></thead>
+      <tbody>
+        <tr><td>业务规则更集中，变化点更容易定位。</td><td>初期需要多写接口、目录和测试替身。</td></tr>
+        <tr><td>外部依赖可替换，测试可以脱离真实数据库和 SDK。</td><td>简单 CRUD 项目可能显得绕。</td></tr>
+        <tr><td>模块边界清楚，团队协作更稳定。</td><td>边界划错后也会增加沟通成本。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. 和设计模式学习的区别</h2>
+    <table>
+      <thead><tr><th>维度</th><th>设计模式</th><th>架构学习</th></tr></thead>
+      <tbody>
+        <tr><td>范围</td><td>类、函数、对象协作</td><td>模块、子系统、团队和部署单元</td></tr>
+        <tr><td>关注点</td><td>局部变化点</td><td>整体边界和演进方向</td></tr>
+        <tr><td>产出</td><td>代码结构</td><td>架构图、目录结构、依赖规则、测试策略</td></tr>
+        <tr><td>失败表现</td><td>某段代码难改</td><td>整个系统难测、难拆、难协作</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 一个练习题</h2>
+    <p>选择一个你熟悉的小业务，例如“用户下单”“登录注册”“文章发布”。请画出它的四层结构：</p>
+    <ul>
+      <li>入口层：HTTP 接口、页面事件或命令行入口。</li>
+      <li>用例层：这个业务动作的主流程。</li>
+      <li>领域层：核心规则和核心对象。</li>
+      <li>基础设施层：数据库、缓存、第三方 SDK、消息队列。</li>
+    </ul>
+
+    <h2>10. 参考答案或改进建议</h2>
+    <p>以下单为例，一个合理的第一版结构可以是：</p>
+    <pre><code>order/
+  api/                 # Controller 或路由入口
+  application/         # CreateOrderUseCase
+  domain/              # Order、OrderItem、PriceRule
+  infrastructure/      # MysqlOrderRepository、SmsNotifier</code></pre>
+    <p>判断是否合理，看三个问题：业务规则是否集中在用例和领域层；外部依赖是否被基础设施层隔离；测试用例是否可以不启动真实数据库也能验证核心流程。</p>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>架构学习的主线是“边界”。AI 协作会放大边界清晰度的价值：边界越清楚，AI 越容易生成正确代码；边界越混乱，AI 越容易扩散复杂度。下一步建议学习“AI 时代架构方法论”，先掌握如何给 AI 设定架构约束，再进入分层架构、Clean Architecture 和 DDD。</p>
+    </section>
+  </main>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+</body>
+</html>
