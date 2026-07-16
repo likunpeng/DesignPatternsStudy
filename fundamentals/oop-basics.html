@@ -180,25 +180,68 @@ make_sound(Cat())</code></pre>
     <div class="note">Python 的鸭子类型让多态更自然：不需要显式继承，只要有同名方法即可。</div>
 
     <h2>4. 组合</h2>
-    <p><strong>核心思想：</strong>"有一个"比"是一种"更灵活。把对象作为属性组合起来，而不是继承。</p>
+    <p><strong>核心思想：</strong>如果两个对象是协作关系，而不是类别关系，就应该优先考虑组合。简单说：<code>Car</code> 不是一种 <code>Engine</code>，而是 <code>有一个 Engine</code>。</p>
+    <p><strong>生活类比：</strong>咖啡机不是一种滤芯，但它里面可以装不同滤芯。你换掉滤芯，不需要重新定义一台新的咖啡机。</p>
 
-    <h3>TypeScript 示例</h3>
+    <h3>为什么这里不该用继承</h3>
     <pre><code class="language-ts">class Engine {
   start(): void { console.log("引擎启动"); }
 }
 
-class Car {
-  constructor(private engine: Engine) {}
-  start(): void { this.engine.start(); }
+// 错误方向：Car 不是 Engine，不能因为想复用 start 就继承
+class Car extends Engine {}</code></pre>
+    <p>这里的问题不是语法，而是关系错了。继承表达的是"是一种"，但车不是引擎的一种。它们是两个职责不同、相互协作的对象。</p>
+
+    <h3>TypeScript 示例</h3>
+    <pre><code class="language-ts">interface Engine {
+  start(): void;
 }
 
-const car = new Car(new Engine());
-car.start();</code></pre>
+class GasEngine implements Engine {
+  start(): void {
+    console.log("燃油引擎启动");
+  }
+}
+
+class ElectricEngine implements Engine {
+  start(): void {
+    console.log("电机启动");
+  }
+}
+
+class Car {
+  constructor(private engine: Engine) {}
+
+  start(): void {
+    console.log("汽车准备启动");
+    this.engine.start();
+  }
+}
+
+const gasCar = new Car(new GasEngine());
+gasCar.start();
+
+const electricCar = new Car(new ElectricEngine());
+electricCar.start();</code></pre>
+    <p>这里的重点是：<code>Car</code> 不关心具体是燃油引擎还是电机，只关心它拿到的是一个"能启动"的部件。以后你要换成混动引擎，也不用改 <code>Car</code> 的主体逻辑。</p>
 
     <h3>Python 示例</h3>
-    <pre><code class="language-python">class Engine:
+    <pre><code class="language-python">from typing import Protocol
+
+
+class Engine(Protocol):
     def start(self) -> None:
-        print("引擎启动")
+        ...
+
+
+class GasEngine:
+    def start(self) -> None:
+        print("燃油引擎启动")
+
+
+class ElectricEngine:
+    def start(self) -> None:
+        print("电机启动")
 
 
 class Car:
@@ -206,16 +249,38 @@ class Car:
         self.engine = engine
 
     def start(self) -> None:
+        print("汽车准备启动")
         self.engine.start()
 
 
-car = Car(Engine())
-car.start()</code></pre>
+gas_car = Car(GasEngine())
+gas_car.start()
 
-    <div class="note"><strong>组合优于继承：</strong>组合让对象之间的关系更松散，运行时更容易替换部件。</div>
+electric_car = Car(ElectricEngine())
+electric_car.start()</code></pre>
+    <p>Python 里组合更自然，因为你只要传入一个具有 <code>start()</code> 方法的对象就行。它不一定非要继承某个基类，这和 Python 的鸭子类型风格很契合。</p>
+
+    <div class="note"><strong>组合优于继承：</strong>当关系是"有一个"、而且部件可能变化时，组合通常更合适。它让对象之间保持松耦合，也让你更容易替换、测试和扩展部件。</div>
 
     <h2>5. 接口</h2>
-    <p><strong>核心思想：</strong>定义"能做什么"的契约，不约束"怎么做"。</p>
+    <p><strong>核心思想：</strong>接口定义的是契约：调用方只需要知道"你能做什么"，不用知道"你内部怎么做"。这样系统就可以依赖能力，而不是依赖某个具体类。</p>
+    <p><strong>生活类比：</strong>墙上的插座规定了电压和插孔形状，这就是契约。你插进去的是台灯、电脑还是充电器，墙并不关心，只要设备符合这个接口就能用。</p>
+
+    <h3>为什么需要接口</h3>
+    <pre><code class="language-ts">class Alipay {
+  pay(amount: number): void {
+    console.log(`支付宝支付 ${amount}`);
+  }
+}
+
+class CheckoutService {
+  constructor(private payment: Alipay) {}
+
+  checkout(amount: number): void {
+    this.payment.pay(amount);
+  }
+}</code></pre>
+    <p>这段代码能跑，但问题是 <code>CheckoutService</code> 被绑死在 <code>Alipay</code> 上了。以后要换成微信支付、银行卡支付，或者写测试替身，都得改调用方。</p>
 
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface PaymentMethod {
@@ -223,12 +288,31 @@ car.start()</code></pre>
 }
 
 class Alipay implements PaymentMethod {
-  pay(amount: number): void { console.log(`支付宝支付 ${amount}`); }
+  pay(amount: number): void {
+    console.log(`支付宝支付 ${amount}`);
+  }
 }
 
 class WechatPay implements PaymentMethod {
-  pay(amount: number): void { console.log(`微信支付 ${amount}`); }
-}</code></pre>
+  pay(amount: number): void {
+    console.log(`微信支付 ${amount}`);
+  }
+}
+
+class CheckoutService {
+  constructor(private payment: PaymentMethod) {}
+
+  checkout(amount: number): void {
+    this.payment.pay(amount);
+  }
+}
+
+const service = new CheckoutService(new Alipay());
+service.checkout(100);
+
+const anotherService = new CheckoutService(new WechatPay());
+anotherService.checkout(100);</code></pre>
+    <p>这里真正重要的不是 <code>interface</code> 这个语法关键字，而是 <code>CheckoutService</code> 只依赖 <code>PaymentMethod</code> 这个能力约束。具体是支付宝还是微信支付，可以在外部替换。</p>
 
     <h3>Python 示例</h3>
     <pre><code class="language-python">from typing import Protocol
@@ -246,7 +330,25 @@ class Alipay:
 
 class WechatPay:
     def pay(self, amount: int) -> None:
-        print(f"微信支付 {amount}")</code></pre>
+        print(f"微信支付 {amount}")
+
+
+class CheckoutService:
+    def __init__(self, payment: PaymentMethod) -> None:
+        self.payment = payment
+
+    def checkout(self, amount: int) -> None:
+        self.payment.pay(amount)
+
+
+service = CheckoutService(Alipay())
+service.checkout(100)
+
+another_service = CheckoutService(WechatPay())
+another_service.checkout(100)</code></pre>
+    <p>Python 里通常不会像 Java 那样到处显式声明接口，但会用 <code>Protocol</code> 或鸭子类型表达"只要你有这个方法就行"。这让接口的思想保留下来，同时保持代码轻量。</p>
+
+    <div class="note"><strong>和继承、多态的关系：</strong>接口负责定义契约；多态负责让不同实现都能被同一种方式调用；继承只是实现复用的一种手段，不是接口的前提。很多时候，一个类实现某个接口，并不需要继承任何父类。</div>
 
     <div class="summary">
       <h2>今日总结</h2>

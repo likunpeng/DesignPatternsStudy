@@ -1,26 +1,165 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>测试驱动的 AI 重构</title><link rel="stylesheet" href="../assets/tutorial.css"></head>
-<body data-category="ai-engineering"><main><h1>测试驱动的 AI 重构</h1><p class="lead">AI 很适合做重构，但没有测试保护的 AI 重构风险很高。正确流程是先锁定行为，再小步改变结构。</p>
-<div class="meta"><span class="tag">AI 工程能力</span><span class="tag">Test-Driven AI Refactoring</span><span class="tag">TypeScript + Python</span><span class="tag">安全重构</span></div>
-<h2>今日目标</h2><ul><li>理解重构前为什么要先补测试。</li><li>掌握 characterization test 的作用。</li><li>学会让 AI 小步重构而不是一次性大改。</li></ul>
-<h2>1. 这个方法解决什么问题</h2><p>AI 可以快速移动代码、抽函数、拆模块，但它可能无意改变行为。测试驱动重构先把当前行为固定住，再让 AI 改结构。</p>
-<h2>2. 一个生活类比</h2><p>维修桥梁前要先搭临时支撑和测量基准。没有支撑就施工，很容易塌。</p>
-<h2>3. 适用场景</h2><ul><li>重构旧模块。</li><li>拆大函数、大类。</li><li>迁移架构层次。</li><li>AI 要批量修改多个文件。</li></ul>
-<h2>4. 不适用场景</h2><ul><li>明确要改变行为的新需求。</li><li>实验性代码。</li><li>没有可验证输出的临时脚本。</li></ul>
-<h2>5. 核心结构</h2><table><thead><tr><th>步骤</th><th>做什么</th></tr></thead><tbody><tr><td>记录现状</td><td>补 characterization tests。</td></tr><tr><td>小步重构</td><td>一次只改一个结构点。</td></tr><tr><td>持续验证</td><td>每步运行测试。</td></tr><tr><td>评审边界</td><td>检查依赖和职责是否改善。</td></tr></tbody></table>
-<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">function price(amount: number, vip: boolean) {
-  return vip ? amount * 0.9 : amount;
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>测试驱动的 AI 重构</title>
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head>
+<body data-category="ai-engineering">
+  <main>
+    <h1>测试驱动的 AI 重构</h1>
+    <p class="lead">AI 很适合做重构，但没有测试保护的 AI 重构风险很高。正确流程是先锁定行为，再小步改变结构。</p>
+    <div class="meta">
+      <span class="tag">AI 工程能力</span>
+      <span class="tag">Test-Driven AI Refactoring</span>
+      <span class="tag">TypeScript + Python</span>
+      <span class="tag">安全重构</span>
+    </div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解重构前为什么要先补测试。</li>
+      <li>掌握 characterization test 的作用。</li>
+      <li>学会让 AI 小步重构而不是一次性大改。</li>
+    </ul>
+
+    <h2>1. 这个方法解决什么问题</h2>
+    <p>AI 可以快速移动代码、抽函数、拆模块，但它可能无意改变行为。测试驱动重构先把当前行为固定住，再让 AI 改结构。</p>
+
+    <h2>2. 一个生活类比</h2>
+    <p>维修桥梁前要先搭临时支撑和测量基准。没有支撑就施工，很容易塌。</p>
+
+    <h2>3. 适用场景</h2>
+    <ul>
+      <li>重构旧模块。</li>
+      <li>拆大函数、大类。</li>
+      <li>迁移架构层次。</li>
+      <li>AI 要批量修改多个文件。</li>
+    </ul>
+
+    <h2>4. 不适用场景</h2>
+    <ul>
+      <li>明确要改变行为的新需求。</li>
+      <li>实验性代码。</li>
+      <li>没有可验证输出的临时脚本。</li>
+    </ul>
+
+    <h2>5. 核心结构</h2>
+    <table>
+      <thead>
+        <tr><th>步骤</th><th>做什么</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>记录现状</td><td>补 characterization tests。</td></tr>
+        <tr><td>小步重构</td><td>一次只改一个结构点。</td></tr>
+        <tr><td>持续验证</td><td>每步运行测试。</td></tr>
+        <tr><td>评审边界</td><td>检查依赖和职责是否改善。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. 示例代码</h2>
+    <p>下面用一个典型的折扣函数做例子。重点不是“写个测试函数”，而是展示重构前的大分支、先锁定现有行为、再逐步抽出策略的过程。</p>
+
+    <h3>TypeScript 示例</h3>
+    <h4>重构前：业务能跑，但函数开始变脏</h4>
+    <pre><code class="language-ts">function calculatePrice(amount: number, userType: "normal" | "vip" | "svip") {
+  if (userType === "svip") {
+    return amount &gt; 200 ? amount * 0.7 : amount * 0.8;
+  }
+  if (userType === "vip") {
+    return amount &gt; 100 ? amount * 0.85 : amount * 0.9;
+  }
+  return amount;
+}</code></pre>
+
+    <h4>先补 characterization tests</h4>
+    <pre><code class="language-ts">console.assert(calculatePrice(80, "normal") === 80);
+console.assert(calculatePrice(80, "vip") === 72);
+console.assert(calculatePrice(150, "vip") === 127.5);
+console.assert(calculatePrice(150, "svip") === 120);
+console.assert(calculatePrice(300, "svip") === 210);</code></pre>
+
+    <h4>测试护栏建立后，再让 AI 小步重构</h4>
+    <pre><code class="language-ts">type UserType = "normal" | "vip" | "svip";
+type PriceStrategy = (amount: number) =&gt; number;
+
+const strategies: Record&lt;UserType, PriceStrategy&gt; = {
+  normal: (amount) =&gt; amount,
+  vip: (amount) =&gt; (amount &gt; 100 ? amount * 0.85 : amount * 0.9),
+  svip: (amount) =&gt; (amount &gt; 200 ? amount * 0.7 : amount * 0.8),
+};
+
+function calculatePriceRefactored(amount: number, userType: UserType) {
+  return strategies[userType](amount);
+}</code></pre>
+    <p>这里最重要的是顺序：先测旧行为，再抽策略。如果先让 AI “优化成设计模式”，它很可能顺手把折扣规则也改了。</p>
+
+    <h3>Python 示例</h3>
+    <h4>先把当前行为写进测试</h4>
+    <pre><code class="language-python">def calculate_price(amount: int, user_type: str) -&gt; float:
+    if user_type == "svip":
+        return amount * 0.7 if amount &gt; 200 else amount * 0.8
+    if user_type == "vip":
+        return amount * 0.85 if amount &gt; 100 else amount * 0.9
+    return amount
+
+def test_calculate_price():
+    assert calculate_price(80, "normal") == 80
+    assert calculate_price(80, "vip") == 72
+    assert calculate_price(150, "vip") == 127.5
+    assert calculate_price(150, "svip") == 120
+    assert calculate_price(300, "svip") == 210</code></pre>
+
+    <h4>再做结构重构</h4>
+    <pre><code class="language-python">from typing import Callable
+
+PriceStrategy = Callable[[int], float]
+
+strategies: dict[str, PriceStrategy] = {
+    "normal": lambda amount: amount,
+    "vip": lambda amount: amount * 0.85 if amount &gt; 100 else amount * 0.9,
+    "svip": lambda amount: amount * 0.7 if amount &gt; 200 else amount * 0.8,
 }
 
-console.assert(price(100, true) === 90);
-console.assert(price(100, false) === 100);</code></pre><h3>Python 示例</h3><pre><code class="language-python">def price(amount: int, vip: bool) -> float:
-    return amount * 0.9 if vip else amount
+def calculate_price_refactored(amount: int, user_type: str) -&gt; float:
+    return strategies[user_type](amount)</code></pre>
+    <p>Python 这类重构很适合先用函数和字典完成。只有当折扣规则越来越复杂，才需要升级成类、配置对象或策略实例。</p>
 
-def test_price():
-    assert price(100, True) == 90
-    assert price(100, False) == 100</code></pre>
-<h2>7. 优缺点</h2><table><thead><tr><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>AI 重构更安全。</td><td>前期需要补测试。</td></tr><tr><td>行为不变更容易验证。</td><td>旧代码行为本身错误时需要先确认期望。</td></tr></tbody></table>
-<h2>8. 和直接重写的区别</h2><table><thead><tr><th>直接重写</th><th>测试驱动重构</th></tr></thead><tbody><tr><td>风险高，容易改变行为。</td><td>先锁行为，再改结构。</td></tr><tr><td>适合废弃重做。</td><td>适合保留业务行为。</td></tr></tbody></table>
-<h2>9. 一个练习题</h2><p>一个折扣函数里有大量 if-else。请先写测试，再让 AI 改成策略模式。</p>
-<h2>10. 参考答案或改进建议</h2><p>先覆盖普通用户、VIP、SVIP、边界金额等现有行为。测试通过后再抽策略。每抽一步都运行测试，避免 AI 在重构中改变折扣规则。</p>
-<section class="summary"><h2>今日总结</h2><p>AI 重构不是让 AI 一次性大改，而是用测试建立护栏，让 AI 在安全边界内逐步改善结构。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>
+    <h2>7. 优缺点</h2>
+    <table>
+      <thead>
+        <tr><th>收益</th><th>代价</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AI 重构更安全。</td><td>前期需要补测试。</td></tr>
+        <tr><td>行为不变更容易验证。</td><td>旧代码行为本身错误时需要先确认期望。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. 和直接重写的区别</h2>
+    <table>
+      <thead>
+        <tr><th>直接重写</th><th>测试驱动重构</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>风险高，容易改变行为。</td><td>先锁行为，再改结构。</td></tr>
+        <tr><td>适合废弃重做。</td><td>适合保留业务行为。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. 一个练习题</h2>
+    <p>一个折扣函数里有大量 if-else。请先列出你会写的 characterization tests，再决定是否把它改成策略模式。注意：不是所有 if-else 都必须重构。</p>
+
+    <h2>10. 参考答案或改进建议</h2>
+    <p>先覆盖普通用户、VIP、SVIP、边界金额和异常输入等现有行为。测试通过后再抽策略。每抽一步都运行测试，避免 AI 在重构中顺手改变折扣规则。如果规则短且不再变化，也可以只补测试，不急着上模式。</p>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>AI 重构不是让 AI 一次性大改，而是用测试建立护栏，让 AI 在安全边界内逐步改善结构。先锁行为，再谈优雅。</p>
+    </section>
+  </main>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+</body>
+</html>

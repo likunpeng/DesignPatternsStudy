@@ -144,6 +144,13 @@ tr:last-child td { border-bottom: 0; }
   min-height: 64px;
 }
 
+.page-nav-bottom {
+  margin: 32px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+}
+
 .page-nav a,
 .page-nav span {
   display: inline-flex;

@@ -35,6 +35,24 @@
   }
 }</code></pre>
     <p>问题在于：校验规则变化、存储方式变化、通知方式变化，都会迫使你修改同一个类。</p>
+    <h3>为什么这种类会越改越重</h3>
+    <pre><code class="language-ts">class OrderService {
+  create(order: { email: string; amount: number; source: string }): void {
+    if (order.amount &lt;= 0) {
+      throw new Error("金额不合法");
+    }
+
+    if (order.source === "app") {
+      console.log("记录 App 渠道统计");
+    }
+
+    console.log("保存订单到数据库");
+    console.log("写审计日志");
+    console.log(`发送邮件给 ${order.email}`);
+    console.log("推送站内消息");
+  }
+}</code></pre>
+    <p>一开始只是“顺手多写一行”，后面统计、日志、通知、风控都会继续往里堆。最后你会得到一个谁都不敢动的大类，因为任何修改都可能误伤别的职责。</p>
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">type OrderInput = { email: string; amount: number };
 
@@ -71,6 +89,7 @@ class OrderService {
     this.notifier.send(input.email);
   }
 }</code></pre>
+    <p>现在每个协作者都有更明确的变化原因：校验规则改了，去改 <code>OrderValidator</code>；通知方式改了，去改 <code>OrderNotifier</code>；主流程只负责协调，不负责把所有细节都吞进去。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">class OrderValidator:
     def validate(self, amount: int) -&gt; None:
@@ -98,6 +117,7 @@ class OrderService:
         self.validator.validate(amount)
         self.repository.save({"email": email, "amount": amount})
         self.notifier.send(email)</code></pre>
+    <p>Python 里也一样，不是为了“面向对象而拆类”，而是为了让不同变化各回各家。一个类如果总是因为不同理由被改，通常就是职责已经混在一起了。</p>
     <div class="note">判断标准不是“类越小越好”，而是“这个类是不是因为不同原因被反复修改”。</div>
 
     <h2>2. 开闭原则</h2>
@@ -114,6 +134,21 @@ class OrderService:
   }
 }</code></pre>
     <p>每新增一种支付方式，都要改老函数。改得越频繁，越容易把旧逻辑改坏。</p>
+    <h3>为什么这会越来越难维护</h3>
+    <pre><code class="language-ts">function pay(type: string, amount: number): void {
+  if (type === "alipay") {
+    console.log(`支付宝支付 ${amount} 元`);
+  } else if (type === "wechat") {
+    console.log(`微信支付 ${amount} 元`);
+  } else if (type === "bank") {
+    console.log(`银行卡支付 ${amount} 元`);
+  } else if (type === "coupon") {
+    console.log(`优惠券抵扣 ${amount} 元`);
+  } else if (type === "points") {
+    console.log(`积分支付 ${amount} 元`);
+  }
+}</code></pre>
+    <p>问题不只是 <code>if-else</code> 长，而是每次加一种支付方式，你都要回头改这个核心入口。它会逐渐变成最脆弱、最容易被误改的函数。</p>
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface PaymentMethod {
   pay(amount: number): void;
@@ -135,7 +170,14 @@ class CheckoutService {
   checkout(method: PaymentMethod, amount: number): void {
     method.pay(amount);
   }
+}
+
+class BankCardPay implements PaymentMethod {
+  pay(amount: number): void {
+    console.log(`银行卡支付 ${amount} 元`);
+  }
 }</code></pre>
+    <p>这里的关键不是“永远不改旧代码”，而是新增支付方式时，你主要是在增加一个新实现，比如 <code>BankCardPay</code>，而不是继续往老函数里塞分支。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">from typing import Protocol
 
@@ -157,79 +199,120 @@ class WechatPay:
 
 class CheckoutService:
     def checkout(self, method: PaymentMethod, amount: int) -&gt; None:
-        method.pay(amount)</code></pre>
+        method.pay(amount)
+
+
+class BankCardPay:
+    def pay(self, amount: int) -&gt; None:
+        print(f"银行卡支付 {amount} 元")</code></pre>
+    <p>Python 里这个原则通常落在“函数注册表”“策略对象”“插件实现”这些地方。本质一样：新需求优先加新实现，而不是不停回头改那个总入口。</p>
     <div class="note">开闭原则不等于永远不改旧代码，而是别把变化集中压在一个核心函数里。</div>
 
     <h2>3. 里氏替换原则</h2>
     <p><strong>核心思想：</strong>子类应该能够替换父类使用，而不破坏原有程序的正确性。</p>
-    <p><strong>生活类比：</strong>租一辆“车”时，无论拿到的是轿车还是 SUV，基本驾驶行为都应该成立，不能突然要求你换一套完全不同的规则。</p>
+    <p><strong>生活类比：</strong>你租的是“带空调的酒店房间”，结果入住后前台告诉你“这个房型虽然也叫房间，但不能开空调”。名称没变，承诺却变了，这就是替换失败。</p>
     <h3>坏代码</h3>
-    <pre><code class="language-ts">class Rectangle {
-  protected width = 0;
-  protected height = 0;
-
-  setWidth(width: number): void { this.width = width; }
-  setHeight(height: number): void { this.height = height; }
-  getArea(): number { return this.width * this.height; }
+    <pre><code class="language-ts">abstract class PaymentMethod {
+  abstract pay(amount: number): void;
+  abstract refund(amount: number): void;
 }
 
-class Square extends Rectangle {
-  setWidth(width: number): void {
-    this.width = width;
-    this.height = width;
+class AlipayPayment extends PaymentMethod {
+  pay(amount: number): void {
+    console.log(`支付宝支付 ${amount} 元`);
   }
 
-  setHeight(height: number): void {
-    this.width = height;
-    this.height = height;
+  refund(amount: number): void {
+    console.log(`支付宝退款 ${amount} 元`);
   }
+}
+
+class GiftCardPayment extends PaymentMethod {
+  pay(amount: number): void {
+    console.log(`礼品卡支付 ${amount} 元`);
+  }
+
+  refund(amount: number): void {
+    throw new Error("礼品卡不支持原路退款");
+  }
+}
+
+function cancelOrder(payment: PaymentMethod, amount: number): void {
+  payment.refund(amount);
 }</code></pre>
-    <p>调用方本来以为“改宽不会动高”，但到了 <code>Square</code> 里规则变了，这就是替换失败。</p>
+    <p>调用方看到的是 <code>PaymentMethod</code>，自然会以为“任何支付方式都能退款”。但换成 <code>GiftCardPayment</code> 后直接抛异常，说明子类没有遵守父类原本承诺的行为。</p>
+    <h3>为什么这里是替换失败</h3>
+    <pre><code class="language-ts">const payment: PaymentMethod = new GiftCardPayment();
+cancelOrder(payment, 100); // 调用方以为一定能退款，结果运行时报错</code></pre>
+    <p>里氏替换看的是调用方视角：如果一段代码在传入父类型时成立，换成某个子类型后却突然不成立，那就是替换失败。</p>
     <h3>TypeScript 示例</h3>
-    <pre><code class="language-ts">interface Shape {
-  getArea(): number;
+    <pre><code class="language-ts">interface PaymentMethod {
+  pay(amount: number): void;
 }
 
-class Rectangle implements Shape {
-  constructor(private width: number, private height: number) {}
+interface RefundablePayment {
+  refund(amount: number): void;
+}
 
-  getArea(): number {
-    return this.width * this.height;
+class AlipayPayment implements PaymentMethod, RefundablePayment {
+  pay(amount: number): void {
+    console.log(`支付宝支付 ${amount} 元`);
+  }
+
+  refund(amount: number): void {
+    console.log(`支付宝退款 ${amount} 元`);
   }
 }
 
-class Square implements Shape {
-  constructor(private side: number) {}
-
-  getArea(): number {
-    return this.side * this.side;
+class GiftCardPayment implements PaymentMethod {
+  pay(amount: number): void {
+    console.log(`礼品卡支付 ${amount} 元`);
   }
+}
+
+function checkout(payment: PaymentMethod, amount: number): void {
+  payment.pay(amount);
+}
+
+function cancelOrder(payment: RefundablePayment, amount: number): void {
+  payment.refund(amount);
 }</code></pre>
+    <p>改完以后，契约被拆清楚了：所有支付方式都能 <code>pay</code>，但不是所有支付方式都能 <code>refund</code>。调用方依赖哪个能力，就接收哪个抽象。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">from typing import Protocol
 
 
-class Shape(Protocol):
-    def get_area(self) -&gt; int:
+class PaymentMethod(Protocol):
+    def pay(self, amount: int) -&gt; None:
         ...
 
 
-class Rectangle:
-    def __init__(self, width: int, height: int):
-        self.width = width
-        self.height = height
-
-    def get_area(self) -&gt; int:
-        return self.width * self.height
+class RefundablePayment(Protocol):
+    def refund(self, amount: int) -&gt; None:
+        ...
 
 
-class Square:
-    def __init__(self, side: int):
-        self.side = side
+class AlipayPayment:
+    def pay(self, amount: int) -&gt; None:
+        print(f"支付宝支付 {amount} 元")
 
-    def get_area(self) -&gt; int:
-        return self.side * self.side</code></pre>
-    <div class="note">里氏替换最常见的坑，不是“不能继承”，而是“继承后偷偷改变了调用方原本依赖的行为约定”。</div>
+    def refund(self, amount: int) -&gt; None:
+        print(f"支付宝退款 {amount} 元")
+
+
+class GiftCardPayment:
+    def pay(self, amount: int) -&gt; None:
+        print(f"礼品卡支付 {amount} 元")
+
+
+def checkout(payment: PaymentMethod, amount: int) -&gt; None:
+    payment.pay(amount)
+
+
+def cancel_order(payment: RefundablePayment, amount: int) -&gt; None:
+    payment.refund(amount)</code></pre>
+    <p>Python 里这条原则通常体现为：别让一个对象“看起来像能用”，结果传进去才发现少关键能力。用更准确的协议拆开能力边界，比勉强复用一个大父类型更稳。</p>
+    <div class="note">里氏替换最常见的坑，不是“不能继承”，而是“子类表面上继承了父类，实际上却偷偷缩小了能力、改变了规则，导致调用方对父类的预期失效”。</div>
 
     <h2>4. 接口隔离原则</h2>
     <p><strong>核心思想：</strong>不要逼使用者依赖它不需要的方法。宁可多个小接口，也不要一个胖接口。</p>
@@ -246,6 +329,22 @@ class Programmer implements Worker {
   deliver(): void { throw new Error("不会送餐"); }
   clean(): void { throw new Error("不会保洁"); }
 }</code></pre>
+    <p>一旦实现类里开始出现“这个方法我其实不会”“这里只能抛异常”，就说明接口已经把不相关的职责硬塞在一起了。</p>
+    <h3>为什么胖接口会制造假实现</h3>
+    <pre><code class="language-ts">interface ReportExporter {
+  exportPDF(): void;
+  exportExcel(): void;
+  sendEmail(): void;
+  uploadToS3(): void;
+}
+
+class LocalExcelExporter implements ReportExporter {
+  exportPDF(): void { throw new Error("不支持"); }
+  exportExcel(): void { console.log("导出 Excel"); }
+  sendEmail(): void { throw new Error("不支持"); }
+  uploadToS3(): void { throw new Error("不支持"); }
+}</code></pre>
+    <p>这类代码最糟的地方不是丑，而是调用方会被误导：接口看起来什么都能做，实际上很多实现只支持其中一小部分能力。</p>
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface Coder {
   code(): void;
@@ -263,7 +362,14 @@ class Programmer implements Coder {
   code(): void {
     console.log("写代码");
   }
+}
+
+class DeliveryPerson implements Deliverer {
+  deliver(): void {
+    console.log("送外卖");
+  }
 }</code></pre>
+    <p>这样拆开后，每个角色只实现自己真正需要的能力。调用方要找会写代码的人，就依赖 <code>Coder</code>；要找配送员，就依赖 <code>Deliverer</code>。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">from typing import Protocol
 
@@ -293,6 +399,7 @@ class Programmer:
 class DeliveryPerson:
     def deliver(self) -&gt; None:
         print("送外卖")</code></pre>
+    <p>Python 里胖接口也很常见，尤其是在工具类、SDK 封装和导出服务里。看到一个类实现很多“其实用不上”的方法，通常就该警觉接口是否已经设计过头了。</p>
     <div class="note">接口隔离的目标不是拆得越细越好，而是避免“实现一个接口，却被迫写一堆无意义的方法”。</div>
 
     <h2>5. 依赖倒置原则</h2>
@@ -313,6 +420,21 @@ class UserService {
   }
 }</code></pre>
     <p>如果以后换 PostgreSQL、MongoDB，就只能修改 <code>UserService</code>。</p>
+    <h3>真正的问题不只是“换数据库麻烦”</h3>
+    <pre><code class="language-ts">class MySQLDatabase {
+  insert(data: string): void {
+    console.log(`MySQL 保存 ${data}`);
+  }
+}
+
+class UserService {
+  private database = new MySQLDatabase();
+
+  save(name: string): void {
+    this.database.insert(name);
+  }
+}</code></pre>
+    <p>这段代码还有两个隐藏问题：一是测试时很难替换成假对象；二是高层业务被迫知道底层实现细节。业务本来只关心“保存用户”，不该关心底层到底是 MySQL 还是别的存储。</p>
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface Database {
   insert(data: string): void;
@@ -330,7 +452,14 @@ class UserService {
   save(name: string): void {
     this.database.insert(name);
   }
+}
+
+class MemoryDatabase implements Database {
+  insert(data: string): void {
+    console.log(`内存保存 ${data}`);
+  }
 }</code></pre>
+    <p>现在 <code>UserService</code> 只依赖 <code>Database</code> 这个能力。换数据库、写测试替身、做本地内存实现，都不需要改业务类本身。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">from typing import Protocol
 
@@ -350,7 +479,13 @@ class UserService:
         self.database = database
 
     def save(self, name: str) -&gt; None:
-        self.database.insert(name)</code></pre>
+        self.database.insert(name)
+
+
+class MemoryDatabase:
+    def insert(self, data: str) -&gt; None:
+        print(f"内存保存 {data}")</code></pre>
+    <p>Python 里依赖倒置经常表现为：构造函数传入协作者，而不是在类内部自己 <code>new</code> 一个。这样既方便替换实现，也方便注入测试替身。</p>
     <div class="note">依赖倒置的重点不是“把一切都抽成接口”，而是高层业务别直接绑死在某个底层实现上。</div>
 
     <h2>6. 迪米特法则</h2>
@@ -359,6 +494,12 @@ class UserService:
     <h3>坏代码</h3>
     <pre><code class="language-ts">const temp = computer.getCpu().getCore(0).getTemperature();</code></pre>
     <p>这行代码知道了太多内部结构：电脑里有 CPU，CPU 里有核心，核心里有温度。只要中间某层结构改动，调用方就一起崩。</p>
+    <h3>为什么“链式拿数据”会变脆弱</h3>
+    <pre><code class="language-ts">const temp = computer.getCpu().getCore(0).getTemperature();
+
+// 假设以后 CPU 不再暴露 core，而是直接暴露 sensor
+// 那所有这样写的调用方都得跟着改</code></pre>
+    <p>迪米特法则不是反对点语法，而是反对调用方穿透多层对象去摸内部结构。你知道的层级越多，对方一改结构，你就越容易受伤。</p>
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">class Core {
   getTemperature(): number {
@@ -380,7 +521,11 @@ class Computer {
   getCpuTemperature(): number {
     return this.cpu.getAverageTemperature();
   }
-}</code></pre>
+}
+
+const computer = new Computer();
+const temp = computer.getCpuTemperature();</code></pre>
+    <p>现在调用方只知道“向电脑要 CPU 温度”，不知道里面到底是一个核心、多个核心，还是别的传感器结构。内部怎么变，封装在 <code>Computer</code> 和 <code>Cpu</code> 里面。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">class Core:
     def get_temperature(self) -&gt; int:
@@ -400,7 +545,12 @@ class Computer:
         self._cpu = Cpu()
 
     def get_cpu_temperature(self) -&gt; int:
-        return self._cpu.get_average_temperature()</code></pre>
+        return self._cpu.get_average_temperature()
+
+
+computer = Computer()
+temp = computer.get_cpu_temperature()</code></pre>
+    <p>Python 里这一条也很重要，尤其是在字典、对象、ORM 模型层层嵌套的时候。不要让上层业务一路穿透到底层细节，尽量由中间对象提供更直接的意图方法。</p>
     <div class="note">迪米特法则的本质，是把内部层级藏起来，让调用方只拿到它真正需要的结果。</div>
 
     <h2>7. 组合优于继承</h2>
@@ -421,6 +571,17 @@ class Bird extends Animal {
 
 class FlyingDog extends Bird {}</code></pre>
     <p><code>FlyingDog</code> 继承了飞，但也被迫继承了“鸟”的语义。类层次会越来越怪。</p>
+    <h3>为什么继承在这里会越走越歪</h3>
+    <pre><code class="language-ts">class Bird extends Animal {
+  fly(): void {
+    console.log("飞行");
+  }
+}
+
+class FlyingDog extends Bird {}
+class FlyingFish extends Bird {}
+class FlyingCat extends Bird {}</code></pre>
+    <p>一开始你只是想复用 <code>fly()</code>，结果为了这个能力，不得不把狗、鱼、猫都塞进“鸟”的层级里。说明这个复用方向从语义上就不对。</p>
     <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface Flyable {
   fly(): void;
@@ -442,7 +603,14 @@ class Dog {
   tryFly(): void {
     this.flyable?.fly();
   }
-}</code></pre>
+}
+
+const normalDog = new Dog();
+normalDog.run();
+
+const superDog = new Dog(new Wings());
+superDog.tryFly();</code></pre>
+    <p>现在“会不会飞”变成一个可拼装能力，而不是血统问题。狗还是狗，只是有的狗额外装了飞行能力。</p>
     <h3>Python 示例</h3>
     <pre><code class="language-python">from typing import Protocol
 
@@ -466,7 +634,15 @@ class Dog:
 
     def try_fly(self) -&gt; None:
         if self.flyable:
-            self.flyable.fly()</code></pre>
+            self.flyable.fly()
+
+
+normal_dog = Dog()
+normal_dog.run()
+
+super_dog = Dog(Wings())
+super_dog.try_fly()</code></pre>
+    <p>这也是为什么很多模式更偏爱组合：装饰器、代理、策略，本质上都是把能力拆出来再组合，而不是不断加深继承树。</p>
     <div class="note">继承适合稳定的“是一种”关系；组合更适合变化频繁的能力拼装。</div>
 
     <h2>8. 七大原则之间的关系</h2>

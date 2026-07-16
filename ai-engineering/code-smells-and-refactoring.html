@@ -8,20 +8,117 @@
 <h2>3. 适用场景</h2><ul><li>AI 一次生成了很长函数。</li><li>多个文件出现重复逻辑。</li><li>业务代码直接依赖数据库、SDK、页面框架。</li><li>新增需求时总要改同一个大类。</li></ul>
 <h2>4. 不适用场景</h2><ul><li>还没有测试保护的高风险核心流程，先补测试。</li><li>一次性脚本，维护周期很短。</li><li>为了“看起来高级”而抽象。</li></ul>
 <h2>5. 核心结构</h2><table><thead><tr><th>坏味道</th><th>常见处理</th></tr></thead><tbody><tr><td>大函数</td><td>按意图拆函数，先保留行为。</td></tr><tr><td>重复逻辑</td><td>抽规则函数或策略。</td></tr><tr><td>胖类</td><td>按变化原因拆职责。</td></tr><tr><td>错误依赖</td><td>引入端口和适配器。</td></tr><tr><td>过度抽象</td><td>删除没有变化支撑的层。</td></tr></tbody></table>
-<h2>6. 示例代码</h2><h3>TypeScript 示例</h3><pre><code class="language-ts">function validateAmount(amount: number) {
-  if (amount &lt;= 0) throw new Error("金额必须大于 0");
+<h2>6. 示例代码</h2><p>这个例子想说明的不是“校验金额也要包装一层”，而是：AI 常把校验、规则、持久化、通知都塞进一个函数。重构的目标是把变化原因分开，不是为了多写函数。</p><div class="note"><strong>阅读方法：</strong>先看“重构前”里标出的坏味道，再看“重构后”每个新增方法的中文注释。判断代码好不好，不只看行数少不少，而是看变化点有没有被分开。</div><h3>TypeScript 示例</h3><h4>重构前：坏味道写法</h4><pre><code class="language-ts">type OrderInput = { userId: string; amount: number; level: "normal" | "vip" };
+type Order = { userId: string; amount: number; payable: number; status: "created" };
+
+function createOrderBad(input: OrderInput) {
+  // 坏味道 1：校验、折扣规则、数据组装、保存、通知都塞在一个函数里。
+  if (input.amount &lt;= 0) throw new Error("金额必须大于 0");
+
+  // 坏味道 2：会员折扣规则直接写死在流程中，后续增加黑金会员会继续堆 if。
+  const payable = input.level === "vip" ? input.amount * 0.9 : input.amount;
+
+  const order = {
+    userId: input.userId,
+    amount: input.amount,
+    payable,
+    status: "created" as const,
+  };
+
+  // 坏味道 3：业务流程直接依赖具体副作用，测试时很难只验证下单逻辑。
+  database.orders.insert(order);
+  sms.send(input.userId, "订单已创建");
+
+  return order;
+}</code></pre><h4>重构后：较好的写法</h4><pre><code class="language-ts">type OrderInput = { userId: string; amount: number; level: "normal" | "vip" };
+type Order = { userId: string; amount: number; payable: number; status: "created" };
+
+// 只负责校验订单输入，输入规则变化时优先改这里。
+function validateOrderInput(input: OrderInput): void {
+  if (input.amount &lt;= 0) throw new Error("金额必须大于 0");
 }
 
-function createOrder(amount: number) {
-  validateAmount(amount);
-  return { amount, status: "created" };
-}</code></pre><h3>Python 示例</h3><pre><code class="language-python">def validate_amount(amount: int) -> None:
-    if amount &lt;= 0:
+// 只负责计算应付金额，折扣规则变化时优先改这里。
+function calculatePayable(input: OrderInput): number {
+  return input.level === "vip" ? input.amount * 0.9 : input.amount;
+}
+
+// 只负责组装订单对象，字段结构变化时优先改这里。
+function buildOrder(input: OrderInput): Order {
+  return {
+    userId: input.userId,
+    amount: input.amount,
+    payable: calculatePayable(input),
+    status: "created" as const,
+  };
+}
+
+// 负责串联下单流程，保存和通知通过参数传入，方便替换和测试。
+function createOrder(input: OrderInput, save: (order: Order) =&gt; void, notify: (userId: string) =&gt; void) {
+  validateOrderInput(input);
+  const order = buildOrder(input);
+
+  save(order);
+  notify(input.userId);
+  return order;
+}</code></pre><p>好在哪里：校验、金额规则、订单组装、外部副作用被分开了。以后改折扣规则时，不需要同时碰保存和通知；测试下单流程时，也可以传入假的 <code>save</code> 和 <code>notify</code>。</p><h3>Python 示例</h3><h4>重构前：坏味道写法</h4><pre><code class="language-python">from typing import Literal, TypedDict
+
+class OrderInput(TypedDict):
+    user_id: str
+    amount: int
+    level: Literal["normal", "vip"]
+
+def create_order_bad(input: OrderInput) -> dict:
+    # 坏味道 1：校验、折扣规则、数据组装、保存、通知都塞在一个函数里。
+    if input["amount"] &lt;= 0:
         raise ValueError("金额必须大于 0")
 
-def create_order(amount: int) -> dict:
-    validate_amount(amount)
-    return {"amount": amount, "status": "created"}</code></pre>
+    # 坏味道 2：会员折扣规则直接写死在流程中，后续新增等级会继续堆分支。
+    payable = input["amount"] * 0.9 if input["level"] == "vip" else input["amount"]
+
+    order = {
+        "user_id": input["user_id"],
+        "amount": input["amount"],
+        "payable": payable,
+        "status": "created",
+    }
+
+    # 坏味道 3：业务流程直接依赖具体副作用，单元测试会被数据库和短信拖住。
+    database.orders.insert(order)
+    sms.send(input["user_id"], "订单已创建")
+
+    return order</code></pre><h4>重构后：较好的写法</h4><pre><code class="language-python">from typing import Callable, Literal, TypedDict
+
+class OrderInput(TypedDict):
+    user_id: str
+    amount: int
+    level: Literal["normal", "vip"]
+
+def validate_order_input(input: OrderInput) -> None:
+    """只负责校验订单输入，输入规则变化时优先改这里。"""
+    if input["amount"] &lt;= 0:
+        raise ValueError("金额必须大于 0")
+
+def calculate_payable(input: OrderInput) -> float:
+    """只负责计算应付金额，折扣规则变化时优先改这里。"""
+    return input["amount"] * 0.9 if input["level"] == "vip" else input["amount"]
+
+def build_order(input: OrderInput) -> dict:
+    """只负责组装订单对象，字段结构变化时优先改这里。"""
+    return {
+        "user_id": input["user_id"],
+        "amount": input["amount"],
+        "payable": calculate_payable(input),
+        "status": "created",
+    }
+
+def create_order(input: OrderInput, save: Callable[[dict], None], notify: Callable[[str], None]) -> dict:
+    """负责串联下单流程，保存和通知通过参数传入，方便替换和测试。"""
+    validate_order_input(input)
+    order = build_order(input)
+    save(order)
+    notify(input["user_id"])
+    return order</code></pre><p>好在哪里：Python 版本没有为了模式而创建一堆类，只用函数和可传入的回调把变化点隔开。等保存、通知、折扣真的变复杂，再考虑协议、策略或适配器。</p><p>这个拆法仍然很克制：没有急着上策略、仓储、事件总线。只有当折扣规则继续增加、保存方式需要替换、通知失败要补偿时，才继续引入更明确的模式或架构层。</p>
 <h2>7. 优缺点</h2><table><thead><tr><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>代码更容易理解、测试、扩展。</td><td>需要避免一次性大改。</td></tr><tr><td>能纠正 AI 生成代码的结构问题。</td><td>没有测试时容易引入回归。</td></tr></tbody></table>
 <h2>8. 和设计模式的关系</h2><table><thead><tr><th>重构</th><th>设计模式</th></tr></thead><tbody><tr><td>先发现具体坏味道。</td><td>作为解决某类坏味道的工具。</td></tr><tr><td>不一定引入新抽象。</td><td>可能增加结构和类。</td></tr></tbody></table>
 <h2>9. 一个练习题</h2><p>找一段 AI 生成的大函数，标出其中的校验、业务规则、外部调用和响应转换。</p>
