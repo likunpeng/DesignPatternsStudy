@@ -38,6 +38,7 @@
       <li>根据不同环境创建本地缓存、Redis 缓存、内存缓存。</li>
     </ul>
     <p>如果业务代码里到处直接 <code>new</code> 具体类，后续新增类型时就容易到处改。</p>
+    <p>它和简单工厂的区别在于：简单工厂把创建判断集中到一个函数里；工厂方法进一步把“创建哪种产品”的变化拆给不同工厂类，避免所有新增都去改同一个总工厂。</p>
 
     <h3>坏代码示例</h3>
     <p>假设系统需要根据通知类型发送消息：</p>
@@ -66,6 +67,17 @@ function notify(type: string, message: string): void {
 }</code></pre>
     <p>这段代码的问题是：<code>notify</code> 同时负责业务流程和对象创建，新增通知渠道时必须修改 <code>notify</code>，创建逻辑变复杂后会污染主流程。</p>
     <div class="note">这里的问题不只是有 <code>if-else</code>，而是创建具体对象的职责放错了地方。</div>
+    <h3>为什么简单工厂有时还不够</h3>
+    <pre><code class="language-ts">class NotifierFactory {
+  // 总工厂负责所有分支，类型一多就会继续膨胀
+  static create(type: "email" | "sms"): Notifier {
+    if (type === "email") {
+      return new EmailNotifier();
+    }
+    return new SmsNotifier();
+  }
+}</code></pre>
+    <p>如果通知渠道只有两三种，这样完全可以。但当每种通知器都开始带上自己的默认配置、鉴权、客户端初始化逻辑时，所有变化都会继续堆进这个总工厂。工厂方法就是在这个阶段再往前走一步。</p>
 
     <h2>2. 一个生活类比</h2>
     <p>你去咖啡店点咖啡。</p>
@@ -119,44 +131,53 @@ function notify(type: string, message: string): void {
 
     <h2>6. TypeScript 示例</h2>
     <pre><code class="language-ts">interface Notifier {
+  // 产品接口：主流程只关心能不能发通知
   send(message: string): void;
 }
 
 class EmailNotifier implements Notifier {
+  constructor(private readonly from: string) {}
+
   send(message: string): void {
-    console.log(`发送邮件: ${message}`);
+    console.log(`[邮件 from=${this.from}] ${message}`);
   }
 }
 
 class SmsNotifier implements Notifier {
+  constructor(private readonly sign: string) {}
+
   send(message: string): void {
-    console.log(`发送短信: ${message}`);
+    console.log(`[短信 sign=${this.sign}] ${message}`);
   }
 }
 
 interface NotifierFactory {
+  // 工厂接口：把“创建通知器”抽象出来
   createNotifier(): Notifier;
 }
 
 class EmailNotifierFactory implements NotifierFactory {
   createNotifier(): Notifier {
-    return new EmailNotifier();
+    // 每个具体工厂只负责一种产品的创建细节
+    return new EmailNotifier("noreply@example.com");
   }
 }
 
 class SmsNotifierFactory implements NotifierFactory {
   createNotifier(): Notifier {
-    return new SmsNotifier();
+    return new SmsNotifier("[商城]");
   }
 }
 
 function notifyUser(factory: NotifierFactory, message: string): void {
+  // 主流程只使用工厂，不关心具体 new 哪个类
   const notifier = factory.createNotifier();
   notifier.send(message);
 }
 
 notifyUser(new EmailNotifierFactory(), "订单已支付");
 notifyUser(new SmsNotifierFactory(), "验证码是 123456");</code></pre>
+    <p>这里的重点不是“多了两个工厂类”，而是每种通知器自己的初始化规则开始有了独立归属。以后新增 <code>PushNotifierFactory</code>，主要是在加新类，而不是继续修改一个总工厂。</p>
     <p>关键职责：</p>
     <ul>
       <li><code>Notifier</code>：定义通知器必须具备 <code>send</code> 方法。</li>
@@ -171,22 +192,30 @@ notifyUser(new SmsNotifierFactory(), "验证码是 123456");</code></pre>
 
 
 class Notifier(ABC):
+    # 产品抽象：主流程只依赖 send 能力
     @abstractmethod
     def send(self, message: str) -> None:
         pass
 
 
 class EmailNotifier(Notifier):
+    def __init__(self, sender: str) -> None:
+        self.sender = sender
+
     def send(self, message: str) -> None:
-        print(f"发送邮件: {message}")
+        print(f"[邮件 from={self.sender}] {message}")
 
 
 class SmsNotifier(Notifier):
+    def __init__(self, sign: str) -> None:
+        self.sign = sign
+
     def send(self, message: str) -> None:
-        print(f"发送短信: {message}")
+        print(f"[短信 sign={self.sign}] {message}")
 
 
 class NotifierFactory(ABC):
+    # 工厂抽象：定义“如何拿到一个通知器”
     @abstractmethod
     def create_notifier(self) -> Notifier:
         pass
@@ -194,23 +223,26 @@ class NotifierFactory(ABC):
 
 class EmailNotifierFactory(NotifierFactory):
     def create_notifier(self) -> Notifier:
-        return EmailNotifier()
+        return EmailNotifier("noreply@example.com")
 
 
 class SmsNotifierFactory(NotifierFactory):
     def create_notifier(self) -> Notifier:
-        return SmsNotifier()
+        return SmsNotifier("[商城]")
 
 
 def notify_user(factory: NotifierFactory, message: str) -> None:
+    # 主流程只依赖工厂抽象，不直接依赖具体通知器
     notifier = factory.create_notifier()
     notifier.send(message)
 
 
 notify_user(EmailNotifierFactory(), "订单已支付")
 notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
+    <p>Python 里也一样，工厂方法的收益不是类图漂亮，而是把不同产品的初始化规则拆开。简单工厂还行的时候，就别急着上；一旦每个产品都开始带自己的创建细节，工厂方法会更清楚。</p>
     <p>Python 中如果创建逻辑很简单，也可以使用更轻量的简单工厂函数：</p>
     <pre><code class="language-python">def create_notifier(kind: str) -> Notifier:
+    # 这是更轻量的简单工厂函数，不是完整的工厂方法
     if kind == "email":
         return EmailNotifier()
 
@@ -291,6 +323,18 @@ notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
     </table>
     <pre><code>如果 if-else 是为了决定 new 哪个类，优先考虑工厂方法。
 如果 if-else 是为了决定执行哪种规则，优先考虑策略模式。</code></pre>
+    <h3>和简单工厂、抽象工厂的关系</h3>
+    <table>
+      <thead>
+        <tr><th>模式</th><th>适合什么情况</th><th>典型代价</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>简单工厂</td><td>产品种类少，创建判断集中一下就够</td><td>新增产品时通常要改同一个工厂</td></tr>
+        <tr><td>工厂方法</td><td>产品会持续增加，希望新增时主要加新工厂类</td><td>类数量增加</td></tr>
+        <tr><td>抽象工厂</td><td>一次要创建一整套配套产品</td><td>新增产品类型会牵动所有工厂</td></tr>
+      </tbody>
+    </table>
+    <p>可以先这样记：简单工厂解决“把判断收口”，工厂方法解决“别老改同一个工厂”，抽象工厂解决“保证一整套产品配套”。</p>
 
     <h3>同一个支付场景里的区别</h3>
     <p>策略模式负责拆出支付行为：</p>

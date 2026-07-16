@@ -34,6 +34,7 @@
     </ul>
     <pre><code>如果按钮是 Windows 风格，输入框却是 Mac 风格，界面就会不协调。</code></pre>
     <p>抽象工厂保证同一工厂创建出来的产品都是配套的。</p>
+    <p>它不是在解决“怎么创建一个按钮”，而是在解决“怎么保证按钮、输入框、弹窗这些部件是一整套的”。</p>
 
     <h2>2. 一个生活类比</h2>
     <p>你去宜家买家具。你可以选"北欧风"套装，也可以选"日式风"套装。每个套装里的沙发、茶几、书架风格一致。你不需要自己搭配，只要选一个套装就行。这里的"套装"就是产品族，"宜家"就是抽象工厂。</p>
@@ -45,6 +46,7 @@
       <li>不想让调用方知道具体使用了哪种风格。</li>
       <li>产品族中的产品经常一起使用。</li>
     </ul>
+    <p>判断关键词通常是：<strong>成套、配套、一致性、同一平台、同一主题、同一数据库方言</strong>。只要你在想“这几个对象最好一起切换”，抽象工厂就值得考虑。</p>
 
     <h2>4. 不适用场景</h2>
     <ul>
@@ -67,7 +69,17 @@
     </table>
 
     <h2>6. TypeScript 示例</h2>
+    <h3>坏代码：调用方自己拼风格，容易混搭</h3>
+    <pre><code class="language-ts">const button = new DarkButton();
+const input = new LightInput();
+
+// 调用方自己拼装，容易把不同风格混在一起
+button.render();
+input.render();</code></pre>
+    <p>单看每个对象都没问题，问题是调用方自己拼搭时，很容易出现“按钮是暗色，输入框是亮色”的混用。抽象工厂就是把这种“配套约束”也一起收进创建逻辑里。</p>
+    <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface Button {
+  // 抽象产品 A：按钮
   render(): void;
 }
 
@@ -80,6 +92,7 @@ class LightButton implements Button {
 }
 
 interface Input {
+  // 抽象产品 B：输入框
   render(): void;
 }
 
@@ -92,6 +105,7 @@ class LightInput implements Input {
 }
 
 interface UIFactory {
+  // 抽象工厂：一次创建一整套相关产品
   createButton(): Button;
   createInput(): Input;
 }
@@ -107,19 +121,25 @@ class LightUIFactory implements UIFactory {
 }
 
 function renderUI(factory: UIFactory) {
-  factory.createButton().render();
-  factory.createInput().render();
+  // 调用方只依赖工厂抽象，保证拿到的是同一套风格
+  const button = factory.createButton();
+  const input = factory.createInput();
+
+  button.render();
+  input.render();
 }
 
 renderUI(new DarkUIFactory());
 renderUI(new LightUIFactory());</code></pre>
-    <p>调用方只依赖 <code>UIFactory</code>，不关心具体是暗色还是亮色。切换主题只需要换一个工厂实例。</p>
+    <p>调用方只依赖 <code>UIFactory</code>，不关心具体是暗色还是亮色。切换主题只需要换一个工厂实例，而且同一个工厂天然保证按钮和输入框是同一套风格。</p>
+    <div class="note"><strong>判断标准：</strong>如果你只是创建一个对象，抽象工厂通常太重；如果你每次都要成套创建多个相关对象，而且这些对象必须一起切换，抽象工厂就很合适。</div>
 
     <h2>7. Python 示例</h2>
     <pre><code class="language-python">from abc import ABC, abstractmethod
 
 
 class Button(ABC):
+    # 抽象产品 A：按钮
     @abstractmethod
     def render(self) -&gt; None:
         pass
@@ -136,6 +156,7 @@ class LightButton(Button):
 
 
 class Input(ABC):
+    # 抽象产品 B：输入框
     @abstractmethod
     def render(self) -&gt; None:
         pass
@@ -152,6 +173,7 @@ class LightInput(Input):
 
 
 class UIFactory(ABC):
+    # 抽象工厂：定义一整套 UI 组件的创建方法
     @abstractmethod
     def create_button(self) -&gt; Button:
         pass
@@ -178,12 +200,17 @@ class LightUIFactory(UIFactory):
 
 
 def render_ui(factory: UIFactory) -&gt; None:
-    factory.create_button().render()
-    factory.create_input().render()
+    # 调用方只依赖工厂抽象，不自己拼风格
+    button = factory.create_button()
+    input_box = factory.create_input()
+
+    button.render()
+    input_box.render()
 
 
 render_ui(DarkUIFactory())
 render_ui(LightUIFactory())</code></pre>
+    <p>Python 里这类模式在跨平台 UI、数据库适配、主题系统里都很常见。关键收益仍然是“成套切换”，而不是单个对象创建得更优雅。</p>
 
     <h2>8. 优缺点</h2>
     <table>
@@ -206,6 +233,7 @@ render_ui(LightUIFactory())</code></pre>
         <tr><td>建造者</td><td>分步骤组装复杂对象</td><td>关注构建过程，而不是产品族。</td></tr>
       </tbody>
     </table>
+    <p>可以先这么理解：工厂方法解决“创建一个什么对象”，抽象工厂解决“创建一整套什么风格的对象”。一旦你的脑子里出现“按钮、输入框、菜单要一起换”，你就已经靠近抽象工厂了。</p>
 
     <h2>10. 练习题</h2>
     <p>你需要支持 MySQL 和 PostgreSQL 两种数据库，每种数据库都需要 Connection 和 Command 两种对象。请用抽象工厂模式实现，并思考：如果新增一种数据库（例如 SQLite），需要改哪些地方？如果新增一种产品类型（例如 Transaction），需要改哪些地方？</p>

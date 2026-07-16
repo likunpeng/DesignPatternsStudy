@@ -28,6 +28,7 @@
     <h2>1. 这个模式解决什么问题</h2>
     <p>调用方需要根据条件创建不同对象，但不想在每个调用点都写 <code>if-else</code> 和 <code>new</code>。简单工厂把这段逻辑集中到一个地方。</p>
     <pre><code>调用方只说"我要一个 XX"，工厂负责决定创建哪个具体类。</code></pre>
+    <p>它真正想解决的不是“少写一个 <code>new</code>”，而是：当创建规则发生变化时，不要让每个调用点都跟着改。</p>
 
     <h2>2. 一个生活类比</h2>
     <p>你去奶茶店点单：你说"一杯珍珠奶茶"，店员负责决定用哪种茶底、加什么料。你不需要知道制作细节，只需要说出名字。</p>
@@ -58,13 +59,31 @@
     </table>
 
     <h2>6. TypeScript 示例</h2>
+    <h3>坏代码：调用方自己判断并创建</h3>
+    <pre><code class="language-ts">function bootLogger(type: "file" | "console") {
+  let logger;
+
+  if (type === "file") {
+    // 调用方自己决定创建哪个具体类
+    logger = new FileLogger();
+  } else {
+    logger = new ConsoleLogger();
+  }
+
+  logger.log("服务启动");
+}</code></pre>
+    <p>问题不是这段代码写不出来，而是类似判断一旦出现在多个模块里，创建规则就会散落各处。以后想统一改动，比如 <code>file</code> 日志要增加路径配置，就得回头找所有调用点。</p>
+    <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface Logger {
+  // 产品接口：调用方只依赖日志能力
   log(message: string): void;
 }
 
 class FileLogger implements Logger {
+  constructor(private readonly path: string = "/var/log/app.log") {}
+
   log(message: string): void {
-    console.log(`[File] ${message}`);
+    console.log(`[File:${this.path}] ${message}`);
   }
 }
 
@@ -75,33 +94,42 @@ class ConsoleLogger implements Logger {
 }
 
 class LoggerFactory {
+  // 简单工厂：根据参数集中创建具体产品
   static create(type: "file" | "console"): Logger {
     switch (type) {
       case "file":
+        // 创建细节集中在工厂里，调用方不用知道默认路径
         return new FileLogger();
       case "console":
         return new ConsoleLogger();
+      default:
+        throw new Error(`未知日志类型: ${type}`);
     }
   }
 }
 
 const logger = LoggerFactory.create("file");
 logger.log("服务启动");</code></pre>
-    <p>调用方只传 <code>"file"</code> 或 <code>"console"</code>，不直接 <code>new</code> 具体类。</p>
+    <p>调用方只传 <code>"file"</code> 或 <code>"console"</code>，不直接 <code>new</code> 具体类。这样日志对象怎么初始化、默认参数是什么，都集中在工厂里维护。</p>
+    <div class="note"><strong>判断标准：</strong>如果调用方只是在“选择一种现成实现”，而产品种类又不多，简单工厂就很好用。它适合把分散的创建判断收口，不适合承受高频扩展。</div>
 
     <h2>7. Python 示例</h2>
     <pre><code class="language-python">from abc import ABC, abstractmethod
 
 
 class Logger(ABC):
+    # 产品抽象：调用方只依赖日志能力
     @abstractmethod
     def log(self, message: str) -&gt; None:
         pass
 
 
 class FileLogger(Logger):
+    def __init__(self, path: str = "/var/log/app.log") -> None:
+        self.path = path
+
     def log(self, message: str) -&gt; None:
-        print(f"[File] {message}")
+        print(f"[File:{self.path}] {message}")
 
 
 class ConsoleLogger(Logger):
@@ -112,6 +140,7 @@ class ConsoleLogger(Logger):
 class LoggerFactory:
     @staticmethod
     def create(type_: str) -&gt; Logger:
+        # 简单工厂：把选择具体实现的规则集中起来
         if type_ == "file":
             return FileLogger()
         if type_ == "console":
@@ -121,8 +150,10 @@ class LoggerFactory:
 
 logger = LoggerFactory.create("file")
 logger.log("服务启动")</code></pre>
+    <p>Python 这里也一样，重点不是把 <code>if-else</code> 藏起来，而是把“根据参数选择实现、补默认配置”这类创建规则集中起来。</p>
     <p>Python 里也可以用字典映射替代 <code>if-else</code>，更简洁：</p>
     <pre><code class="language-python">class LoggerFactory:
+    # 用注册表替代 if-else，仍然属于简单工厂
     _registry: dict[str, type[Logger]] = {
         "file": FileLogger,
         "console": ConsoleLogger,
@@ -134,6 +165,7 @@ logger.log("服务启动")</code></pre>
         if cls is None:
             raise ValueError(f"未知日志类型: {type_}")
         return cls()</code></pre>
+    <p>当类型数量不多时，<code>if-else</code> 和注册表都可以。注册表更像是在给简单工厂做轻量升级，但它本质上仍然是“一个工厂统一负责创建”。</p>
 
     <h2>8. 优缺点</h2>
     <table>
@@ -149,11 +181,12 @@ logger.log("服务启动")</code></pre>
     <table>
       <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
       <tbody>
-        <tr><td>简单工厂</td><td>一个函数根据参数创建对象</td><td>创建逻辑集中在一个地方。</td></tr>
-        <tr><td>工厂方法</td><td>子类决定创建哪种对象</td><td>符合开闭原则，新增产品不需要改旧代码。</td></tr>
+        <tr><td>简单工厂</td><td>一个函数根据参数创建对象</td><td>创建逻辑集中在一个地方，但新增产品通常要改工厂。</td></tr>
+        <tr><td>工厂方法</td><td>子类决定创建哪种对象</td><td>把“创建哪种产品”的变化交给不同工厂类处理，更适合持续扩展。</td></tr>
         <tr><td>抽象工厂</td><td>创建一组相关对象</td><td>关注产品族，而不是单个产品。</td></tr>
       </tbody>
     </table>
+    <p>可以先这么理解：简单工厂适合“种类少、规则集中”；工厂方法适合“种类会持续增加，不能老改同一个工厂”。</p>
 
     <h2>10. 练习题</h2>
     <p>你有一个通知发送器，目前支持邮件和短信。请用简单工厂实现 <code>NotificationFactory.create("email")</code>。然后思考：如果新增企业微信通知，需要改哪些地方？这是不是违反了开闭原则？</p>
@@ -161,7 +194,7 @@ logger.log("服务启动")</code></pre>
 
     <div class="summary">
       <h2>今日总结</h2>
-      <p>简单工厂模式的核心是"把创建逻辑集中到一个函数"。它简单实用，但新增产品时需要改工厂代码。产品种类少且稳定时，简单工厂就够用了；产品经常新增时，应该升级为工厂方法模式。</p>
+      <p>简单工厂模式的核心是"把分散的创建判断收口到一个地方"。它不是为了炫技地把 <code>new</code> 藏起来，而是为了让调用方少知道具体类、少重复写创建规则。产品种类少且稳定时，简单工厂就够用了；产品经常新增时，应该升级为工厂方法模式。</p>
     </div>
   </main>
   <script src="../assets/patterns-data.js"></script>
