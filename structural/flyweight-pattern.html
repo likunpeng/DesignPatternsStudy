@@ -65,7 +65,7 @@ factory.get_style("Arial", 12, "black").render("A", 0, 0)
 factory.get_style("Arial", 12, "black").render("B", 10, 0)</code></pre>
   <p>Python 示例用 <code>dataclass(frozen=True)</code> 表示共享对象不可变，降低被误改的风险。</p>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>显著减少重复对象带来的内存占用。</td><td>需要区分内部状态和外部状态，设计复杂度提高。</td></tr><tr><td>共享对象集中管理，便于复用。</td><td>调用方需要额外传入外部状态。</td></tr><tr><td>适合大量细粒度对象场景。</td><td>共享对象如果可变，会产生难查的副作用。</td></tr></tbody></table>
-  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>享元</td><td>共享对象节省内存</td><td>关注大量相似对象的复用。</td></tr><tr><td>单例</td><td>全局唯一实例</td><td>单例强调唯一，享元强调按 key 共享多个实例。</td></tr><tr><td>对象池</td><td>复用昂贵对象生命周期</td><td>对象池借出归还可变对象，享元通常共享不可变内部状态。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>享元</td><td>共享对象节省内存</td><td>关注大量相似对象的复用。</td></tr><tr><td><a href="../creational/singleton-pattern.html">单例</a></td><td>全局唯一实例</td><td>单例强调唯一，享元强调按 key 共享多个实例。</td></tr><tr><td>对象池</td><td>复用昂贵对象生命周期</td><td>对象池借出归还可变对象，享元通常共享不可变内部状态。</td></tr></tbody></table>
   <h2>10. 练习题</h2><p>地图上有十万个标记点，但图标类型只有餐厅、酒店、加油站三种。请用享元模式共享图标对象，并把经纬度作为外部状态。</p><div class="note">参考思路：<code>IconFactory</code> 按类型缓存 <code>MapIcon</code>，渲染时传入 <code>lat</code> 和 <code>lng</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>享元模式的核心是“共享不变的，外传变化的”。只有当对象数量巨大且内存问题真实存在时，它才值得引入。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>

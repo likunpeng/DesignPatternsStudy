@@ -19,10 +19,10 @@
 
     <h2>今日目标</h2>
     <ul>
-      <li>理解抽象工厂和工厂方法的本质区别。</li>
+      <li>理解抽象工厂和<a href="./factory-method-pattern.html">工厂方法</a>的本质区别。</li>
       <li>知道什么是"产品族"。</li>
       <li>能用 TypeScript 和 Python 实现抽象工厂。</li>
-      <li>知道什么时候该用抽象工厂，什么时候用工厂方法就够了。</li>
+      <li>知道什么时候该用抽象工厂，什么时候用<a href="./factory-method-pattern.html">工厂方法</a>就够了。</li>
     </ul>
 
     <h2>1. 这个模式解决什么问题</h2>
@@ -52,7 +52,7 @@
     <ul>
       <li>只需要创建一种产品，不需要产品族。</li>
       <li>产品之间没有配套关系，各自独立。</li>
-      <li>产品族很少变化，简单工厂或工厂方法更直接。</li>
+      <li>产品族很少变化，<a href="./simple-factory-pattern.html">简单工厂</a>或<a href="./factory-method-pattern.html">工厂方法</a>更直接。</li>
       <li>新增产品类型（而不是产品族）时，抽象工厂需要改所有工厂接口。</li>
     </ul>
 
@@ -228,12 +228,12 @@ render_ui(LightUIFactory())</code></pre>
       <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
       <tbody>
         <tr><td>抽象工厂</td><td>创建一组相关对象</td><td>关注产品族，保证风格一致。</td></tr>
-        <tr><td>工厂方法</td><td>子类决定创建哪种对象</td><td>只创建一种产品，关注"谁决定"。</td></tr>
-        <tr><td>简单工厂</td><td>一个函数根据参数创建对象</td><td>最简单，但不保证产品族一致性。</td></tr>
-        <tr><td>建造者</td><td>分步骤组装复杂对象</td><td>关注构建过程，而不是产品族。</td></tr>
+        <tr><td><a href="./factory-method-pattern.html">工厂方法</a></td><td>子类决定创建哪种对象</td><td>只创建一种产品，关注"谁决定"。</td></tr>
+        <tr><td><a href="./simple-factory-pattern.html">简单工厂</a></td><td>一个函数根据参数创建对象</td><td>最简单，但不保证产品族一致性。</td></tr>
+        <tr><td><a href="./builder-pattern.html">建造者</a></td><td>分步骤组装复杂对象</td><td>关注构建过程，而不是产品族。</td></tr>
       </tbody>
     </table>
-    <p>可以先这么理解：工厂方法解决“创建一个什么对象”，抽象工厂解决“创建一整套什么风格的对象”。一旦你的脑子里出现“按钮、输入框、菜单要一起换”，你就已经靠近抽象工厂了。</p>
+    <p>可以先这么理解：<a href="./factory-method-pattern.html">工厂方法</a>解决“创建一个什么对象”，抽象工厂解决“创建一整套什么风格的对象”。一旦你的脑子里出现“按钮、输入框、菜单要一起换”，你就已经靠近抽象工厂了。</p>
 
     <h2>10. 练习题</h2>
     <p>你需要支持 MySQL 和 PostgreSQL 两种数据库，每种数据库都需要 Connection 和 Command 两种对象。请用抽象工厂模式实现，并思考：如果新增一种数据库（例如 SQLite），需要改哪些地方？如果新增一种产品类型（例如 Transaction），需要改哪些地方？</p>
@@ -241,7 +241,7 @@ render_ui(LightUIFactory())</code></pre>
 
     <div class="summary">
       <h2>今日总结</h2>
-      <p>抽象工厂模式的核心是"保证一组相关对象风格一致"。它适合多主题、多平台、多数据库等需要产品族配套的场景。记住一句话：工厂方法创建一种产品，抽象工厂创建一组产品。</p>
+      <p>抽象工厂模式的核心是"保证一组相关对象风格一致"。它适合多主题、多平台、多数据库等需要产品族配套的场景。记住一句话：<a href="./factory-method-pattern.html">工厂方法</a>创建一种产品，抽象工厂创建一组产品。</p>
     </div>
   </main>
   <script src="../assets/patterns-data.js"></script>

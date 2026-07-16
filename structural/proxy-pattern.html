@@ -91,7 +91,7 @@ print(repo.find_name("u1"))</code></pre>
   <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>调用方不需要知道远程、缓存、权限等细节。</td><td>多一层间接调用，排查链路要看代理逻辑。</td></tr><tr><td>可以延迟创建昂贵对象。</td><td>代理和真实对象接口要保持一致。</td></tr><tr><td>集中管理访问控制。</td><td>如果代理做太多事，会变成隐藏的业务核心。</td></tr></tbody></table>
 
   <h2>9. 和相似模式的区别</h2>
-  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>代理</td><td>控制访问</td><td>决定是否访问真实对象，常见于权限、缓存、懒加载。</td></tr><tr><td>装饰器</td><td>增强能力</td><td>重点是叠加行为，通常可多层自由组合。</td></tr><tr><td>适配器</td><td>接口转换</td><td>改变接口形状，让不兼容对象可用。</td></tr></tbody></table>
+  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>代理</td><td>控制访问</td><td>决定是否访问真实对象，常见于权限、缓存、懒加载。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>增强能力</td><td>重点是叠加行为，通常可多层自由组合。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>接口转换</td><td>改变接口形状，让不兼容对象可用。</td></tr></tbody></table>
 
   <h2>10. 练习题</h2>
   <p>设计一个图片加载代理。真实图片对象加载很慢，代理在第一次调用 <code>display()</code> 时才创建真实图片对象。</p>

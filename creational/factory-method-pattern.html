@@ -23,7 +23,7 @@
       <li>知道对象创建逻辑为什么不应该到处散落。</li>
       <li>能用 TypeScript 实现工厂方法模式。</li>
       <li>能用 Python 实现工厂方法模式。</li>
-      <li>能区分工厂方法模式、策略模式、简单工厂、抽象工厂和建造者模式。</li>
+      <li>能区分工厂方法模式、<a href="../behavioral/strategy-pattern.html">策略模式</a>、<a href="./simple-factory-pattern.html">简单工厂</a>、<a href="./abstract-factory-pattern.html">抽象工厂</a>和<a href="./builder-pattern.html">建造者模式</a>。</li>
       <li>知道什么时候不应该为了“消灭 if-else”而强行上模式。</li>
     </ul>
 
@@ -38,7 +38,7 @@
       <li>根据不同环境创建本地缓存、Redis 缓存、内存缓存。</li>
     </ul>
     <p>如果业务代码里到处直接 <code>new</code> 具体类，后续新增类型时就容易到处改。</p>
-    <p>它和简单工厂的区别在于：简单工厂把创建判断集中到一个函数里；工厂方法进一步把“创建哪种产品”的变化拆给不同工厂类，避免所有新增都去改同一个总工厂。</p>
+    <p>它和<a href="./simple-factory-pattern.html">简单工厂</a>的区别在于：简单工厂把创建判断集中到一个函数里；工厂方法进一步把“创建哪种产品”的变化拆给不同工厂类，避免所有新增都去改同一个总工厂。</p>
 
     <h3>坏代码示例</h3>
     <p>假设系统需要根据通知类型发送消息：</p>
@@ -112,7 +112,7 @@ function notify(type: string, message: string): void {
       <li>只有一个具体类，没有变化点。</li>
       <li>创建对象只是简单 <code>new</code> 一下。</li>
       <li>类型很少，而且几乎不会扩展。</li>
-      <li>一个简单映射表或简单工厂函数已经足够清楚。</li>
+      <li>一个简单映射表或<a href="./simple-factory-pattern.html">简单工厂</a>函数已经足够清楚。</li>
       <li>引入工厂后，代码文件变多，但业务收益很小。</li>
     </ul>
     <pre><code class="language-ts">const user = new User(name);</code></pre>
@@ -239,8 +239,8 @@ def notify_user(factory: NotifierFactory, message: str) -> None:
 
 notify_user(EmailNotifierFactory(), "订单已支付")
 notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
-    <p>Python 里也一样，工厂方法的收益不是类图漂亮，而是把不同产品的初始化规则拆开。简单工厂还行的时候，就别急着上；一旦每个产品都开始带自己的创建细节，工厂方法会更清楚。</p>
-    <p>Python 中如果创建逻辑很简单，也可以使用更轻量的简单工厂函数：</p>
+    <p>Python 里也一样，工厂方法的收益不是类图漂亮，而是把不同产品的初始化规则拆开。<a href="./simple-factory-pattern.html">简单工厂</a>还行的时候，就别急着上；一旦每个产品都开始带自己的创建细节，工厂方法会更清楚。</p>
+    <p>Python 中如果创建逻辑很简单，也可以使用更轻量的<a href="./simple-factory-pattern.html">简单工厂</a>函数：</p>
     <pre><code class="language-python">def create_notifier(kind: str) -> Notifier:
     # 这是更轻量的简单工厂函数，不是完整的工厂方法
     if kind == "email":
@@ -284,7 +284,7 @@ notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
     </div>
 
     <h2>9. 和相似模式的区别</h2>
-    <p>工厂方法模式和策略模式都可能减少 <code>if-else</code>，但它们解决的问题不同。</p>
+    <p><a href="../behavioral/strategy-pattern.html">策略模式</a>和工厂方法模式都可能减少 <code>if-else</code>，但它们解决的问题不同。</p>
     <table>
       <thead>
         <tr>
@@ -322,22 +322,22 @@ notify_user(SmsNotifierFactory(), "验证码是 123456")</code></pre>
       </tbody>
     </table>
     <pre><code>如果 if-else 是为了决定 new 哪个类，优先考虑工厂方法。
-如果 if-else 是为了决定执行哪种规则，优先考虑策略模式。</code></pre>
+如果 if-else 是为了决定执行哪种规则，优先考虑<a href="../behavioral/strategy-pattern.html">策略模式</a>。</code></pre>
     <h3>和简单工厂、抽象工厂的关系</h3>
     <table>
       <thead>
         <tr><th>模式</th><th>适合什么情况</th><th>典型代价</th></tr>
       </thead>
       <tbody>
-        <tr><td>简单工厂</td><td>产品种类少，创建判断集中一下就够</td><td>新增产品时通常要改同一个工厂</td></tr>
+        <tr><td><a href="./simple-factory-pattern.html">简单工厂</a></td><td>产品种类少，创建判断集中一下就够</td><td>新增产品时通常要改同一个工厂</td></tr>
         <tr><td>工厂方法</td><td>产品会持续增加，希望新增时主要加新工厂类</td><td>类数量增加</td></tr>
-        <tr><td>抽象工厂</td><td>一次要创建一整套配套产品</td><td>新增产品类型会牵动所有工厂</td></tr>
+        <tr><td><a href="./abstract-factory-pattern.html">抽象工厂</a></td><td>一次要创建一整套配套产品</td><td>新增产品类型会牵动所有工厂</td></tr>
       </tbody>
     </table>
-    <p>可以先这样记：简单工厂解决“把判断收口”，工厂方法解决“别老改同一个工厂”，抽象工厂解决“保证一整套产品配套”。</p>
+    <p>可以先这样记：<a href="./simple-factory-pattern.html">简单工厂</a>解决“把判断收口”，工厂方法解决“别老改同一个工厂”，<a href="./abstract-factory-pattern.html">抽象工厂</a>解决“保证一整套产品配套”。</p>
 
     <h3>同一个支付场景里的区别</h3>
-    <p>策略模式负责拆出支付行为：</p>
+    <p><a href="../behavioral/strategy-pattern.html">策略模式</a>负责拆出支付行为：</p>
     <pre><code class="language-ts">interface PayStrategy {
   pay(amount: number): void;
 }
@@ -376,10 +376,10 @@ class AlipayStrategyFactory implements PayStrategyFactory {
 }
 
 checkout(new WechatPayStrategyFactory(), 100);</code></pre>
-    <p>如果只是支付规则不同，但对象创建很简单，可以只用策略模式，不一定需要工厂方法。如果创建策略时还要读取配置、初始化 SDK、设置密钥、选择环境，就可以考虑再引入工厂。</p>
+    <p>如果只是支付规则不同，但对象创建很简单，可以只用<a href="../behavioral/strategy-pattern.html">策略模式</a>，不一定需要工厂方法。如果创建策略时还要读取配置、初始化 SDK、设置密钥、选择环境，就可以考虑再引入工厂。</p>
 
     <h3>和简单工厂的区别</h3>
-    <p>简单工厂通常是一个函数或一个类，根据参数返回不同对象。</p>
+    <p><a href="./simple-factory-pattern.html">简单工厂</a>通常是一个函数或一个类，根据参数返回不同对象。</p>
     <pre><code class="language-ts">function createNotifier(type: string): Notifier {
   if (type === "email") {
     return new EmailNotifier();
@@ -424,7 +424,7 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
     </table>
 
     <h3>和抽象工厂的区别</h3>
-    <p>工厂方法通常创建一种产品。抽象工厂通常创建一组相关产品。</p>
+    <p>工厂方法通常创建一种产品。<a href="./abstract-factory-pattern.html">抽象工厂</a>通常创建一组相关产品。</p>
     <pre><code>浅色主题工厂创建：浅色按钮、浅色输入框、浅色弹窗。
 深色主题工厂创建：深色按钮、深色输入框、深色弹窗。</code></pre>
     <table>
@@ -455,7 +455,7 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
     </table>
 
     <h3>和建造者模式的区别</h3>
-    <p>工厂方法关注“创建哪一种对象”。建造者模式关注“一个复杂对象如何一步步组装”。</p>
+    <p>工厂方法关注“创建哪一种对象”。<a href="./builder-pattern.html">建造者模式</a>关注“一个复杂对象如何一步步组装”。</p>
     <table>
       <thead>
         <tr>
@@ -494,11 +494,11 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
       <tbody>
         <tr>
           <td>根据类型创建一个对象</td>
-          <td>简单工厂或工厂方法</td>
+          <td><a href="./simple-factory-pattern.html">简单工厂</a>或工厂方法</td>
         </tr>
         <tr>
           <td>创建逻辑简单，类型不多</td>
-          <td>简单工厂</td>
+          <td><a href="./simple-factory-pattern.html">简单工厂</a></td>
         </tr>
         <tr>
           <td>创建逻辑复杂，类型扩展频繁</td>
@@ -506,15 +506,15 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
         </tr>
         <tr>
           <td>要创建一组配套对象</td>
-          <td>抽象工厂</td>
+          <td><a href="./abstract-factory-pattern.html">抽象工厂</a></td>
         </tr>
         <tr>
           <td>一个对象有很多构建步骤</td>
-          <td>建造者模式</td>
+          <td><a href="./builder-pattern.html">建造者模式</a></td>
         </tr>
         <tr>
           <td>对象创建后，要切换不同算法或规则</td>
-          <td>策略模式</td>
+          <td><a href="../behavioral/strategy-pattern.html">策略模式</a></td>
         </tr>
       </tbody>
     </table>
@@ -547,11 +547,11 @@ checkout(new WechatPayStrategyFactory(), 100);</code></pre>
     <p>思考题：</p>
     <ul>
       <li>如果只是这三个简单分支，用工厂方法会不会有点重？</li>
-      <li>什么时候用简单工厂函数反而更合适？</li>
+      <li>什么时候用<a href="./simple-factory-pattern.html">简单工厂</a>函数反而更合适？</li>
     </ul>
 
     <h3>参考答案</h3>
-    <p>如果导出逻辑很简单，一个简单工厂函数可能更合适。</p>
+    <p>如果导出逻辑很简单，一个<a href="./simple-factory-pattern.html">简单工厂</a>函数可能更合适。</p>
     <pre><code class="language-ts">type ExportType = "pdf" | "excel" | "csv";
 
 interface Exporter {
@@ -588,7 +588,7 @@ function createExporter(type: ExportType): Exporter {
 
 const exporter = createExporter("pdf");
 exporter.export("订单数据");</code></pre>
-    <p>这段代码严格来说更接近简单工厂，而不是工厂方法。如果每种导出器的创建过程都很复杂，比如 PDF 需要模板配置，Excel 需要表头配置，CSV 需要编码配置，再升级成工厂方法会更合理。</p>
+    <p>这段代码严格来说更接近<a href="./simple-factory-pattern.html">简单工厂</a>，而不是工厂方法。如果每种导出器的创建过程都很复杂，比如 PDF 需要模板配置，Excel 需要表头配置，CSV 需要编码配置，再升级成工厂方法会更合理。</p>
 
     <section class="summary">
       <h2>16. 今日总结</h2>
@@ -599,7 +599,7 @@ exporter.export("订单数据");</code></pre>
 if type == B 就 new B
 if type == C 就 new C</code></pre>
       <p>可以先思考：这里是不是对象创建逻辑已经开始影响业务代码了？</p>
-      <p>如果创建逻辑简单，直接写或用简单工厂就够了。只有当创建过程真的复杂、扩展频繁时，工厂方法模式才更有价值。</p>
+      <p>如果创建逻辑简单，直接写或用<a href="./simple-factory-pattern.html">简单工厂</a>就够了。只有当创建过程真的复杂、扩展频繁时，工厂方法模式才更有价值。</p>
     </section>
   </main>
   <script src="../assets/patterns-data.js"></script>

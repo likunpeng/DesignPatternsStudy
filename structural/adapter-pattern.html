@@ -91,7 +91,7 @@ checkout(LegacyPayAdapter(LegacyPaySdk()))</code></pre>
     <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>隔离第三方或遗留接口，调用方更稳定。</td><td>类数量增加，简单场景可能显得多余。</td></tr><tr><td>转换逻辑集中，便于替换外部实现。</td><td>适配器过多时，需要统一命名和组织。</td></tr><tr><td>符合开闭原则，新增供应商通常只加新适配器。</td><td>只能解决接口不兼容，不能解决语义不一致。</td></tr></tbody></table>
 
     <h2>9. 和相似模式的区别</h2>
-    <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>适配器</td><td>接口转换</td><td>已有对象接口不符合当前系统。</td></tr><tr><td>外观</td><td>简化复杂子系统</td><td>不是为了兼容接口，而是为了降低使用复杂度。</td></tr><tr><td>代理</td><td>控制访问</td><td>代理通常保持相同接口，增加权限、缓存、延迟加载等控制。</td></tr></tbody></table>
+    <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>适配器</td><td>接口转换</td><td>已有对象接口不符合当前系统。</td></tr><tr><td><a href="./facade-pattern.html">外观</a></td><td>简化复杂子系统</td><td>不是为了兼容接口，而是为了降低使用复杂度。</td></tr><tr><td><a href="./proxy-pattern.html">代理</a></td><td>控制访问</td><td>代理通常保持相同接口，增加权限、缓存、延迟加载等控制。</td></tr></tbody></table>
 
     <h2>10. 练习题</h2>
     <p>你的系统统一使用 <code>send(to, content)</code> 发送短信，但某短信平台 SDK 只有 <code>pushSms(phone, text, sign)</code>。请设计一个适配器，让业务代码不依赖该 SDK。</p>

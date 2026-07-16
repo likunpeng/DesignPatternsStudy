@@ -102,7 +102,7 @@ notifier.send("订单已支付")</code></pre>
   <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>比继承更灵活，可运行时组合功能。</td><td>对象链变长后，排查问题更费力。</td></tr><tr><td>每个增强职责独立，符合单一职责。</td><td>装饰器顺序可能影响结果，需要约定清楚。</td></tr><tr><td>不需要修改原对象。</td><td>过度使用会产生很多小类。</td></tr></tbody></table>
 
   <h2>9. 和相似模式的区别</h2>
-  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>装饰器</td><td>动态增强</td><td>通常为了叠加新功能，可多层包装。</td></tr><tr><td>代理</td><td>访问控制</td><td>通常控制是否、何时、如何访问真实对象。</td></tr><tr><td>适配器</td><td>接口转换</td><td>让不兼容接口变成目标接口。</td></tr></tbody></table>
+  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>装饰器</td><td>动态增强</td><td>通常为了叠加新功能，可多层包装。</td></tr><tr><td><a href="./proxy-pattern.html">代理</a></td><td>访问控制</td><td>通常控制是否、何时、如何访问真实对象。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>接口转换</td><td>让不兼容接口变成目标接口。</td></tr></tbody></table>
 
   <h2>10. 练习题</h2>
   <p>给一个文件读取器增加 gzip 解压和读取日志功能。请思考：用继承会产生哪些组合类？用装饰器如何组合？</p>

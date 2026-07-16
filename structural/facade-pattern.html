@@ -73,7 +73,7 @@ facade = CheckoutFacade(
 )
 facade.checkout("book-1")</code></pre>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>降低调用方复杂度，流程集中。</td><td>外观容易膨胀成上帝对象。</td></tr><tr><td>减少上层对子系统的耦合。</td><td>过度封装会限制高级调用方灵活性。</td></tr><tr><td>更容易统一异常处理和事务边界。</td><td>子系统变化时，外观也可能频繁调整。</td></tr></tbody></table>
-  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>外观</td><td>简化复杂流程</td><td>提供更易用的高层入口。</td></tr><tr><td>适配器</td><td>接口兼容</td><td>解决接口不匹配，而不是流程复杂。</td></tr><tr><td>中介者</td><td>对象协作解耦</td><td>中介者管理对象间双向协作，外观主要给外部使用。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>外观</td><td>简化复杂流程</td><td>提供更易用的高层入口。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>接口兼容</td><td>解决接口不匹配，而不是流程复杂。</td></tr><tr><td><a href="../behavioral/mediator-pattern.html">中介者</a></td><td>对象协作解耦</td><td>中介者管理对象间双向协作，外观主要给外部使用。</td></tr></tbody></table>
   <h2>10. 练习题</h2><p>把“上传头像”封装成外观：压缩图片、上传文件、更新用户资料、清理缓存。请设计一个 <code>AvatarFacade</code>。</p><div class="note">参考思路：外观提供 <code>updateAvatar(userId, file)</code>，内部协调图片服务、存储服务、用户服务和缓存服务。</div>
   <div class="summary"><h2>今日总结</h2><p>外观模式的核心是“给复杂子系统一个简单入口”。它不是隐藏所有能力，而是把常用流程变成稳定、清晰的业务 API。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>

@@ -19,7 +19,7 @@
 
     <h2>今日目标</h2>
     <ul>
-      <li>理解简单工厂和工厂方法的区别。</li>
+      <li>理解简单工厂和<a href="./factory-method-pattern.html">工厂方法</a>的区别。</li>
       <li>知道简单工厂不是严格意义上的 GoF 模式。</li>
       <li>能用 TypeScript 和 Python 实现简单工厂。</li>
       <li>知道什么时候用简单工厂就够了，什么时候需要升级。</li>
@@ -38,14 +38,14 @@
       <li>创建逻辑简单，产品种类不多。</li>
       <li>调用方只关心接口，不关心具体实现。</li>
       <li>创建逻辑可能变化，但变化不频繁。</li>
-      <li>作为工厂方法模式的简化版本。</li>
+      <li>作为<a href="./factory-method-pattern.html">工厂方法</a>模式的简化版本。</li>
     </ul>
 
     <h2>4. 不适用场景</h2>
     <ul>
       <li>产品种类经常新增，每次都要改工厂函数，违反开闭原则。</li>
       <li>创建逻辑很复杂，一个工厂函数会变得很长。</li>
-      <li>需要让子类决定创建哪种对象，应该用工厂方法模式。</li>
+      <li>需要让子类决定创建哪种对象，应该用<a href="./factory-method-pattern.html">工厂方法</a>模式。</li>
     </ul>
 
     <h2>5. 核心结构</h2>
@@ -182,19 +182,19 @@ logger.log("服务启动")</code></pre>
       <thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead>
       <tbody>
         <tr><td>简单工厂</td><td>一个函数根据参数创建对象</td><td>创建逻辑集中在一个地方，但新增产品通常要改工厂。</td></tr>
-        <tr><td>工厂方法</td><td>子类决定创建哪种对象</td><td>把“创建哪种产品”的变化交给不同工厂类处理，更适合持续扩展。</td></tr>
-        <tr><td>抽象工厂</td><td>创建一组相关对象</td><td>关注产品族，而不是单个产品。</td></tr>
+        <tr><td><a href="./factory-method-pattern.html">工厂方法</a></td><td>子类决定创建哪种对象</td><td>把“创建哪种产品”的变化交给不同工厂类处理，更适合持续扩展。</td></tr>
+        <tr><td><a href="./abstract-factory-pattern.html">抽象工厂</a></td><td>创建一组相关对象</td><td>关注产品族，而不是单个产品。</td></tr>
       </tbody>
     </table>
-    <p>可以先这么理解：简单工厂适合“种类少、规则集中”；工厂方法适合“种类会持续增加，不能老改同一个工厂”。</p>
+    <p>可以先这么理解：简单工厂适合“种类少、规则集中”；<a href="./factory-method-pattern.html">工厂方法</a>适合“种类会持续增加，不能老改同一个工厂”；<a href="./abstract-factory-pattern.html">抽象工厂</a>适合“成套创建一组相关对象”。</p>
 
     <h2>10. 练习题</h2>
     <p>你有一个通知发送器，目前支持邮件和短信。请用简单工厂实现 <code>NotificationFactory.create("email")</code>。然后思考：如果新增企业微信通知，需要改哪些地方？这是不是违反了开闭原则？</p>
-    <div class="note">参考思路：需要改工厂函数的 <code>switch</code> 或字典。确实违反开闭原则。如果通知类型经常新增，应该升级为工厂方法模式。</div>
+    <div class="note">参考思路：需要改工厂函数的 <code>switch</code> 或字典。确实违反开闭原则。如果通知类型经常新增，应该升级为<a href="./factory-method-pattern.html">工厂方法</a>模式。</div>
 
     <div class="summary">
       <h2>今日总结</h2>
-      <p>简单工厂模式的核心是"把分散的创建判断收口到一个地方"。它不是为了炫技地把 <code>new</code> 藏起来，而是为了让调用方少知道具体类、少重复写创建规则。产品种类少且稳定时，简单工厂就够用了；产品经常新增时，应该升级为工厂方法模式。</p>
+      <p>简单工厂模式的核心是"把分散的创建判断收口到一个地方"。它不是为了炫技地把 <code>new</code> 藏起来，而是为了让调用方少知道具体类、少重复写创建规则。产品种类少且稳定时，简单工厂就够用了；产品经常新增时，应该升级为<a href="./factory-method-pattern.html">工厂方法</a>模式。</p>
     </div>
   </main>
   <script src="../assets/patterns-data.js"></script>

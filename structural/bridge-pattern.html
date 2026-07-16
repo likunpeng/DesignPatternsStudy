@@ -76,7 +76,7 @@ class UrgentNotification(Notification):
 UrgentNotification(SmsSender()).notify("服务器 CPU 过高")
 Notification(EmailSender()).notify("日报已生成")</code></pre>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>避免多维继承组合爆炸。</td><td>需要先识别稳定的变化维度。</td></tr><tr><td>抽象和实现可独立扩展。</td><td>比直接继承多一层接口和组合关系。</td></tr><tr><td>符合组合优于继承。</td><td>对初学者不如适配器、外观直观。</td></tr></tbody></table>
-  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>桥接</td><td>拆分两个变化维度</td><td>通常在设计前期主动使用。</td></tr><tr><td>适配器</td><td>兼容已有接口</td><td>通常在已有接口不匹配时补救。</td></tr><tr><td>策略</td><td>替换算法</td><td>策略多关注行为算法，桥接关注结构维度解耦。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>桥接</td><td>拆分两个变化维度</td><td>通常在设计前期主动使用。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>兼容已有接口</td><td>通常在已有接口不匹配时补救。</td></tr><tr><td><a href="../behavioral/strategy-pattern.html">策略</a></td><td>替换算法</td><td>策略多关注行为算法，桥接关注结构维度解耦。</td></tr></tbody></table>
   <h2>10. 练习题</h2><p>报表有 PDF、Excel 两种格式，输出位置有本地文件、对象存储两种。请用桥接模式避免 <code>PdfLocalReport</code>、<code>PdfOssReport</code> 这类组合类。</p><div class="note">参考思路：格式作为抽象层，存储作为实现层；报表对象持有 <code>ReportStorage</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>桥接模式的核心是“拆开两个变化维度，再用组合连接”。它不是为了多写接口，而是为了避免继承组合爆炸。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
