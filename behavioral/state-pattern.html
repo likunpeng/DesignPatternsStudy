@@ -78,6 +78,7 @@
 }
 
 class PendingState implements State {
+  // 待支付时，定义这一阶段该做什么，以及下一步切到哪个状态
   handle(context: Order) {
     console.log("待支付");
     context.setState(new PaidState());
@@ -85,6 +86,7 @@ class PendingState implements State {
 }
 
 class PaidState implements State {
+  // 已支付后，行为和下一状态都会变化
   handle(context: Order) {
     console.log("已支付");
     context.setState(new ShippedState());
@@ -92,6 +94,7 @@ class PaidState implements State {
 }
 
 class ShippedState implements State {
+  // 最终状态，只做当前阶段的事
   handle(context: Order) {
     console.log("已发货");
   }
@@ -104,7 +107,9 @@ class Order {
     this.state = new PendingState();
   }
 
+  // 状态切换由上下文统一接收
   setState(state: State) { this.state = state; }
+  // 具体行为交给当前状态对象
   handle() { this.state.handle(this); }
 }</code></pre>
     <h3>Python</h3>
@@ -116,16 +121,19 @@ class State(ABC):
 
 class PendingState(State):
     def handle(self, context):
+        # 当前状态决定下一步怎么走
         print("待支付")
         context.set_state(PaidState())
 
 class PaidState(State):
     def handle(self, context):
+        # 已支付后切到下一阶段
         print("已支付")
         context.set_state(ShippedState())
 
 class ShippedState(State):
     def handle(self, context):
+        # 最终状态，只做当前阶段的事
         print("已发货")
 
 class Order:
@@ -136,6 +144,7 @@ class Order:
         self.state = state
 
     def handle(self):
+        # 让当前状态对象决定行为
         self.state.handle(self)</code></pre>
     <h2>8. 优缺点</h2>
     <table>

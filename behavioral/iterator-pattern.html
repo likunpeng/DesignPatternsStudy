@@ -68,6 +68,7 @@ for (let i = 0; i &lt; linkedList.size; i++) {
 }
 
 class ArrayIterator&lt;T&gt; implements Iterator&lt;T&gt; {
+  // 当前位置由迭代器自己维护
   private index = 0;
   constructor(private collection: T[]) {}
 
@@ -90,6 +91,7 @@ class ListNode&lt;T&gt; {
 
 // 链表迭代器：遍历真实链表
 class LinkedListIterator&lt;T&gt; implements Iterator&lt;T&gt; {
+  // 迭代器内部保存当前节点，不暴露链表细节
   private current: ListNode&lt;T&gt; | null;
   constructor(head: ListNode&lt;T&gt; | null) {
     this.current = head;
@@ -111,6 +113,7 @@ class LinkedList&lt;T&gt; {
   private head: ListNode&lt;T&gt; | null = null;
 
   add(value: T): void {
+    // 只负责维护集合，不负责遍历逻辑
     const node = new ListNode(value);
     if (!this.head) { this.head = node; return; }
     let curr = this.head;
@@ -144,6 +147,7 @@ class Iterator:
 
 class ArrayIterator(Iterator):
     def __init__(self, collection):
+        # 保存当前位置，遍历状态由迭代器自身管理
         self.collection = collection
         self.index = 0
 
@@ -162,6 +166,7 @@ class ListNode:
 
 class LinkedListIterator(Iterator):
     def __init__(self, head: Optional[ListNode]):
+        # 当前节点由迭代器自己维护
         self.current = head
 
     def __next__(self):
@@ -176,6 +181,7 @@ class LinkedList:
         self.head = None
 
     def add(self, value):
+        # 集合只负责增删，不负责暴露内部结构
         node = ListNode(value)
         if not self.head:
             self.head = node

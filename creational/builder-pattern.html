@@ -133,6 +133,7 @@ const user: User = { id: "u1", name: "张三" };</code></pre>
 };
 
 class Report {
+  // 最终产物只接收完整配置，不关心拼装过程
   constructor(private options: ReportOptions) {}
 
   print(): void {
@@ -144,6 +145,7 @@ class Report {
 }
 
 class ReportBuilder {
+  // 先给一套默认值，调用方只改关心的部分
   private options: ReportOptions = {
     title: "未命名报表",
     author: "系统",
@@ -153,6 +155,7 @@ class ReportBuilder {
     pageSize: "A4",
   };
 
+  // 每个方法只负责一个配置项，方便链式拼装
   setTitle(title: string): this {
     this.options.title = title;
     return this;
@@ -183,6 +186,7 @@ class ReportBuilder {
     return this;
   }
 
+  // 在出口统一校验，避免无效配置进入业务层
   build(): Report {
     if (!this.options.title.trim()) {
       throw new Error("报表标题不能为空");
@@ -216,6 +220,7 @@ report.print();</code></pre>
 
 @dataclass(frozen=True)
 class Report:
+    # 最终产物只接收完整配置，不关心拼装过程
     title: str
     author: str
     show_summary: bool
@@ -233,6 +238,7 @@ class Report:
 
 class ReportBuilder:
     def __init__(self):
+        # 先放默认值，调用方只改关心的部分
         self._title = "未命名报表"
         self._author = "系统"
         self._show_summary = False
@@ -241,6 +247,7 @@ class ReportBuilder:
         self._page_size = "A4"
         self._watermark = None
 
+    # 每个方法只负责一个配置项，方便链式拼装
     def set_title(self, title: str):
         self._title = title
         return self
@@ -265,6 +272,7 @@ class ReportBuilder:
         self._watermark = watermark
         return self
 
+    # 在出口统一校验，避免无效配置进入业务层
     def build(self) -> Report:
         if not self._title.strip():
             raise ValueError("报表标题不能为空")

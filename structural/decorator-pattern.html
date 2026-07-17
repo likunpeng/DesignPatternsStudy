@@ -42,6 +42,7 @@ class EmailNotifier implements Notifier {
 }
 
 class SmsDecorator implements Notifier {
+  // 包着原始通知器，负责叠加短信能力
   constructor(private wrapped: Notifier) {}
 
   send(message: string): void {
@@ -51,6 +52,7 @@ class SmsDecorator implements Notifier {
 }
 
 class LogDecorator implements Notifier {
+  // 再包一层，给发送过程加日志
   constructor(private wrapped: Notifier) {}
 
   send(message: string): void {
@@ -78,6 +80,7 @@ class EmailNotifier:
 
 class SmsDecorator:
     def __init__(self, wrapped: Notifier) -&gt; None:
+        # 保存被装饰对象，保持同一接口
         self.wrapped = wrapped
 
     def send(self, message: str) -&gt; None:
@@ -87,6 +90,7 @@ class SmsDecorator:
 
 class LogDecorator:
     def __init__(self, wrapped: Notifier) -&gt; None:
+        # 再包一层，添加日志能力
         self.wrapped = wrapped
 
     def send(self, message: str) -&gt; None:

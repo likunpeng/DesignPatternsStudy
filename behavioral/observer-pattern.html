@@ -95,14 +95,17 @@
 class Subject {
   private observers: Observer[] = [];
 
+  // 订阅者进来后统一登记
   attach(observer: Observer): void {
     this.observers.push(observer);
   }
 
+  // 允许按需取消订阅
   detach(observer: Observer): void {
     this.observers = this.observers.filter((item) =&gt; item !== observer);
   }
 
+  // 状态变化时，批量通知所有订阅者
   notify(message: string): void {
     for (const observer of this.observers) {
       observer.update(message);
@@ -148,6 +151,7 @@ class Observer(ABC):
 
 class Subject:
     def __init__(self) -&gt; None:
+        # 保存所有订阅者
         self._observers: list[Observer] = []
 
     def attach(self, observer: Observer) -&gt; None:
@@ -157,6 +161,7 @@ class Subject:
         self._observers.remove(observer)
 
     def notify(self, message: str) -&gt; None:
+        # 由主题统一触发通知
         for observer in self._observers:
             observer.update(message)
 

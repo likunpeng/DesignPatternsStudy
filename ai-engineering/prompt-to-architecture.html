@@ -97,42 +97,39 @@ ${input.channels.map((item) =&gt; `- ${item}`).join("\n")}
 `;
 }</code></pre>
 
-    <h4>把结果落成方案对象</h4>
-    <pre><code class="language-ts">type ArchitectureOption = {
-  name: string;
-  pros: string[];
-  cons: string[];
-  recommended: boolean;
-};
+    <h4>更有用的输出：能直接进入评审</h4>
+    <pre><code class="language-ts">const expectedOutput = `
+推荐方案：模块化单体中的 notification 模块，内部用渠道适配器。
 
-const options: ArchitectureOption[] = [
-  {
-    name: "模块化单体 + 渠道适配器",
-    pros: ["开发快", "部署简单", "适合团队规模不大"],
-    cons: ["需要持续约束模块边界"],
-    recommended: true,
-  },
-  {
-    name: "独立通知微服务",
-    pros: ["边界清晰", "可独立扩展"],
-    cons: ["运维和链路复杂度更高"],
-    recommended: false,
-  },
-];</code></pre>
-    <p>这才是“从 Prompt 到架构”的完整链路：先明确输入，再要求比较，再沉淀成可讨论的方案对象。不是让 AI 一步跳到代码文件。</p>
+为什么不先做独立微服务：
+- 当前通知量不大，独立部署会增加链路、监控和运维成本。
+- 团队只有 4 人，先把模块边界守住比拆服务更重要。
+
+模块边界：
+- notification/application：发送通知用例、重试策略。
+- notification/domain：通知任务、渠道选择规则。
+- notification/infrastructure：邮件、短信、站内信适配器。
+
+需要先确认的问题：
+- 失败后重试几次？是否需要死信队列？
+- 营销通知和交易通知是否共享通道？
+- 用户退订规则由哪个模块负责？
+
+测试策略：
+- 渠道选择规则单元测试。
+- 发送失败重试测试。
+- 适配器用 contract test 隔离第三方 SDK。
+
+ADR 草案：
+- 背景：需要统一邮件、短信、站内信发送能力。
+- 决策：先采用模块化单体 + 渠道适配器。
+- 后果：部署简单，但必须通过模块规则约束直接调用第三方 SDK。
+`;</code></pre>
+    <p>这才是“从 Prompt 到架构”的完整链路：AI 的输出应该能进入评审和落地，而不是只生成一个看起来规整的对象结构。真正有价值的是边界、取舍、未知点、测试和 ADR。</p>
 
     <h3>Python 示例</h3>
-    <h4>Python 里适合把 Prompt 和输出结构做成轻量工具</h4>
-    <pre><code class="language-python">from dataclasses import dataclass
-
-@dataclass
-class ArchitectureOption:
-    name: str
-    pros: list[str]
-    cons: list[str]
-    recommended: bool = False
-
-def build_architecture_prompt(goal: str, constraints: list[str], channels: list[str]) -&gt; str:
+    <h4>Python 里适合把 Prompt 模板做成轻量工具</h4>
+    <pre><code class="language-python">def build_architecture_prompt(goal: str, constraints: list[str], channels: list[str]) -&gt; str:
     return f"""
 你是系统架构师，请先不要写代码。
 
@@ -153,21 +150,16 @@ def build_architecture_prompt(goal: str, constraints: list[str], channels: list[
 5. ADR 草案
 """</code></pre>
 
-    <h4>示例候选方案</h4>
-    <pre><code class="language-python">options = [
-    ArchitectureOption(
-        name="模块化单体 + 渠道适配器",
-        pros=["开发快", "部署简单"],
-        cons=["需要约束模块依赖"],
-        recommended=True,
-    ),
-    ArchitectureOption(
-        name="独立通知微服务",
-        pros=["服务边界清楚", "可以独立扩容"],
-        cons=["链路和运维成本更高"],
-    ),
+    <h4>示例输出片段</h4>
+    <pre><code class="language-python">expected_sections = [
+    "推荐方案：模块化单体 + 渠道适配器",
+    "不选微服务的原因：当前团队和运维复杂度不匹配",
+    "模块边界：application / domain / infrastructure",
+    "需要确认的问题：重试、退订、交易通知优先级",
+    "测试策略：规则单测、失败重试、第三方 SDK contract test",
+    "ADR 草案：背景、决策、后果",
 ]</code></pre>
-    <p>Python 这里重点不在类型炫技，而在于快速组织“需求输入”和“方案输出”。它适合做 Prompt 组装器、方案比对器或 ADR 生成脚本。</p>
+    <p>Python 这里重点不在类型炫技，而在于快速组织“需求输入”和“期望输出”。它适合做 Prompt 组装器、方案检查器或 ADR 生成脚本。</p>
 
     <h2>7. 优缺点</h2>
     <table>

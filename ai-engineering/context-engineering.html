@@ -72,20 +72,28 @@
 }</code></pre>
     <p>这段代码的危险点是：订单模块直接摸库存和支付数据库，短期看很快，长期会把模块边界写穿。</p>
 
-    <h4>给 AI 的模块约束应该长这样</h4>
-    <pre><code class="language-ts">type ModuleRule = {
-  module: string;
-  owns: string[];
-  forbiddenImports: string[];
-  requiredTests: string[];
-};
+    <h4>给 AI 的模块上下文应该长这样</h4>
+    <pre><code class="language-ts">const orderModuleContext = `
+# order 模块约束
 
-const orderRule: ModuleRule = {
-  module: "order",
-  owns: ["订单创建", "订单取消", "订单状态流转"],
-  forbiddenImports: ["payment/infrastructure", "inventory/database"],
-  requiredTests: ["订单状态流转测试", "取消订单幂等测试"],
-};</code></pre>
+## 职责
+- 订单创建、取消、支付后状态更新。
+- 维护订单状态机，不负责库存扣减和支付退款的具体实现。
+
+## 禁止事项
+- 禁止从 order 模块直接 import payment/infrastructure。
+- 禁止直接访问 inventory 数据表。
+- 禁止在用例里直接调用第三方支付 SDK。
+
+## 协作方式
+- 支付退款通过 PaymentPort。
+- 库存恢复通过 InventoryPort。
+- 跨模块数据只能通过公开 API 或端口传递。
+
+## 改动要求
+- 修改订单状态流转时，必须补状态机测试。
+- 修改取消订单流程时，必须补幂等测试。
+`;</code></pre>
 
     <h4>AI 在约束下更应该产出的代码方向</h4>
     <pre><code class="language-ts">interface PaymentPort {
@@ -110,24 +118,28 @@ class CancelOrderUseCase {
     <p>这里的目标不是把代码写满，而是让读者看到：上下文工程会改变 AI 的默认实现方向，从“直接连数据库”变成“通过端口协作”。</p>
 
     <h3>Python 示例</h3>
-    <h4>用字典或 dataclass 组织模块规则都可以</h4>
-    <pre><code class="language-python">order_rule = {
-    "module": "order",
-    "owns": ["订单创建", "订单取消", "订单状态流转"],
-    "forbidden_imports": ["payment.infrastructure", "inventory.database"],
-    "required_tests": ["订单状态流转测试", "取消订单幂等测试"],
-}</code></pre>
+    <h4>Python 里可以把模块上下文作为普通文本维护</h4>
+    <pre><code class="language-python">ORDER_MODULE_CONTEXT = """
+# order 模块约束
 
-    <h4>把规则转成给 AI 的上下文片段</h4>
-    <pre><code class="language-python">def build_module_context(rule: dict) -&gt; str:
-    return f"""
-模块：{rule["module"]}
-负责范围：{", ".join(rule["owns"])}
-禁止依赖：{", ".join(rule["forbidden_imports"])}
-改动后必须补的测试：{", ".join(rule["required_tests"])}
-要求：跨模块协作通过端口或公开 API，不要直接访问其他模块数据库。
+职责：订单创建、取消、支付后状态更新。
+禁止：直接访问 payment.infrastructure、inventory.database、第三方支付 SDK。
+协作：退款通过 PaymentPort，库存恢复通过 InventoryPort。
+测试：状态流转必须有测试，取消订单必须覆盖重复请求。
 """</code></pre>
-    <p>Python 这里更自然的价值是把上下文快速拼装成提示词、校验脚本或生成器，而不是复制一套很重的类型结构。</p>
+
+    <h4>把上下文放进 AI 任务说明</h4>
+    <pre><code class="language-python">def build_ai_task(task: str) -&gt; str:
+    return f"""
+请在以下模块约束内完成任务。
+
+{ORDER_MODULE_CONTEXT}
+
+任务：{task}
+
+先说明你会读取哪些文件和不会修改哪些边界，再给出实现步骤。
+"""</code></pre>
+    <p>Python 这里更自然的价值是把上下文快速拼装成任务说明、校验脚本或生成器，而不是复制一套很重的类型结构。</p>
 
     <h2>7. 优缺点</h2>
     <table>

@@ -34,6 +34,7 @@
 }
 
 class RemoteUserRepository implements UserRepository {
+  // 真正访问远程服务的对象
   findName(userId: string): string {
     console.log("调用远程用户服务");
     return userId === "u1" ? "Alice" : "Unknown";
@@ -41,12 +42,15 @@ class RemoteUserRepository implements UserRepository {
 }
 
 class CachedUserRepositoryProxy implements UserRepository {
+  // 代理自己保存缓存，不暴露给调用方
   private cache = new Map&lt;string, string&gt;();
 
   constructor(private real: UserRepository) {}
 
   findName(userId: string): string {
+    // 先查缓存，命中就直接返回
     if (!this.cache.has(userId)) {
+      // 没命中才访问真实对象
       this.cache.set(userId, this.real.findName(userId));
     }
     return this.cache.get(userId)!;
@@ -68,6 +72,7 @@ class UserRepository(Protocol):
 
 class RemoteUserRepository:
     def find_name(self, user_id: str) -&gt; str:
+        # 真正访问远程服务的对象
         print("调用远程用户服务")
         return "Alice" if user_id == "u1" else "Unknown"
 
@@ -75,10 +80,13 @@ class RemoteUserRepository:
 class CachedUserRepositoryProxy:
     def __init__(self, real: UserRepository) -&gt; None:
         self.real = real
+        # 代理自己保存缓存，不暴露给调用方
         self.cache: dict[str, str] = {}
 
     def find_name(self, user_id: str) -&gt; str:
+        # 先查缓存，命中就直接返回
         if user_id not in self.cache:
+            # 没命中才访问真实对象
             self.cache[user_id] = self.real.find_name(user_id)
         return self.cache[user_id]
 

@@ -74,6 +74,7 @@
     <h2>7. 示例代码</h2>
     <h3>TypeScript</h3>
     <pre><code class="language-ts">class Memento {
+  // 只保存快照，不暴露外部修改入口
   constructor(private state: string) {}
   getState(): string { return this.state; }
 }
@@ -84,13 +85,16 @@ class Editor {
   type(words: string) { this.content += words; }
   getContent(): string { return this.content; }
 
+  // 由原发器自己决定保存什么状态
   save(): Memento { return new Memento(this.content); }
+  // 通过快照恢复内容
   restore(memento: Memento) { this.content = memento.getState(); }
 }
 
 class History {
   private mementos: Memento[] = [];
 
+  // 只负责存取快照，不读写内部状态
   push(m: Memento) { this.mementos.push(m); }
   pop(): Memento | undefined { return this.mementos.pop(); }
 }
@@ -112,6 +116,7 @@ console.log(editor.getContent());</code></pre>
     <h3>Python</h3>
     <pre><code class="language-python">class Memento:
     def __init__(self, state):
+        # 快照内容只给原发器恢复使用
         self._state = state
 
     def get_state(self):
@@ -127,9 +132,11 @@ class Editor:
     def get_content(self):
         return self._content
 
+    # 由编辑器自己生成快照
     def save(self):
         return Memento(self._content)
 
+    # 从快照恢复内容
     def restore(self, memento):
         if memento is None:
             return
@@ -139,6 +146,7 @@ class History:
     def __init__(self):
         self._mementos = []
 
+    # 只保存快照，不关心里面是什么
     def push(self, m):
         self._mementos.append(m)
 
