@@ -25,23 +25,34 @@
       <li>知道责任链模式的适用和不适用场景。</li>
     </ul>
     <h2>1. 这个模式解决什么问题</h2>
-    <p>想象一个审批流程：请假申请 → 组长审批 → 经理审批 → 总监审批。申请人只管提交，不知道谁会处理。处理者根据条件决定是自己处理还是传给下一个。</p>
-    <p>这种场景在日志处理、异常处理、权限校验等地方很常见。</p>
+    <p>责任链模式解决的是：一个请求可能由多个对象中的某一个处理，但请求发送者不应该知道最终是谁处理。</p>
+    <p>想象一个请假审批流程：请假 1 天以内由组长审批，3 天以内由经理审批，7 天以内由总监审批。申请人只管提交申请，不需要判断应该找谁。每个审批人只判断自己能不能处理，不能处理就交给下一个审批人。</p>
+    <p>这种场景在审批流程、权限校验、异常处理、日志级别处理等地方很常见。</p>
     <h2>2. 坏代码示例</h2>
-    <p>如果用一个类处理所有逻辑：</p>
-    <pre><code class="language-ts">function handleRequest(request) {
-  if (handlerA.canHandle(request)) {
-    return handlerA.handle(request);
+    <p>如果把所有审批规则都写在一个函数里：</p>
+    <pre><code class="language-ts">type LeaveRequest = {
+  name: string;
+  days: number;
+};
+
+function approveLeave(request: LeaveRequest): string {
+  // 所有审批规则都挤在一个函数里。
+  if (request.days &lt;= 1) {
+    return `组长审批通过：${request.name} 请假 ${request.days} 天`;
   }
-  if (handlerB.canHandle(request)) {
-    return handlerB.handle(request);
+
+  if (request.days &lt;= 3) {
+    return `经理审批通过：${request.name} 请假 ${request.days} 天`;
   }
-  if (handlerC.canHandle(request)) {
-    return handlerC.handle(request);
+
+  if (request.days &lt;= 7) {
+    return `总监审批通过：${request.name} 请假 ${request.days} 天`;
   }
-  // 每次新增处理器都要改这里
+
+  // 新增更高级审批人时，还要继续修改这个函数。
+  return `${request.name} 请假 ${request.days} 天，没人能审批`;
 }</code></pre>
-    <p>问题：每次增加或调整处理器都要修改这个函数，违反开闭原则。而且调用方需要知道所有处理器。</p>
+    <p>问题：审批等级越多，这个函数越长。新增 CEO 审批、调整审批顺序、修改某个审批人的规则，都要改这个稳定函数，容易影响已有逻辑。</p>
     <h2>3. 一个生活类比</h2>
     <p>公司客服转接系统：客户打电话进来，客服能解决就解决，解决不了就转给专家，专家解决不了就转给经理。这个过程中，客户只打了一个电话，不知道最终是谁处理的。</p>
     <h2>4. 适用场景</h2>
@@ -61,88 +72,154 @@
     <table>
       <thead><tr><th>角色</th><th>职责</th></tr></thead>
       <tbody>
-        <tr><td>Handler</td><td>定义处理请求的接口，持有下一个处理者的引用。</td></tr>
-        <tr><td>ConcreteHandler</td><td>实现具体处理逻辑，决定是否传递给下一个。</td></tr>
-        <tr><td>Client</td><td>创建链并发送请求，不需要知道谁处理。</td></tr>
+        <tr><td>Handler（处理器）</td><td>定义处理请求的接口，通常持有下一个处理器的引用。</td></tr>
+        <tr><td>ConcreteHandler（具体处理器）</td><td>实现具体处理逻辑，能处理就处理，不能处理就传给下一个。</td></tr>
+        <tr><td>Client（客户端 / 组装者）</td><td>创建处理器链，并把请求交给链头，不需要知道最终谁处理。</td></tr>
       </tbody>
     </table>
+    <p>用中文理解，责任链的核心就是"一级一级往后问"：当前处理器能处理，请求就结束；当前处理器不能处理，就交给下一个处理器。</p>
     <h2>7. 示例代码</h2>
     <h3>TypeScript</h3>
-    <pre><code class="language-ts">interface Handler {
-  setNext(handler: Handler): Handler;
-  handle(request: string): string | null;
-}
+    <pre><code class="language-ts">type LeaveRequest = {
+  name: string;
+  days: number;
+};
 
-abstract class AbstractHandler implements Handler {
-  private nextHandler: Handler | null = null;
+// 抽象审批人：保存下一个审批人，并提供默认的传递逻辑。
+abstract class Approver {
+  private nextApprover: Approver | null = null;
 
-  setNext(handler: Handler): Handler {
-    this.nextHandler = handler;
-    return handler;
+  // 建立审批链，并返回下一个审批人，方便继续串联。
+  setNext(approver: Approver): Approver {
+    this.nextApprover = approver;
+    return approver;
   }
 
-  handle(request: string): string | null {
-    if (this.nextHandler) {
-      return this.nextHandler.handle(request);
+  // 默认处理方式：自己不能审批时，把申请交给下一个审批人。
+  handle(request: LeaveRequest): string {
+    if (this.nextApprover) {
+      return this.nextApprover.handle(request);
     }
-    return null;
+
+    // 链条末尾也没人能处理，给出兜底结果。
+    return `${request.name} 请假 ${request.days} 天，没人能审批`;
   }
 }
 
-class AuthHandler extends AbstractHandler {
-  handle(request: string): string | null {
-    if (request === "login") {
-      return "已通过身份验证";
+// 具体审批人：组长只处理 1 天以内的请假。
+class TeamLeader extends Approver {
+  handle(request: LeaveRequest): string {
+    if (request.days &lt;= 1) {
+      return `组长审批通过：${request.name} 请假 ${request.days} 天`;
     }
+
+    // 组长处理不了，就交给下一个审批人。
     return super.handle(request);
   }
 }
 
-class LogHandler extends AbstractHandler {
-  handle(request: string): string | null {
-    console.log("记录日志:", request);
+// 具体审批人：经理处理 3 天以内的请假。
+class Manager extends Approver {
+  handle(request: LeaveRequest): string {
+    if (request.days &lt;= 3) {
+      return `经理审批通过：${request.name} 请假 ${request.days} 天`;
+    }
+
+    // 经理处理不了，就继续往后传。
     return super.handle(request);
   }
 }
 
-// 使用
-const auth = new AuthHandler();
-const log = new LogHandler();
-auth.setNext(log);
-console.log(auth.handle("login"));</code></pre>
+// 具体审批人：总监处理 7 天以内的请假。
+class Director extends Approver {
+  handle(request: LeaveRequest): string {
+    if (request.days &lt;= 7) {
+      return `总监审批通过：${request.name} 请假 ${request.days} 天`;
+    }
+
+    return super.handle(request);
+  }
+}
+
+// 客户端只负责组装链条，不需要知道最终是谁审批。
+const leader = new TeamLeader();
+const manager = new Manager();
+const director = new Director();
+
+leader.setNext(manager).setNext(director);
+
+// 请求从链头开始，谁能处理就由谁处理。
+console.log(leader.handle({ name: "小李", days: 2 }));</code></pre>
     <h3>Python</h3>
     <pre><code class="language-python">from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
-class Handler(ABC):
+
+@dataclass
+class LeaveRequest:
+    name: str
+    days: int
+
+
+# 抽象审批人：保存下一个审批人，并提供默认的传递逻辑。
+class Approver(ABC):
     def __init__(self):
-        self._next_handler = None
+        # 下一个审批人，默认没有。
+        self._next_approver = None
 
-    def set_next(self, handler):
-        self._next_handler = handler
-        return handler
+    def set_next(self, approver):
+        # 建立审批链，并返回下一个审批人，方便继续串联。
+        self._next_approver = approver
+        return approver
 
     @abstractmethod
-    def handle(self, request):
-        if self._next_handler:
-            return self._next_handler.handle(request)
-        return None
+    def handle(self, request: LeaveRequest) -&gt; str:
+        # 默认处理方式：自己不能审批时，把申请交给下一个审批人。
+        if self._next_approver:
+            return self._next_approver.handle(request)
 
-class AuthHandler(Handler):
-    def handle(self, request):
-        if request == "login":
-            return "已通过身份验证"
+        # 链条末尾也没人能处理，给出兜底结果。
+        return f"{request.name} 请假 {request.days} 天，没人能审批"
+
+
+# 具体审批人：组长只处理 1 天以内的请假。
+class TeamLeader(Approver):
+    def handle(self, request: LeaveRequest) -&gt; str:
+        if request.days &lt;= 1:
+            return f"组长审批通过：{request.name} 请假 {request.days} 天"
+
+        # 组长处理不了，就交给下一个审批人。
         return super().handle(request)
 
-class LogHandler(Handler):
-    def handle(self, request):
-        print(f"记录日志: {request}")
+
+# 具体审批人：经理处理 3 天以内的请假。
+class Manager(Approver):
+    def handle(self, request: LeaveRequest) -&gt; str:
+        if request.days &lt;= 3:
+            return f"经理审批通过：{request.name} 请假 {request.days} 天"
+
+        # 经理处理不了，就继续往后传。
         return super().handle(request)
 
-# 使用
-auth = AuthHandler()
-log = LogHandler()
-auth.set_next(log)
-print(auth.handle("login"))</code></pre>
+
+# 具体审批人：总监处理 7 天以内的请假。
+class Director(Approver):
+    def handle(self, request: LeaveRequest) -&gt; str:
+        if request.days &lt;= 7:
+            return f"总监审批通过：{request.name} 请假 {request.days} 天"
+
+        return super().handle(request)
+
+
+# 客户端只负责组装链条，不需要知道最终是谁审批。
+leader = TeamLeader()
+manager = Manager()
+director = Director()
+
+leader.set_next(manager).set_next(director)
+
+# 请求从链头开始，谁能处理就由谁处理。
+print(leader.handle(LeaveRequest(name="小李", days=2)))</code></pre>
     <h2>8. 优缺点</h2>
     <table>
       <thead><tr><th>优点</th><th>缺点</th></tr></thead>
@@ -156,8 +233,9 @@ print(auth.handle("login"))</code></pre>
     <table>
       <thead><tr><th>模式</th><th>区别</th></tr></thead>
       <tbody>
-        <tr><td><a href="./strategy-pattern.html">策略模式</a></td><td>策略模式选择一个算法执行；责任链模式让请求在链中传递，多个处理器都可能处理。</td></tr>
+        <tr><td><a href="./strategy-pattern.html">策略模式</a></td><td>策略模式是调用方主动选择一个算法；责任链模式是请求沿链传递，由链上的处理器自己判断谁来处理。</td></tr>
         <tr><td><a href="../structural/decorator-pattern.html">装饰器模式</a></td><td>装饰器在原对象上添加功能；责任链决定是否传递请求。</td></tr>
+        <tr><td>中间件 / 管道</td><td>中间件通常每一层都会执行；经典责任链通常是某个处理器处理后就结束，除非它主动继续传递。</td></tr>
       </tbody>
     </table>
     <h2>10. 练习题</h2>

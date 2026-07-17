@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>外观模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
-  <link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
   <h1>外观模式教程</h1><p class="lead">外观模式解决的是“子系统太复杂，调用方不应该了解所有细节”的问题。它提供一个更高层、更简单的入口。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Facade Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">简化入口</span></div>
   <h2>今日目标</h2><ul><li>理解外观模式如何降低调用方复杂度。</li><li>知道外观不是封锁底层能力，而是提供常用路径。</li><li>能用外观封装一组服务调用。</li><li>能区分外观和适配器。</li></ul>
@@ -77,7 +76,5 @@ facade.checkout("book-1")</code></pre>
   <h2>10. 练习题</h2><p>把“上传头像”封装成外观：压缩图片、上传文件、更新用户资料、清理缓存。请设计一个 <code>AvatarFacade</code>。</p><div class="note">参考思路：外观提供 <code>updateAvatar(userId, file)</code>，内部协调图片服务、存储服务、用户服务和缓存服务。</div>
   <div class="summary"><h2>今日总结</h2><p>外观模式的核心是“给复杂子系统一个简单入口”。它不是隐藏所有能力，而是把常用流程变成稳定、清晰的业务 API。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
-  <script src="../assets/tutorial-nav.js"></script>
-  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
 </body></html>

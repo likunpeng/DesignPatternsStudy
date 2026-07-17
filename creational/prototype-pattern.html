@@ -100,6 +100,7 @@ class PageConfig {
     public tracking: Tracking,
   ) {}
 
+  // 克隆时把可变字段一起复制，避免新旧对象互相污染
   clone(): PageConfig {
     const copy = Object.create(PageConfig.prototype);
     copy.theme = this.theme;
@@ -111,6 +112,7 @@ class PageConfig {
 }
 
 class PageTemplateRegistry {
+  // 注册表统一保存多个原型模板
   private templates = new Map&lt;string, PageConfig&gt;();
 
   register(name: string, template: PageConfig): void {
@@ -120,6 +122,7 @@ class PageTemplateRegistry {
   create(name: string): PageConfig {
     const template = this.templates.get(name);
     if (!template) throw new Error(`模板 ${name} 不存在`);
+    // 调用方拿到的不是原件，而是它的克隆体
     return template.clone();
   }
 }
@@ -160,11 +163,13 @@ class PageConfig:
     tracking: Tracking
 
     def clone(self) -&gt; "PageConfig":
+        # deepcopy 适合这种包含嵌套对象的模板复制
         return deepcopy(self)
 
 
 class PageTemplateRegistry:
     def __init__(self) -&gt; None:
+        # 注册表统一管理多个原型
         self._templates: dict[str, PageConfig] = {}
 
     def register(self, name: str, template: PageConfig) -&gt; None:
@@ -174,6 +179,7 @@ class PageTemplateRegistry:
         template = self._templates.get(name)
         if template is None:
             raise KeyError(f"模板 {name} 不存在")
+        # 返回克隆结果，避免外部直接改到原型对象
         return template.clone()
 
 
@@ -196,6 +202,10 @@ print(summer_page.tracking.campaign)  # summer</code></pre>
     <p>Python 里 <code>deepcopy</code> 天然支持深拷贝，不需要手动处理嵌套对象。<code>PageTemplateRegistry</code> 和 TypeScript 版本一样，按名称管理原型。</p>
 
     <h2>9. 浅拷贝和深拷贝</h2>
+    <p>这一节最容易绕。你可以先记一句话：</p>
+    <pre><code>浅拷贝：外壳是新的，里面嵌套对象还是共用旧的。
+深拷贝：外壳和里面嵌套对象，都会尽量重新复制一份。</code></pre>
+    <p>判断方法很简单：如果你改了“子对象”里的字段，原对象也跟着变了，那大概率就是浅拷贝。</p>
     <table>
       <thead><tr><th>类型</th><th>含义</th><th>风险</th></tr></thead>
       <tbody>
@@ -203,6 +213,46 @@ print(summer_page.tracking.campaign)  # summer</code></pre>
         <tr><td>深拷贝</td><td>递归复制嵌套对象，新旧对象尽量互不影响。</td><td>成本更高，也可能遇到不能复制的资源。</td></tr>
       </tbody>
     </table>
+    <h3>先看一个浅拷贝例子</h3>
+    <pre><code class="language-ts">const template = {
+  theme: "dark",
+  tracking: { campaign: "spring" },
+};
+
+// 这里只复制了第一层
+const copy = { ...template };
+
+copy.tracking.campaign = "summer";
+
+console.log(template.tracking.campaign); // summer
+console.log(copy.tracking.campaign); // summer</code></pre>
+    <p>为什么原对象也变了？因为 <code>tracking</code> 这个子对象没有被重新复制，<code>template.tracking</code> 和 <code>copy.tracking</code> 指向的是同一个对象。</p>
+
+    <h3>再看一个深拷贝例子</h3>
+    <pre><code class="language-ts">const template = {
+  theme: "dark",
+  tracking: { campaign: "spring" },
+};
+
+const copy = {
+  ...template,
+  tracking: { ...template.tracking },
+};
+
+copy.tracking.campaign = "summer";
+
+console.log(template.tracking.campaign); // spring
+console.log(copy.tracking.campaign); // summer</code></pre>
+    <p>这次 <code>tracking</code> 也被复制了一份，所以两个对象各改各的，互不影响。</p>
+
+    <h3>放到这篇原型模式里怎么理解</h3>
+    <p>假设页面模板里有这些字段：</p>
+    <ul>
+      <li><code>theme</code>：字符串，通常直接复制值就行。</li>
+      <li><code>modules</code>：数组，如果活动页会自己增删模块，就应该复制。</li>
+      <li><code>tracking</code>：对象，如果活动页会改 campaign，就应该复制。</li>
+    </ul>
+    <p>所以这篇示例里的 <code>modules = [...this.modules]</code> 和 <code>tracking = { ...this.tracking }</code>，本质上就是在避免“克隆页改了配置，结果把模板本身也改掉”。</p>
     <div class="note">原型模式最容易踩坑的地方就是拷贝深度。只要对象里有数组、字典、子对象，就要明确哪些应该共享，哪些应该复制。</div>
 
     <h2>10. 优缺点</h2>

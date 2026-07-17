@@ -25,37 +25,71 @@
       <li>知道模板方法模式的适用和不适用场景。</li>
     </ul>
     <h2>1. 这个模式解决什么问题</h2>
-    <p>多个类需要执行相同的操作步骤，但每一步的具体实现不同。比如：</p>
+    <p>多个类需要执行相同的操作步骤，但某些步骤的具体实现不同。比如：</p>
     <ul>
-      <li>泡茶和泡咖啡的流程都是：烧水 → 泡 → 倒入杯中 → 加调料</li>
+      <li>CSV 和 JSON 导出的流程都是：获取数据 → 校验数据 → 格式化 → 写文件 → 记录日志</li>
       <li>编译 Java 和编译 Python 的流程都是：词法分析 → 语法分析 → 生成代码</li>
       <li>电商下单和线下购买的流程都是：验证 → 扣款 → 发货</li>
     </ul>
     <p>如果每个类都重复写相同的流程代码，就会造成大量重复。而且当流程需要修改时，要改很多地方。</p>
     <h2>2. 坏代码示例</h2>
-    <p>假设泡茶和泡咖啡各写一套代码：</p>
-    <pre><code class="language-ts">class Tea {
-  make() {
-    this.boilWater();
-    this.steep();
-    this.pourInCup();
-    this.addLemon();
+    <p>假设 CSV 和 JSON 导出各写一套代码：</p>
+    <pre><code class="language-ts">type Row = { name: string; age: number };
+
+class CsvExporter {
+  export() {
+    // CSV 导出流程：获取数据、校验、格式化、写文件、记录日志。
+    const data = this.fetchData();
+    if (data.length === 0) {
+      throw new Error("没有可导出的数据");
+    }
+
+    const content = this.formatCsv(data);
+    this.writeFile(content);
+    console.log("CSV 导出完成");
   }
-  // ... 其他方法
+
+  fetchData(): Row[] {
+    return [{ name: "Tom", age: 18 }];
+  }
+
+  formatCsv(data: Row[]): string {
+    return data.map(item =&gt; `${item.name},${item.age}`).join("\n");
+  }
+
+  writeFile(content: string) {
+    console.log("写入文件:", content);
+  }
 }
 
-class Coffee {
-  make() {
-    this.boilWater();
-    this.brew();
-    this.pourInCup();
-    this.addMilk();
+class JsonExporter {
+  export() {
+    // JSON 导出流程和 CSV 几乎一样，只有格式化方式不同。
+    const data = this.fetchData();
+    if (data.length === 0) {
+      throw new Error("没有可导出的数据");
+    }
+
+    const content = this.formatJson(data);
+    this.writeFile(content);
+    console.log("JSON 导出完成");
   }
-  // ... 其他方法
+
+  fetchData(): Row[] {
+    return [{ name: "Tom", age: 18 }];
+  }
+
+  formatJson(data: Row[]): string {
+    return JSON.stringify(data);
+  }
+
+  writeFile(content: string) {
+    console.log("写入文件:", content);
+  }
 }</code></pre>
-    <p>问题：流程 <code>烧水 → 泡 → 倒入杯中 → 加调料</code> 重复了 2 次，如果需要修改流程（比如增加"清洗杯子"步骤），要改 2 个地方。</p>
+    <p>问题：流程 <code>获取数据 → 校验数据 → 格式化 → 写文件 → 记录日志</code> 重复了 2 次。如果以后所有导出都要增加"权限检查"或"性能埋点"，每个导出类都要修改，而且很容易漏改。</p>
     <h2>3. 一个生活类比</h2>
-    <p>做早餐的流程：打开冰箱 → 取出食材 → 烹饪 → 装盘。不管是做煎蛋还是做三明治，这个流程都一样，变的只是每个步骤的具体操作。有一个"早餐制作模板"，可以套用到所有早餐上。</p>
+    <p>体检中心的流程通常是固定的：登记 → 检查项目 → 出报告 → 归档。不同套餐的检查项目不同，但整体顺序不能乱。模板方法就像体检中心规定好的流程表，具体套餐只填入自己那部分检查项目。</p>
     <h2>4. 适用场景</h2>
     <ul>
       <li>多个类有相同的操作步骤。</li>
@@ -82,63 +116,108 @@ class Coffee {
     </table>
     <h2>7. 示例代码</h2>
     <h3>TypeScript</h3>
-    <pre><code class="language-ts">abstract class CaffeineBeverage {
-  prepare() {
-    this.boilWater();
-    this.brew();
-    this.pourInCup();
-    if (this.customerWantsCondiments()) {
-      this.addCondiments();
+    <pre><code class="language-ts">type Row = { name: string; age: number };
+
+// 抽象父类：定义所有导出的固定流程。
+abstract class DataExporter {
+  export() {
+    // 模板方法：规定导出骨架，子类不能随意改变步骤顺序。
+    const data = this.fetchData();
+    this.validate(data);
+    const content = this.format(data);
+    this.writeFile(content);
+    this.log();
+  }
+
+  // 公共步骤：默认从同一个数据源获取数据。
+  protected fetchData(): Row[] {
+    return [{ name: "Tom", age: 18 }];
+  }
+
+  // 公共步骤：所有导出都复用同一套校验规则。
+  protected validate(data: Row[]) {
+    if (data.length === 0) {
+      throw new Error("没有可导出的数据");
     }
   }
 
-  abstract brew(): void;
-  abstract addCondiments(): void;
+  // 抽象步骤：不同导出格式必须自己实现。
+  protected abstract format(data: Row[]): string;
 
-  boilWater() { console.log("烧水"); }
-  pourInCup() { console.log("倒入杯中"); }
+  // 公共步骤：所有导出都写入文件。
+  protected writeFile(content: string) {
+    console.log("写入文件:", content);
+  }
 
-  customerWantsCondiments(): boolean { return true; }
+  // 钩子方法：子类可以重写日志内容，不重写也有默认行为。
+  protected log() {
+    console.log("导出完成");
+  }
 }
 
-class Coffee extends CaffeineBeverage {
-  brew() { console.log("冲泡咖啡"); }
-  addCondiments() { console.log("加入牛奶"); }
-  customerWantsCondiments(): boolean { return confirm("要加牛奶吗？"); }
+// CSV 子类：只实现 CSV 格式化这个变化点。
+class CsvExporter extends DataExporter {
+  protected format(data: Row[]): string {
+    return data.map(item =&gt; `${item.name},${item.age}`).join("\n");
+  }
 }
 
-class Tea extends CaffeineBeverage {
-  brew() { console.log("浸泡茶叶"); }
-  addCondiments() { console.log("加入柠檬"); }
+// JSON 子类：只实现 JSON 格式化这个变化点。
+class JsonExporter extends DataExporter {
+  protected format(data: Row[]): string {
+    return JSON.stringify(data);
+  }
 }</code></pre>
     <h3>Python</h3>
-    <pre><code class="language-python">from abc import ABC, abstractmethod
+    <pre><code class="language-python">import json
+from abc import ABC, abstractmethod
 
-class CaffeineBeverage(ABC):
-    def prepare(self):
-        self.boil_water()
-        self.brew()
-        self.pour_in_cup()
-        if self.customer_wants_condiments():
-            self.add_condiments()
+Row = dict[str, object]
 
+
+# 抽象父类：定义所有导出的固定流程。
+class DataExporter(ABC):
+    def export(self):
+        # 模板方法：统一规定导出步骤。
+        data = self.fetch_data()
+        self.validate(data)
+        content = self.format(data)
+        self.write_file(content)
+        self.log()
+
+    # 公共步骤：默认从同一个数据源获取数据。
+    def fetch_data(self) -&gt; list[Row]:
+        return [{"name": "Tom", "age": 18}]
+
+    # 公共步骤：所有导出都复用同一套校验规则。
+    def validate(self, data: list[Row]) -&gt; None:
+        if not data:
+            raise ValueError("没有可导出的数据")
+
+    # 抽象步骤：不同导出格式必须自己实现。
     @abstractmethod
-    def brew(self): pass
+    def format(self, data: list[Row]) -&gt; str:
+        pass
 
-    @abstractmethod
-    def add_condiments(self): pass
+    # 公共步骤：所有导出都写入文件。
+    def write_file(self, content: str) -&gt; None:
+        print("写入文件:", content)
 
-    def boil_water(self): print("烧水")
-    def pour_in_cup(self): print("倒入杯中")
-    def customer_wants_condiments(self): return True
+    # 钩子方法：子类可以重写日志内容，不重写也有默认行为。
+    def log(self) -&gt; None:
+        print("导出完成")
 
-class Coffee(CaffeineBeverage):
-    def brew(self): print("冲泡咖啡")
-    def add_condiments(self): print("加入牛奶")
 
-class Tea(CaffeineBeverage):
-    def brew(self): print("浸泡茶叶")
-    def add_condiments(self): print("加入柠檬")</code></pre>
+# CSV 子类：只实现 CSV 格式化这个变化点。
+class CsvExporter(DataExporter):
+    def format(self, data: list[Row]) -&gt; str:
+        return "\n".join(f"{item['name']},{item['age']}" for item in data)
+
+
+# JSON 子类：只实现 JSON 格式化这个变化点。
+class JsonExporter(DataExporter):
+    def format(self, data: list[Row]) -&gt; str:
+        return json.dumps(data, ensure_ascii=False)</code></pre>
     <h2>8. 优缺点</h2>
     <table>
       <thead><tr><th>优点</th><th>缺点</th></tr></thead>
@@ -157,9 +236,9 @@ class Tea(CaffeineBeverage):
       </tbody>
     </table>
     <h2>10. 练习题</h2>
-    <p>场景：实现一个数据导出功能，支持导出为 CSV 和 JSON 两种格式。两种格式的流程都是：获取数据 → 格式化 → 写入文件。写出代码结构。</p>
+    <p>场景：实现一个文件导入功能，支持导入 CSV 和 JSON 两种格式。两种格式的流程都是：读取文件 → 校验内容 → 解析数据 → 保存数据 → 记录日志。写出代码结构。</p>
     <div class="note">
-      <strong>参考答案：</strong>定义抽象类 <code>DataExporter</code>，包含模板方法 <code>export()</code>，调用抽象方法 <code>fetchData()</code>、<code>format()</code>、<code>writeToFile()</code>。然后创建 <code>CsvExporter</code> 和 <code>JsonExporter</code> 两个子类实现具体逻辑。
+      <strong>参考答案：</strong>定义抽象类 <code>FileImporter</code>，包含模板方法 <code>import()</code>，调用公共方法 <code>readFile()</code>、<code>validate()</code>、<code>save()</code>、<code>log()</code>，把 <code>parse()</code> 设计成抽象方法。然后创建 <code>CsvImporter</code> 和 <code>JsonImporter</code> 两个子类实现不同解析逻辑。
     </div>
     <div class="summary">
       <h2>今日总结</h2>

@@ -42,7 +42,9 @@
     <p>假设订单支付成功后，要分别通知库存、短信、积分模块。</p>
     <pre><code class="language-ts">class OrderService {
   paySuccess(orderId: string) {
+    // 主流程：订单支付成功。
     console.log(`订单 ${orderId} 支付成功`);
+    // 下游逻辑都写死在主流程里，新增模块时必须修改这里。
     console.log(`更新库存: ${orderId}`);
     console.log(`发送短信通知: ${orderId}`);
     console.log(`发放积分: ${orderId}`);
@@ -80,32 +82,36 @@
     <table>
       <thead><tr><th>角色</th><th>职责</th></tr></thead>
       <tbody>
-        <tr><td>Subject</td><td>保存观察者列表，状态变化时通知所有观察者。</td></tr>
-        <tr><td>Observer</td><td>定义更新接口，收到通知后执行自己的逻辑。</td></tr>
-        <tr><td>ConcreteObserver</td><td>具体观察者实现。</td></tr>
-        <tr><td>Client</td><td>创建 Subject 和 Observer，建立订阅关系。</td></tr>
+        <tr><td>Subject（被观察者 / 主题）</td><td>保存观察者列表，状态变化时通知所有观察者。</td></tr>
+        <tr><td>Observer（观察者 / 订阅者接口）</td><td>定义统一的更新接口，收到通知后执行自己的逻辑。</td></tr>
+        <tr><td>ConcreteObserver（具体观察者）</td><td>实现具体响应逻辑，例如库存系统、短信系统、积分系统。</td></tr>
+        <tr><td>Client（客户端 / 组装者）</td><td>创建被观察者和具体观察者，并调用 <code>attach</code> 建立订阅关系。</td></tr>
       </tbody>
     </table>
+    <p>如果用中文理解，可以把 <code>Subject</code> 看成"被观察者"或"主题"，把 <code>Observer</code> 看成"观察者"或"订阅者"。真正的核心关系只有两个：被观察者保存一组观察者；被观察者发生变化时，逐个通知这些观察者。</p>
+    <p><code>Client</code> 不是业务上的观察者，它只是负责组装对象：创建被观察者、创建具体观察者，然后调用 <code>attach</code> 建立订阅关系。</p>
 
     <h2>7. TypeScript 示例</h2>
-    <pre><code class="language-ts">interface Observer {
+    <pre><code class="language-ts">// 观察者接口：所有订阅者都要实现 update 方法。
+interface Observer {
   update(message: string): void;
 }
 
+// 被观察者：保存订阅者列表，并在状态变化时统一通知它们。
 class Subject {
   private observers: Observer[] = [];
 
-  // 订阅者进来后统一登记
+  // 订阅者进来后统一登记。
   attach(observer: Observer): void {
     this.observers.push(observer);
   }
 
-  // 允许按需取消订阅
+  // 允许按需取消订阅。
   detach(observer: Observer): void {
     this.observers = this.observers.filter((item) =&gt; item !== observer);
   }
 
-  // 状态变化时，批量通知所有订阅者
+  // 状态变化时，批量通知所有订阅者。
   notify(message: string): void {
     for (const observer of this.observers) {
       observer.update(message);
@@ -113,29 +119,34 @@ class Subject {
   }
 }
 
+// 具体观察者：库存系统只关心收到通知后如何更新库存。
 class InventoryObserver implements Observer {
   update(message: string): void {
     console.log(`库存系统收到通知: ${message}`);
   }
 }
 
+// 具体观察者：短信系统只关心收到通知后如何发送短信。
 class SmsObserver implements Observer {
   update(message: string): void {
     console.log(`短信系统收到通知: ${message}`);
   }
 }
 
+// 具体观察者：积分系统只关心收到通知后如何发放积分。
 class PointsObserver implements Observer {
   update(message: string): void {
     console.log(`积分系统收到通知: ${message}`);
   }
 }
 
+// 客户端：建立主题和观察者之间的订阅关系。
 const subject = new Subject();
 subject.attach(new InventoryObserver());
 subject.attach(new SmsObserver());
 subject.attach(new PointsObserver());
 
+// 订单状态变化后，只需要发布一条通知。
 subject.notify("订单 A1001 支付成功");</code></pre>
     <p>新增一个通知模块时，只需要新增一个观察者类，然后订阅到 <code>Subject</code>，不需要改主流程。</p>
 
@@ -143,49 +154,58 @@ subject.notify("订单 A1001 支付成功");</code></pre>
     <pre><code class="language-python">from abc import ABC, abstractmethod
 
 
+# 观察者接口：所有订阅者都要实现 update 方法。
 class Observer(ABC):
     @abstractmethod
     def update(self, message: str) -&gt; None:
         pass
 
 
+# 被观察者：保存订阅者列表，并在状态变化时统一通知它们。
 class Subject:
     def __init__(self) -&gt; None:
-        # 保存所有订阅者
+        # 保存所有订阅者。
         self._observers: list[Observer] = []
 
     def attach(self, observer: Observer) -&gt; None:
+        # 订阅者进来后统一登记。
         self._observers.append(observer)
 
     def detach(self, observer: Observer) -&gt; None:
+        # 允许按需取消订阅。
         self._observers.remove(observer)
 
     def notify(self, message: str) -&gt; None:
-        # 由主题统一触发通知
+        # 状态变化时，由主题统一触发通知。
         for observer in self._observers:
             observer.update(message)
 
 
+# 具体观察者：库存系统只关心收到通知后如何更新库存。
 class InventoryObserver(Observer):
     def update(self, message: str) -&gt; None:
         print(f"库存系统收到通知: {message}")
 
 
+# 具体观察者：短信系统只关心收到通知后如何发送短信。
 class SmsObserver(Observer):
     def update(self, message: str) -&gt; None:
         print(f"短信系统收到通知: {message}")
 
 
+# 具体观察者：积分系统只关心收到通知后如何发放积分。
 class PointsObserver(Observer):
     def update(self, message: str) -&gt; None:
         print(f"积分系统收到通知: {message}")
 
 
+# 客户端：建立主题和观察者之间的订阅关系。
 subject = Subject()
 subject.attach(InventoryObserver())
 subject.attach(SmsObserver())
 subject.attach(PointsObserver())
 
+# 订单状态变化后，只需要发布一条通知。
 subject.notify("订单 A1001 支付成功")</code></pre>
     <p>Python 也可以更轻量地直接传函数，但用类更容易表达"订阅者"这种角色关系。</p>
 
@@ -214,7 +234,9 @@ subject.notify("订单 A1001 支付成功")</code></pre>
     <p>把下面的活动发布逻辑改造成观察者模式：</p>
     <pre><code class="language-ts">class EventService {
   publish(title: string) {
+    // 主流程：发布活动。
     console.log(`发布活动: ${title}`);
+    // 下游通知逻辑都写死在发布流程里，新增通知渠道时必须修改这里。
     console.log(`通知邮件系统: ${title}`);
     console.log(`通知推送系统: ${title}`);
     console.log(`通知统计系统: ${title}`);

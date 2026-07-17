@@ -41,6 +41,7 @@
     <h2>2. 坏代码示例</h2>
     <p>假设我们要根据会员等级计算折扣。</p>
     <pre><code class="language-ts">function getDiscount(level: string): number {
+  // 根据会员等级选择折扣规则，规则越多，这个函数越容易变长。
   if (level === "normal") {
     return 1;
   }
@@ -96,22 +97,27 @@
     </table>
 
     <h2>7. TypeScript 示例</h2>
-    <pre><code class="language-ts">interface DiscountStrategy {
+    <pre><code class="language-ts">// 策略接口：所有折扣规则都必须实现 calculate 方法。
+interface DiscountStrategy {
   calculate(amount: number): number;
 }
 
+// 普通会员策略：不打折。
 class NormalDiscount implements DiscountStrategy {
   calculate(amount: number): number { return amount; }
 }
 
+// VIP 策略：打 9 折。
 class VipDiscount implements DiscountStrategy {
   calculate(amount: number): number { return amount * 0.9; }
 }
 
+// SVIP 策略：打 8 折。
 class SvipDiscount implements DiscountStrategy {
   calculate(amount: number): number { return amount * 0.8; }
 }
 
+// 上下文：只依赖策略接口，不关心具体折扣怎么算。
 class DiscountContext {
   constructor(private strategy: DiscountStrategy) {}
 
@@ -120,35 +126,41 @@ class DiscountContext {
   }
 }
 
+// 调用方在运行时选择具体策略。
 const context = new DiscountContext(new VipDiscount());
-console.log(context.getPrice(100)); // 90</code></pre>
+console.log(context.getPrice(100)); // 输出：90</code></pre>
     <p>新增黑金会员折扣时，只新增一个策略类，不需要改 <code>DiscountContext</code>。</p>
 
     <h2>8. Python 示例</h2>
     <pre><code class="language-python">from abc import ABC, abstractmethod
 
 
+# 抽象策略：规定所有折扣策略都要提供 calculate 方法。
 class DiscountStrategy(ABC):
     @abstractmethod
     def calculate(self, amount: float) -&gt; float:
         pass
 
 
+# 普通会员策略：不打折。
 class NormalDiscount(DiscountStrategy):
     def calculate(self, amount: float) -&gt; float:
         return amount
 
 
+# VIP 策略：打 9 折。
 class VipDiscount(DiscountStrategy):
     def calculate(self, amount: float) -&gt; float:
         return amount * 0.9
 
 
+# SVIP 策略：打 8 折。
 class SvipDiscount(DiscountStrategy):
     def calculate(self, amount: float) -&gt; float:
         return amount * 0.8
 
 
+# 上下文：保存一个策略对象，并把计算工作委托给它。
 class DiscountContext:
     def __init__(self, strategy: DiscountStrategy) -&gt; None:
         self.strategy = strategy
@@ -157,19 +169,22 @@ class DiscountContext:
         return self.strategy.calculate(amount)
 
 
+# 调用方决定使用哪一种折扣策略。
 context = DiscountContext(VipDiscount())
-print(context.get_price(100))  # 90.0</code></pre>
+print(context.get_price(100))  # 输出：90.0</code></pre>
     <p>Python 也可以更轻量地直接传函数：</p>
-    <pre><code class="language-python">def normal_discount(amount: float) -&gt; float:
+    <pre><code class="language-python"># 在 Python 中，简单策略也可以直接用函数表示。
+def normal_discount(amount: float) -&gt; float:
     return amount
 
 def vip_discount(amount: float) -&gt; float:
     return amount * 0.9
 
+# get_price 不关心具体策略，只负责调用传入的函数。
 def get_price(strategy, amount: float) -&gt; float:
     return strategy(amount)
 
-print(get_price(vip_discount, 100))  # 90.0</code></pre>
+print(get_price(vip_discount, 100))  # 输出：90.0</code></pre>
     <p>这种函数式写法更短，也更符合 Python 的灵活风格。简单场景下不需要类。</p>
 
     <h2>9. 优缺点</h2>
@@ -195,11 +210,15 @@ print(get_price(vip_discount, 100))  # 90.0</code></pre>
     <h2>11. 练习题</h2>
     <p>把下面的支付逻辑改造成策略模式：</p>
     <pre><code class="language-ts">function pay(type: string, amount: number) {
+  // 支付方式越多，这里的条件分支越多，新增支付方式也要修改这个函数。
   if (type === "alipay") {
+    // 支付宝支付逻辑。
     console.log(`支付宝支付 ${amount} 元`);
   } else if (type === "wechat") {
+    // 微信支付逻辑。
     console.log(`微信支付 ${amount} 元`);
   } else if (type === "bank") {
+    // 银行卡支付逻辑。
     console.log(`银行卡支付 ${amount} 元`);
   }
 }</code></pre>

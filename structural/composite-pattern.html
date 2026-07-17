@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>组合模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
-  <link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
   <h1>组合模式教程</h1><p class="lead">组合模式解决的是“树形结构里，单个对象和对象集合能否用同一种方式处理”的问题。它让调用方可以统一对待叶子节点和容器节点。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Composite Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">树形结构</span></div>
   <h2>今日目标</h2><ul><li>理解组合模式为什么适合菜单、目录、组织架构。</li><li>掌握叶子节点和组合节点的共同接口。</li><li>能实现递归计算。</li><li>知道透明式和安全式组合的取舍。</li></ul>
@@ -75,7 +74,5 @@ print(root.get_size())</code></pre>
   <h2>10. 练习题</h2><p>设计一个菜单系统：菜单项可以点击，菜单组包含多个菜单项或子菜单组。请用组合模式实现 <code>render()</code>。</p><div class="note">参考思路：定义 <code>MenuNode.render()</code>，<code>MenuItem</code> 渲染自己，<code>MenuGroup</code> 遍历子节点并拼接结果。</div>
   <div class="summary"><h2>今日总结</h2><p>组合模式的核心是“部分和整体使用同一接口”。只要你的问题是树形结构，并且需要递归处理，就值得考虑它。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
-  <script src="../assets/tutorial-nav.js"></script>
-  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
 </body></html>

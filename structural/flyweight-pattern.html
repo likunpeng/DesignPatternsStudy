@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>享元模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
-  <link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
   <h1>享元模式教程</h1><p class="lead">享元模式解决的是“大量相似对象占用太多内存”的问题。它把可共享的内部状态抽出来复用，把变化的外部状态放到调用时传入。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Flyweight Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">对象共享</span></div>
   <h2>今日目标</h2><ul><li>理解内部状态和外部状态的区别。</li><li>知道享元模式为什么能节省内存。</li><li>能实现一个简单享元工厂。</li><li>知道什么时候不要为了“省对象”过度设计。</li></ul>
@@ -69,7 +68,5 @@ factory.get_style("Arial", 12, "black").render("B", 10, 0)</code></pre>
   <h2>10. 练习题</h2><p>地图上有十万个标记点，但图标类型只有餐厅、酒店、加油站三种。请用享元模式共享图标对象，并把经纬度作为外部状态。</p><div class="note">参考思路：<code>IconFactory</code> 按类型缓存 <code>MapIcon</code>，渲染时传入 <code>lat</code> 和 <code>lng</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>享元模式的核心是“共享不变的，外传变化的”。只有当对象数量巨大且内存问题真实存在时，它才值得引入。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
-  <script src="../assets/tutorial-nav.js"></script>
-  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
 </body></html>

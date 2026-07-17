@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>桥接模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
-  <link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
   <h1>桥接模式教程</h1><p class="lead">桥接模式解决的是“两个变化维度互相绑死，导致类数量爆炸”的问题。它把抽象和实现拆开，让它们可以独立变化。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Bridge Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">组合优于继承</span></div>
   <h2>今日目标</h2><ul><li>理解桥接模式为什么能减少继承层级。</li><li>识别两个独立变化维度。</li><li>能用组合把抽象层和实现层连接起来。</li><li>能区分桥接和适配器。</li></ul>
@@ -80,7 +79,5 @@ Notification(EmailSender()).notify("日报已生成")</code></pre>
   <h2>10. 练习题</h2><p>报表有 PDF、Excel 两种格式，输出位置有本地文件、对象存储两种。请用桥接模式避免 <code>PdfLocalReport</code>、<code>PdfOssReport</code> 这类组合类。</p><div class="note">参考思路：格式作为抽象层，存储作为实现层；报表对象持有 <code>ReportStorage</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>桥接模式的核心是“拆开两个变化维度，再用组合连接”。它不是为了多写接口，而是为了避免继承组合爆炸。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
-  <script src="../assets/tutorial-nav.js"></script>
-  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
 </body></html>
