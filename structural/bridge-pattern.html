@@ -1,7 +1,31 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>桥接模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>桥接模式</title><link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
-  <h1>桥接模式教程</h1><p class="lead">桥接模式解决的是“两个变化维度互相绑死，导致类数量爆炸”的问题。它把抽象和实现拆开，让它们可以独立变化。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Bridge Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">组合优于继承</span></div>
+  <h1>桥接模式</h1><p class="lead">桥接模式解决的是“两个变化维度互相绑死，导致类数量爆炸”的问题。它把抽象和实现拆开，让它们可以独立变化。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Bridge Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">组合优于继承</span></div>
+
+    <section class="concept">
+      <div class="concept-eyebrow">🔍 概念速览</div>
+      <p class="concept-def">桥接模式把抽象（也就是它对外提供的一组方法）和具体实现<b>拆成两层，用“组合”连接</b>，让两个变化维度可以各自独立扩展，而不必为每种组合都写一个子类。它只做“解耦维度”，不改单个功能。</p>
+      <div class="concept-grid">
+        <div class="concept-analogy">
+          <div class="ca-title"><span class="ca-icon">📺</span>一句话类比</div>
+          <p>遥控器和电视品牌是两个变化维度。遥控器有基础版、高级版（抽象维度），电视有各品牌（实现维度）。如果每个遥控器都绑定一个品牌，类会越来越多。桥接的做法是遥控器持有一个“电视接口”，不绑定具体品牌——换电视只换实现，遥控器照用。</p>
+          <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：遥控器 = <b>Abstraction</b>，高级遥控器 = <b>RefinedAbstraction</b>，电视接口 = <b>Implementor</b>，具体电视 = <b>ConcreteImplementor</b>。</p>
+        </div>
+        <div class="concept-diagram">
+          <div class="cd-title">角色关系</div>
+          <div class="cd-flow">
+            <div class="cd-node"><b>Abstraction</b><span>抽象层</span></div>
+            <div class="cd-arrow">持有 ▸</div>
+            <div class="cd-node cd-target"><b>Implementor</b><span>实现接口</span></div>
+            <div class="cd-arrow">◂ 实现</div>
+            <div class="cd-node"><b>ConcreteImplementor</b><span>具体实现</span></div>
+          </div>
+          <p class="cd-caption">虚线框表示接口；Abstraction 持有 Implementor 接口（不绑定具体实现），调用时转发到 ConcreteImplementor。RefinedAbstraction 是 Abstraction 的变体，两个维度各自扩展、互不影响。</p>
+        </div>
+      </div>
+    </section>
+
   <h2>今日目标</h2><ul><li>理解桥接模式为什么能减少继承层级。</li><li>识别两个独立变化维度。</li><li>能用组合把抽象层和实现层连接起来。</li><li>能区分桥接和适配器。</li></ul>
   <h2>1. 这个模式解决什么问题</h2><p>如果一个系统有两个独立变化维度，直接用继承会产生组合爆炸。</p><pre><code>通知类型：普通通知、紧急通知
 发送渠道：邮件、短信、微信
@@ -14,6 +38,17 @@
   UrgentSmsNotification
   UrgentWechatNotification
 每增加一种类型或渠道，都要翻倍。</code></pre>
+  <p>把上面的组合直接写成代码，紧耦合和重复就暴露出来了：每加一个渠道，普通 / 紧急两种类型又各要补一个类。</p>
+  <p class="bad-code-label">❌ 反例（不要这样写）</p>
+  <pre class="bad-code"><code class="language-ts">// 两个维度用继承绑死，类数量 = 类型 × 渠道，呈组合爆炸
+class NormalEmailNotification { /* 发邮件 */ }
+class NormalSmsNotification { /* 发短信 */ }
+class NormalWechatNotification { /* 发微信 */ }
+class UrgentEmailNotification { /* 发邮件 + 紧急 */ }
+class UrgentSmsNotification { /* 发短信 + 紧急 */ }
+class UrgentWechatNotification { /* 发微信 + 紧急 */ }
+// 再新增一个渠道，必须再写 NormalXxx + UrgentXxx 两个类</code></pre>
+  <p>这样“通知类型”和“发送渠道”被绑死在继承里，新增任一维度都要翻倍数，逻辑也大量重复。第 6 部分用桥接把两层拆开，类数量从 M×N 降到 M+N。</p>
   <h2>2. 一个生活类比</h2><p>遥控器和电视品牌是两个变化维度。遥控器可以有基础版、高级版；电视可以是不同品牌。如果每个遥控器都绑定一个电视品牌，类会越来越多。更好的做法是遥控器持有一个电视接口。</p>
   <h2>3. 适用场景</h2><ul><li>两个维度都可能扩展，并且可以独立变化。</li><li>继承层级已经因为组合关系变得臃肿。</li><li>希望运行时切换实现。</li><li>抽象逻辑和底层实现需要分开演进。</li></ul>
   <h2>4. 不适用场景</h2><ul><li>只有一个变化维度。</li><li>组合关系并不稳定，强行抽象会增加理解成本。</li><li>简单业务中几个类就能解决问题。</li></ul>
@@ -41,6 +76,9 @@ class UrgentNotification extends Notification {
 
 new UrgentNotification(new SmsSender()).notify("服务器 CPU 过高");
 new Notification(new EmailSender()).notify("日报已生成");</code></pre>
+  <p><code>Notification</code> 在构造时通过 <code>protected sender</code> 接住一个 <code>MessageSender</code> 实现对象并保存（第 34 行），<code>notify</code> 时再转发到 <code>sender.send</code>。抽象层（普通 / 紧急通知）和实现层（邮件 / 短信）因此各自独立扩展。运行会打印：</p>
+  <pre><code>短信：[紧急] 服务器 CPU 过高
+邮件：日报已生成</code></pre>
   <h2>7. Python 示例</h2><pre><code class="language-python">from typing import Protocol
 
 
@@ -75,9 +113,11 @@ class UrgentNotification(Notification):
 UrgentNotification(SmsSender()).notify("服务器 CPU 过高")
 Notification(EmailSender()).notify("日报已生成")</code></pre>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>避免多维继承组合爆炸。</td><td>需要先识别稳定的变化维度。</td></tr><tr><td>抽象和实现可独立扩展。</td><td>比直接继承多一层接口和组合关系。</td></tr><tr><td>符合组合优于继承。</td><td>对初学者不如适配器、外观直观。</td></tr></tbody></table>
-  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>桥接</td><td>拆分两个变化维度</td><td>通常在设计前期主动使用。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>兼容已有接口</td><td>通常在已有接口不匹配时补救。</td></tr><tr><td><a href="../behavioral/strategy-pattern.html">策略</a></td><td>替换算法</td><td>策略多关注行为算法，桥接关注结构维度解耦。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>桥接</td><td>拆分两个变化维度</td><td>通常在设计前期主动使用。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>兼容已有接口</td><td>通常在已有接口不匹配时补救。</td></tr><tr><td><a href="../behavioral/strategy-pattern.html">策略</a></td><td>替换算法</td><td>策略多关注行为算法，桥接关注结构维度解耦。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>增强功能</td><td>装饰器保持相同接口，动态给对象“加料”（日志、缓存等）；桥接则拆分抽象与实现两个维度解耦，关注结构而非增强。</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.88rem;color:var(--muted)">一句话区分：<b>简单包装</b>只是套壳，仍把抽象和实现绑在一起；<b>装饰器</b>不改签名，但给对象“加料”增强功能；<b>桥接</b>恰恰是把抽象和实现拆成两层用组合连接，专门解决两个变化维度的组合爆炸 —— 这才是它和“简单封装”的本质不同。</p>
   <h2>10. 练习题</h2><p>报表有 PDF、Excel 两种格式，输出位置有本地文件、对象存储两种。请用桥接模式避免 <code>PdfLocalReport</code>、<code>PdfOssReport</code> 这类组合类。</p><div class="note">参考思路：格式作为抽象层，存储作为实现层；报表对象持有 <code>ReportStorage</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>桥接模式的核心是“拆开两个变化维度，再用组合连接”。它不是为了多写接口，而是为了避免继承组合爆炸。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
 </body></html>

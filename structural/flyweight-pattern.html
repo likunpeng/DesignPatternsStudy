@@ -1,9 +1,53 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>享元模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>享元模式</title><link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
-  <h1>享元模式教程</h1><p class="lead">享元模式解决的是“大量相似对象占用太多内存”的问题。它把可共享的内部状态抽出来复用，把变化的外部状态放到调用时传入。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Flyweight Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">对象共享</span></div>
+  <h1>享元模式</h1><p class="lead">享元模式解决的是“大量相似对象占用太多内存”的问题。它把可共享的内部状态抽出来复用，把变化的外部状态放到调用时传入。</p>  <div class="meta"><span class="tag">结构型模式</span><span class="tag">Flyweight Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">对象共享</span></div>
+
+  <section class="concept">
+    <div class="concept-eyebrow">🔍 概念速览</div>
+    <p class="concept-def">享元模式把大量相似对象里<b>相同的部分抽出来共享复用</b>，只把会变化的部分（比如坐标、字符内容）在调用时传进去，从而用更少的对象<b>省下内存</b>。共享的是“内部状态”，外传的是“外部状态”。</p>
+    <div class="concept-grid">
+      <div class="concept-analogy">
+        <div class="ca-title"><span class="ca-icon">📚</span>一句话类比</div>
+        <p>图书馆不会给每个读者都买一本同样的书，而是保存一批可共享的书。读者借阅时记录“谁借了哪本、何时还”——书本身是共享的（内部状态），借阅记录是外部状态。一千个人借同一本书，图书馆只存一本。</p>
+        <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：可共享的书 = <b>Flyweight</b>，图书馆 = <b>FlyweightFactory</b>，借阅记录（谁借的、何时还） = <b>External State</b>，借书的读者 = <b>Client</b>。</p>
+      </div>
+      <div class="concept-diagram">
+        <div class="cd-title">角色关系</div>
+        <div class="cd-flow">
+          <div class="cd-node"><b>Client</b><span>使用者</span></div>
+          <div class="cd-arrow">索取 ▸</div>
+          <div class="cd-node"><b>FlyweightFactory</b><span>按 key 复用</span></div>
+          <div class="cd-arrow">复用/创建 ▸</div>
+          <div class="cd-node cd-target"><b>Flyweight</b><span>共享接口</span></div>
+          <div class="cd-arrow">＋ 外部状态 ▾</div>
+          <div class="cd-node"><b>External State</b><span>调用时传入</span></div>
+        </div>
+        <p class="cd-caption">虚线框表示接口；Client 通过 FlyweightFactory 获取共享的 Flyweight（内部状态只存一份），差异化数据由调用方作为外部状态传入。</p>
+      </div>
+    </div>
+  </section>
+
   <h2>今日目标</h2><ul><li>理解内部状态和外部状态的区别。</li><li>知道享元模式为什么能节省内存。</li><li>能实现一个简单享元工厂。</li><li>知道什么时候不要为了“省对象”过度设计。</li></ul>
   <h2>1. 这个模式解决什么问题</h2><p>如果系统需要创建大量细粒度对象，而这些对象有很多相同数据，就会浪费内存。享元模式把相同部分共享起来。</p><pre><code>一百万个字符对象：字体、颜色、字号可能重复；坐标和字符内容可能变化。</code></pre>
+  <p>为了看清问题，先看看“不用享元”会发生什么——为每字符都 new 一个带完整样式的对象：</p>
+  <p class="bad-code-label">❌ 反例（不要这样写）</p>
+  <pre class="bad-code"><code class="language-ts">class Char {
+  constructor(
+    public char: string,
+    public font: string,   // 大量字符其实共用同一套样式
+    public size: number,
+    public color: string,
+    public x: number,
+    public y: number,
+  ) {}
+}
+// 一百万个字符 = 一百万个对象，字体/字号/颜色被重复存了百万次
+const doc = [];
+for (const [c, x, y] of rawChars) {
+  doc.push(new Char(c, "Arial", 12, "black", x, y));
+}</code></pre>
+  <p>这段代码能跑，但一百万个字符就会创建一百万个 <code>Char</code> 对象，而font/size/color 其实大量重复——白白占掉可观内存。第 6 部分用享元把样式抽成共享对象，一百万字符只存几十种样式实例。</p>
   <h2>2. 一个生活类比</h2><p>图书馆不会给每个读者都买一本同样的书，而是保存一批可共享的书。读者借阅时记录“谁借了哪本、什么时候还”，书本内容是共享的，借阅记录是外部状态。</p>
   <h2>3. 适用场景</h2><ul><li>对象数量非常大，内存压力真实存在。</li><li>对象可以拆分为可共享的内部状态和变化的外部状态。</li><li>共享对象最好是不可变的。</li><li>常见于文本编辑器字符样式、地图图标、游戏粒子、缓存池。</li></ul>
   <h2>4. 不适用场景</h2><ul><li>对象数量少，内存不是问题。</li><li>对象状态高度个性化，无法有效共享。</li><li>共享对象会被频繁修改，容易引发串数据问题。</li><li>为了微小优化牺牲代码可读性。</li></ul>
@@ -35,6 +79,9 @@ class TextStyleFactory {
 const factory = new TextStyleFactory();
 factory.getStyle("Arial", 12, "black").render("A", 0, 0);
 factory.getStyle("Arial", 12, "black").render("B", 10, 0);</code></pre>
+  <p>注意 <code>TextStyleFactory</code> 用 <code>Map</code> 按 key 缓存：两次 <code>getStyle("Arial", 12, "black")</code> 拿到的是<b>同一个 <code>TextStyle</code> 实例</b>（共享的内部状态），只有字符、坐标这些外部状态随调用传入。运行会打印：</p>
+  <pre><code>A at (0, 0) with Arial/12/black
+B at (10, 0) with Arial/12/black</code></pre>
   <h2>7. Python 示例</h2><pre><code class="language-python">from dataclasses import dataclass
 
 
@@ -64,9 +111,11 @@ factory.get_style("Arial", 12, "black").render("A", 0, 0)
 factory.get_style("Arial", 12, "black").render("B", 10, 0)</code></pre>
   <p>Python 示例用 <code>dataclass(frozen=True)</code> 表示共享对象不可变，降低被误改的风险。</p>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>显著减少重复对象带来的内存占用。</td><td>需要区分内部状态和外部状态，设计复杂度提高。</td></tr><tr><td>共享对象集中管理，便于复用。</td><td>调用方需要额外传入外部状态。</td></tr><tr><td>适合大量细粒度对象场景。</td><td>共享对象如果可变，会产生难查的副作用。</td></tr></tbody></table>
-  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>享元</td><td>共享对象节省内存</td><td>关注大量相似对象的复用。</td></tr><tr><td><a href="../creational/singleton-pattern.html">单例</a></td><td>全局唯一实例</td><td>单例强调唯一，享元强调按 key 共享多个实例。</td></tr><tr><td>对象池</td><td>复用昂贵对象生命周期</td><td>对象池借出归还可变对象，享元通常共享不可变内部状态。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>享元</td><td>共享对象节省内存</td><td>关注大量相似对象的复用。</td></tr><tr><td><a href="../creational/singleton-pattern.html">单例</a></td><td>全局唯一实例</td><td>单例强调唯一，享元强调按 key 共享多个实例。</td></tr><tr><td>对象池</td><td>复用昂贵对象生命周期</td><td>对象池借出归还可变对象，享元通常共享不可变内部状态。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>动态增强功能</td><td>装饰器保持相同接口，给原对象“加料”（日志、缓存等）；本模式解决的是对象复用/内存，跟增强功能无关。</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.88rem;color:var(--muted)">一句话区分：<b>简单包装</b>不改方法签名，只是套个壳；<b>装饰器</b>同样不改签名，但给对象“加料”（增强功能）；<b>享元</b>既不改签名也不加功能，它做的是把重复的内部状态抽出来共享 —— 别把“共享对象”误当成“封装一层”去用。</p>
   <h2>10. 练习题</h2><p>地图上有十万个标记点，但图标类型只有餐厅、酒店、加油站三种。请用享元模式共享图标对象，并把经纬度作为外部状态。</p><div class="note">参考思路：<code>IconFactory</code> 按类型缓存 <code>MapIcon</code>，渲染时传入 <code>lat</code> 和 <code>lng</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>享元模式的核心是“共享不变的，外传变化的”。只有当对象数量巨大且内存问题真实存在时，它才值得引入。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
 </body></html>

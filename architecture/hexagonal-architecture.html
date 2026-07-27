@@ -35,4 +35,5 @@ class CreateOrderUseCase:
 <h2>8. 和 Clean Architecture 的区别</h2><table><thead><tr><th>Clean Architecture</th><th>六边形架构</th></tr></thead><tbody><tr><td>强调同心圆和内外层依赖。</td><td>强调端口与适配器连接外部世界。</td></tr></tbody></table>
 <h2>9. 一个练习题</h2><p>为短信发送设计一个输出端口和两个适配器：阿里云短信、腾讯云短信。</p>
 <h2>10. 参考答案或改进建议</h2><p>定义 <code>SmsSender.send(phone, content)</code> 端口；业务只依赖端口；两个云厂商 SDK 分别放到 adapter 中实现端口。</p>
-<section class="summary"><h2>今日总结</h2><p>六边形架构的核心是隔离外部世界。端口属于业务需要，适配器属于技术实现。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>
+<section class="summary"><h2>今日总结</h2><p>六边形架构的核心是隔离外部世界。端口属于业务需要，适配器属于技术实现。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script>  <script src="../assets/learn-track.js"></script>
+</body></html>

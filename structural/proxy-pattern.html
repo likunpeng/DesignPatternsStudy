@@ -2,19 +2,72 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>代理模式教程</title>
+  <title>代理模式</title>
   <link rel="stylesheet" href="../assets/tutorial.css">
 </head>
 <body><main>
-  <h1>代理模式教程</h1>
+  <h1>代理模式</h1>
   <p class="lead">代理模式解决的是“不能或不应该直接访问真实对象”的问题。代理和真实对象通常接口相同，但代理会在访问前后加入控制逻辑。</p>
   <div class="meta"><span class="tag">结构型模式</span><span class="tag">Proxy Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">访问控制</span></div>
+
+    <section class="concept">
+      <div class="concept-eyebrow">🔍 概念速览</div>
+      <p class="concept-def">代理模式让一个“替身”对象和真实对象<b>实现同一个接口（也就是它们对外提供的一组相同方法）</b>，但替身夹在调用方和真实对象之间，<b>在转发请求前后加上控制逻辑</b>（如缓存、权限、延迟加载）。它不改变功能，只控制“能不能访问、怎么访问”。</p>
+      <div class="concept-grid">
+        <div class="concept-analogy">
+          <div class="ca-title"><span class="ca-icon">🤝</span>一句话类比</div>
+          <p>你想见高管，通常不直接冲进办公室，而是先过助理这关。助理不替高管干活，但会控制见面时机、过滤无效请求。助理和高级别的人对外是“同一套办事方式”，只是助理在中间做了把关。</p>
+          <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：助理 = <b>Proxy</b>，高管 = <b>RealSubject</b>，对外统一的办事方式 = <b>Subject 接口</b>。</p>
+        </div>
+        <div class="concept-diagram">
+          <div class="cd-title">角色关系</div>
+          <div class="cd-flow">
+            <div class="cd-node"><b>Client</b><span>调用方</span></div>
+            <div class="cd-arrow">依赖 ▸</div>
+            <div class="cd-node cd-target"><b>Subject</b><span>共同接口</span></div>
+            <div class="cd-arrow">◂ 实现</div>
+            <div class="cd-node"><b>Proxy</b><span>替身/控制</span></div>
+            <div class="cd-arrow">转发 ▸</div>
+            <div class="cd-node"><b>RealSubject</b><span>真实对象</span></div>
+          </div>
+          <p class="cd-caption">虚线框表示接口；Proxy 和 RealSubject 都实现 Subject，Proxy 在构造时接住真实对象并保存，调用时再决定是否转发给它；Client 只认识 Subject。</p>
+        </div>
+      </div>
+    </section>
 
   <h2>今日目标</h2>
   <ul><li>理解代理不是简单中转，而是访问控制点。</li><li>掌握虚拟代理、保护代理、缓存代理的典型场景。</li><li>能写出缓存代理示例。</li><li>能区分代理和装饰器。</li></ul>
 
   <h2>1. 这个模式解决什么问题</h2>
   <p>真实对象可能很昂贵、很敏感、在远程，或需要统一控制访问。代理对象站在调用方和真实对象之间，决定是否转发请求、何时创建真实对象、是否直接返回缓存。</p>
+  <p>为了看清“不用代理”的代价，我们分步来看。</p>
+  <p><b>前因：</b>项目里有个远程用户服务，业务一直直接调用它。每次都真打远程，慢而且计费：</p>
+  <pre><code class="language-ts">class RemoteUserRepository {
+  findName(id: string): string {
+    console.log("调用远程用户服务"); // 慢、计费
+    return id === "u1" ? "Alice" : "Unknown";
+  }
+}
+
+// 业务直接依赖具体类型，每次都穿透到真实对象
+function getName(repo: RemoteUserRepository, id: string): string {
+  return repo.findName(id);
+}
+getName(remote, "u1");
+getName(remote, "u1"); // 第二次还是打远程</code></pre>
+  <p><b>触发变化：</b>现在产品要求加权限——只有管理员能查用户名，同时要避免重复打远程。于是业务被迫在每个调用点手写判断和缓存：</p>
+  <pre class="bad-code"><code class="language-ts">// 权限 + 缓存被迫写在业务里，且每处查询都要重复这套逻辑
+const cache = new Map&lt;string, string&gt;();
+
+function getNameSecure(repo: RemoteUserRepository, id: string, user: { isAdmin: boolean }): string {
+  if (!user.isAdmin) throw new Error("无权限");    // 权限逻辑散落
+  if (cache.has(id)) return cache.get(id)!;         // 缓存逻辑也散落
+  const name = repo.findName(id);
+  cache.set(id, name);
+  return name;
+}</code></pre>
+  <p class="bad-code-label">❌ 这就是没有控制点的代价</p>
+  <p><b>后果：</b>权限判断、缓存、远程调用全写死在业务调用点里。真实项目里查用户的地方往往不止一处（下单、客服、审计都会查），每加一个地方就要把这套 <code>if</code> + <code>cache</code> 重写一遍；哪天权限规则变了，所有调用点都得翻出来改。更糟的是，远程服务被重复查询直接穿透，没有任何统一拦截。第 6 部分用代理把缓存和权限收口到一个对象里，业务只认 <code>UserRepository</code> 接口。</p>
 
   <h2>2. 一个生活类比</h2>
   <p>你想见一位高管，通常不会直接冲进办公室，而是先通过助理预约。助理不会替高管做所有事情，但会控制访问时机、过滤无效请求、安排日程。助理就是代理。</p>
@@ -29,6 +82,7 @@
   <table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Subject</td><td>真实对象和代理共同遵守的接口。</td></tr><tr><td>RealSubject</td><td>真正完成工作的对象。</td></tr><tr><td>Proxy</td><td>持有或创建真实对象，并控制访问。</td></tr><tr><td>Client</td><td>面向 Subject 编程，不直接依赖 RealSubject。</td></tr></tbody></table>
 
   <h2>6. TypeScript 示例</h2>
+  <p>对应第 1 部分的反例，我们写一个代理：它和真实对象实现同一个 <code>UserRepository</code> 接口，把缓存和权限都收口在自己的 <code>findName</code> 里。业务只认接口：</p>
   <pre><code class="language-ts">interface UserRepository {
   findName(userId: string): string;
 }
@@ -41,25 +95,34 @@ class RemoteUserRepository implements UserRepository {
   }
 }
 
+// 代理：缓存 + 权限都收口在这里，业务无感
 class CachedUserRepositoryProxy implements UserRepository {
-  // 代理自己保存缓存，不暴露给调用方
   private cache = new Map&lt;string, string&gt;();
 
-  constructor(private real: UserRepository) {}
+  constructor(private real: UserRepository, private canRead: () => boolean) {}
 
   findName(userId: string): string {
-    // 先查缓存，命中就直接返回
+    if (!this.canRead()) throw new Error("无权限查看用户"); // 权限只在一处
     if (!this.cache.has(userId)) {
-      // 没命中才访问真实对象
-      this.cache.set(userId, this.real.findName(userId));
+      this.cache.set(userId, this.real.findName(userId));  // 没命中才打远程
     }
     return this.cache.get(userId)!;
   }
 }
 
-const repo = new CachedUserRepositoryProxy(new RemoteUserRepository());
-console.log(repo.findName("u1"));
-console.log(repo.findName("u1"));</code></pre>
+// 业务只认 UserRepository，调用方式完全不变
+function getName(repo: UserRepository, id: string): string {
+  return repo.findName(id);
+}
+
+const currentUser = { role: "admin" };
+const repo = new CachedUserRepositoryProxy(
+  new RemoteUserRepository(),
+  () => currentUser.role === "admin"
+);
+getName(repo, "u1");
+getName(repo, "u1"); // 第二次命中缓存，不再打远程；权限仍只判断一次</code></pre>
+  <p>代理在构造时通过 <code>private real</code> 接住真实对象，<code>findName</code> 时先做权限判断，再查自己的 <code>cache</code>，只有没命中才把请求转发给真实对象。运行会打印：<code>调用远程用户服务</code> → <code>Alice</code> → <code>Alice</code>（第二次命中缓存，不再访问远程）。反例里散落在各调用点的权限和缓存，现在都收口到代理的这一个方法里。</p>
 
   <h2>7. Python 示例</h2>
   <pre><code class="language-python">from typing import Protocol
@@ -69,37 +132,40 @@ class UserRepository(Protocol):
     def find_name(self, user_id: str) -&gt; str:
         ...
 
-
 class RemoteUserRepository:
     def find_name(self, user_id: str) -&gt; str:
         # 真正访问远程服务的对象
         print("调用远程用户服务")
         return "Alice" if user_id == "u1" else "Unknown"
 
-
 class CachedUserRepositoryProxy:
-    def __init__(self, real: UserRepository) -&gt; None:
+    def __init__(self, real: UserRepository, can_read) -&gt; None:
         self.real = real
-        # 代理自己保存缓存，不暴露给调用方
+        self.can_read = can_read
         self.cache: dict[str, str] = {}
 
     def find_name(self, user_id: str) -&gt; str:
-        # 先查缓存，命中就直接返回
+        if not self.can_read():
+            raise PermissionError("无权限查看用户")
         if user_id not in self.cache:
-            # 没命中才访问真实对象
             self.cache[user_id] = self.real.find_name(user_id)
         return self.cache[user_id]
 
+def get_name(repo: UserRepository, user_id: str) -&gt; str:
+    return repo.find_name(user_id)
 
-repo = CachedUserRepositoryProxy(RemoteUserRepository())
-print(repo.find_name("u1"))
-print(repo.find_name("u1"))</code></pre>
+current_user = {"role": "admin"}
+repo = CachedUserRepositoryProxy(RemoteUserRepository(), lambda: current_user["role"] == "admin")
+get_name(repo, "u1")
+get_name(repo, "u1")</code></pre>
+  <p>Python 同样使用鸭子类型或 <code>Protocol</code>。代理把缓存和权限收口在自己的 <code>find_name</code> 里，业务只认 <code>UserRepository</code> 接口。两次调用中，只有第一次真正访问远程。</p>
 
   <h2>8. 优缺点</h2>
   <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>调用方不需要知道远程、缓存、权限等细节。</td><td>多一层间接调用，排查链路要看代理逻辑。</td></tr><tr><td>可以延迟创建昂贵对象。</td><td>代理和真实对象接口要保持一致。</td></tr><tr><td>集中管理访问控制。</td><td>如果代理做太多事，会变成隐藏的业务核心。</td></tr></tbody></table>
 
   <h2>9. 和相似模式的区别</h2>
   <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>代理</td><td>控制访问</td><td>决定是否访问真实对象，常见于权限、缓存、懒加载。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>增强能力</td><td>重点是叠加行为，通常可多层自由组合。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>接口转换</td><td>改变接口形状，让不兼容对象可用。</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.88rem;color:var(--muted)">一句话区分：<b>简单包装</b>不改方法、只是套壳；<b>装饰器</b>不改签名，给对象“加料”增强功能；<b>代理</b>同样保持相同接口，但它不增强功能，而是控制“是否/何时访问真实对象”（缓存、权限、懒加载）——这才是它和“简单封装”的本质不同。</p>
 
   <h2>10. 练习题</h2>
   <p>设计一个图片加载代理。真实图片对象加载很慢，代理在第一次调用 <code>display()</code> 时才创建真实图片对象。</p>
@@ -108,4 +174,5 @@ print(repo.find_name("u1"))</code></pre>
   <div class="summary"><h2>今日总结</h2><p>代理模式的核心是“接口相同，访问受控”。当你需要缓存、权限、懒加载或远程调用隔离时，可以考虑代理。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
 </body></html>

@@ -1,9 +1,46 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>组合模式教程</title><link rel="stylesheet" href="../assets/tutorial.css">
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>组合模式</title><link rel="stylesheet" href="../assets/tutorial.css">
 </head><body><main>
-  <h1>组合模式教程</h1><p class="lead">组合模式解决的是“树形结构里，单个对象和对象集合能否用同一种方式处理”的问题。它让调用方可以统一对待叶子节点和容器节点。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Composite Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">树形结构</span></div>
+  <h1>组合模式</h1><p class="lead">组合模式解决的是“树形结构里，单个对象和对象集合能否用同一种方式处理”的问题。它让调用方可以统一对待叶子节点和容器节点。</p><div class="meta"><span class="tag">结构型模式</span><span class="tag">Composite Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">树形结构</span></div>
+
+    <section class="concept">
+      <div class="concept-eyebrow">🔍 概念速览</div>
+      <p class="concept-def">组合模式把树里的单个对象（叶子）和对象集合（容器）都看成同一种东西，让它们实现<b>同一个接口（也就是它们对外提供的一组相同方法）</b>，这样调用方就能<b>统一处理叶子和容器，不必写一堆 if 判断</b>。它专门解决“整体-部分”的层级结构问题。</p>
+      <div class="concept-grid">
+        <div class="concept-analogy">
+          <div class="ca-title"><span class="ca-icon">📦</span>一句话类比</div>
+          <p>寄快递时，大箱子（容器）里可以放小物件（叶子），也可以再套小箱子（子容器）。不管里面是单个物件还是一堆箱子，都贴同一张面单（统一接口），快递员只管称重，不关心里面是什么。</p>
+          <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：大箱子 = <b>Composite（Folder）</b>，小物件 = <b>Leaf（FileItem）</b>，同一张面单 = <b>Component 接口（getSize）</b>。</p>
+        </div>
+        <div class="concept-diagram">
+          <div class="cd-title">角色关系</div>
+          <div class="cd-flow">
+            <div class="cd-node"><b>Client</b><span>调用方</span></div>
+            <div class="cd-arrow">依赖 ▸</div>
+            <div class="cd-node cd-target"><b>Component</b><span>共同接口</span></div>
+            <div class="cd-arrow">◂ 实现</div>
+            <div class="cd-node"><b>Composite</b><span>容器节点</span></div>
+            <div class="cd-arrow">持有 ▸</div>
+            <div class="cd-node"><b>Leaf</b><span>或子容器</span></div>
+          </div>
+          <p class="cd-caption">虚线框表示接口；Composite 和 Leaf 都实现 Component，Composite 内部持有若干子 Component（叶子或其它 Composite），Client 只面对 Component，不关心拿到的是叶子还是容器。</p>
+        </div>
+      </div>
+    </section>
+
   <h2>今日目标</h2><ul><li>理解组合模式为什么适合菜单、目录、组织架构。</li><li>掌握叶子节点和组合节点的共同接口。</li><li>能实现递归计算。</li><li>知道透明式和安全式组合的取舍。</li></ul>
   <h2>1. 这个模式解决什么问题</h2><p>树形结构中，有的节点是叶子，有的节点包含子节点。如果调用方到处判断 <code>isFolder</code> 或 <code>isFile</code>，逻辑会重复。组合模式让它们实现同一接口。</p>
+  <p class="bad-code-label">❌ 反例（不要这样写）</p>
+  <pre class="bad-code"><code class="language-ts">// 调用方到处判断节点类型，重复且难扩展
+function totalSize(node: any): number {
+  if (node.isFile) return node.size;          // 叶子
+  let total = 0;
+  for (const child of node.children) {
+    total += totalSize(child);                // 容器
+  }
+  return total;
+}</code></pre>
+  <p>这样调用方必须知道每个节点是文件还是文件夹，新增一种节点类型就要去改所有判断点。第 6 部分用组合模式后，所有节点都实现 <code>getSize()</code>，调用方只管调方法，不用写 if。</p>
   <h2>2. 一个生活类比</h2><p>公司组织架构里，员工是叶子节点，部门是组合节点。你可以问一个员工“工资是多少”，也可以问一个部门“总工资是多少”。部门会把所有下级员工和子部门的工资加起来。</p>
   <h2>3. 适用场景</h2><ul><li>文件目录、菜单、评论树、组织架构、权限树。</li><li>调用方希望统一处理单个对象和对象集合。</li><li>操作天然具有递归特征，例如统计、渲染、搜索。</li><li>树结构层级可能不断变化。</li></ul>
   <h2>4. 不适用场景</h2><ul><li>数据不是树形结构。</li><li>叶子和容器差异很大，强行统一接口会很别扭。</li><li>需要频繁跨层级复杂查询，可能更适合图或索引结构。</li></ul>
@@ -34,6 +71,7 @@ images.add(new FileItem(20));
 images.add(new FileItem(30));
 root.add(images);
 console.log(root.getSize());</code></pre>
+  <p><code>Folder</code> 在构造后通过 <code>add()</code> 不断把子节点收进自己的 <code>children</code> 数组（第 20-23 行），调用 <code>getSize()</code> 时再把这些子节点逐个转发、递归求和。运行会打印：<code>60</code>（10 + 20 + 30）。</p>
   <h2>7. Python 示例</h2><pre><code class="language-python">from typing import Protocol
 
 
@@ -71,8 +109,10 @@ print(root.get_size())</code></pre>
   <h2>7.1 透明式和安全式组合的取舍</h2><p>组合模式在设计时有两种选择：</p><table><thead><tr><th>类型</th><th>做法</th><th>适用场景</th></tr></thead><tbody><tr><td><strong>透明式</strong></td><td>Component 接口包含 <code>add()</code>、<code>remove()</code>，叶子也实现这些方法（通常抛异常或空操作）。</td><td>调用方希望统一接口，不关心节点类型。缺点是叶子暴露了不该有的方法。</td></tr><tr><td><strong>安全式</strong></td><td>Component 接口只包含业务方法（如 <code>getSize()</code>），<code>add()</code> 和 <code>remove()</code> 只在 Composite 类中定义。</td><td>叶子不应该有 <code>add()</code> 方法。缺点是调用方需要知道节点是叶子还是容器。</td></tr></tbody></table><p>上面的示例采用的是<strong>安全式</strong>：<code>FileNode</code> 接口只有 <code>getSize()</code>，<code>add()</code> 只在 <code>Folder</code> 中定义，<code>FileItem</code> 没有 <code>add()</code>。这是更推荐的做法，因为文件不应该有 <code>add()</code> 方法。</p>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>统一处理叶子和组合节点。</td><td>接口过于统一时，叶子可能暴露不该有的方法。</td></tr><tr><td>递归逻辑清晰，便于扩展节点类型。</td><td>树很深时要考虑性能和栈深度。</td></tr><tr><td>调用方不需要频繁判断节点类型。</td><td>限制某些节点类型的子节点规则会更复杂。</td></tr></tbody></table>
   <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>组合</td><td>树形整体和部分一致处理</td><td>关注节点层级关系。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>一层层增强对象</td><td>也是递归结构，但重点是增强链，不是树。</td></tr><tr><td><a href="../behavioral/iterator-pattern.html">迭代器</a></td><td>遍历集合</td><td>可与组合模式配合，但不负责树结构建模。</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.88rem;color:var(--muted)">一句话区分：<b>简单包装</b>只是套个壳，不改方法也不组织层级；<b>装饰器</b>不改签名，但给对象“加料”（增强功能）；<b>组合</b>则是用同一接口把“整体”和“部分”组织成树，靠递归把所有节点统一处理——它真正的价值在树形层级，而不在外壳。</p>
   <h2>10. 练习题</h2><p>设计一个菜单系统：菜单项可以点击，菜单组包含多个菜单项或子菜单组。请用组合模式实现 <code>render()</code>。</p><div class="note">参考思路：定义 <code>MenuNode.render()</code>，<code>MenuItem</code> 渲染自己，<code>MenuGroup</code> 遍历子节点并拼接结果。</div>
   <div class="summary"><h2>今日总结</h2><p>组合模式的核心是“部分和整体使用同一接口”。只要你的问题是树形结构，并且需要递归处理，就值得考虑它。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
 </body></html>

@@ -9,22 +9,27 @@
       color-scheme: dark;
       --bg: #0f172a;
       --surface: #1e293b;
+      --surface-2: #273449;
       --surface-light: #334155;
       --ink: #f8fafc;
       --ink-muted: #94a3b8;
+      --ink-dim: #64748b;
       --line: #334155;
-      --accent-fundamentals: #475569;
+      --line-soft: #1f2a3d;
+      --accent-fundamentals: #64748b;
       --accent-creational: #4f46e5;
       --accent-structural: #059669;
       --accent-behavioral: #7c3aed;
       --accent-architecture: #d97706;
       --accent-ai-engineering: #0891b2;
-      --success: #059669;
+      --success: #34d399;
       --success-bg: #064e3b;
-      --radius: 16px;
+      --radius: 14px;
       --shadow: 0 8px 32px rgba(0,0,0,.35);
+      --sidebar-w: 280px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     body {
       background: var(--bg);
       color: var(--ink);
@@ -33,10 +38,10 @@
       min-height: 100vh;
     }
 
-    /* Hero */
+    /* ============ Hero ============ */
     .hero {
       position: relative;
-      padding: 80px 24px 60px;
+      padding: 64px 24px 40px;
       text-align: center;
       overflow: hidden;
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
@@ -62,64 +67,90 @@
     }
     .hero h1 {
       position: relative;
-      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
       font-weight: 800;
       letter-spacing: -.03em;
       background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .hero .slogan {
       position: relative;
-      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      font-size: clamp(1rem, 2.4vw, 1.3rem);
       color: #cbd5e1;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .hero .subtitle {
       position: relative;
-      font-size: .95rem;
+      font-size: .9rem;
       color: #94a3b8;
     }
 
-    /* Container */
-    .container {
-      width: min(1100px, calc(100% - 48px));
+    /* ============ Layout ============ */
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      gap: 0;
+      width: min(1400px, calc(100% - 48px));
       margin: 0 auto;
-      padding: 40px 0 80px;
+      padding: 32px 0 60px;
     }
 
-    /* Progress overview */
-    .progress-card {
+    /* ============ Sidebar ============ */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      max-height: calc(100vh - 48px);
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 28px 32px;
-      margin-bottom: 32px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
       box-shadow: var(--shadow);
     }
-    .progress-header {
+    .sidebar-head {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      flex-shrink: 0;
+    }
+    .sidebar-title {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 10px;
+    }
+    .sidebar-overall {
       display: flex;
-      justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 8px;
     }
-    .progress-header h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
+    .sidebar-overall strong {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    .progress-count {
+    .sidebar-overall span {
+      font-size: .85rem;
       color: var(--ink-muted);
-      font-size: .95rem;
     }
-    .progress-bar {
-      height: 12px;
+    .sidebar-overall-bar {
+      height: 6px;
       background: var(--surface-light);
       border-radius: 999px;
       overflow: hidden;
     }
-    .progress-fill {
+    .sidebar-overall-bar > i {
+      display: block;
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, #4f46e5, #7c3aed, #059669);
@@ -127,114 +158,156 @@
       transition: width .5s cubic-bezier(.4,0,.2,1);
     }
 
-    /* Category grid */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px 14px;
     }
-    .category-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 24px 20px;
-      cursor: pointer;
-      transition: transform .2s, box-shadow .2s, border-color .2s;
-      user-select: none;
+    .nav-item {
       position: relative;
-      overflow: hidden;
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s, transform .12s;
+      margin-bottom: 2px;
     }
-    .category-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    .nav-item:hover {
+      background: var(--surface-2);
     }
-    .category-card.active {
-      border-color: var(--card-accent);
+    .nav-item.active {
+      background: var(--surface-2);
     }
-    .category-card::before {
+    .nav-item.active::before {
       content: "";
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--card-accent);
+      left: -10px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: var(--cat-accent);
     }
-    .category-icon {
-      font-size: 1.8rem;
-      margin-bottom: 8px;
+    .nav-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      background: color-mix(in srgb, var(--cat-accent) 18%, transparent);
+      color: var(--cat-accent);
+      flex-shrink: 0;
     }
-    .category-name {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 4px;
+    .nav-text {
+      min-width: 0;
     }
-    .category-count {
+    .nav-name {
+      font-size: .92rem;
+      font-weight: 600;
+      color: var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .nav-progress {
+      font-size: .72rem;
       color: var(--ink-muted);
-      font-size: .85rem;
+      font-weight: 500;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .nav-bar {
+      height: 4px;
+      background: var(--surface-light);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .nav-bar > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--cat-accent);
+      border-radius: 999px;
+      transition: width .4s cubic-bezier(.4,0,.2,1);
+    }
+    .nav-item.done .nav-name::after {
+      content: "✓";
+      color: var(--success);
+      font-size: .8rem;
+      margin-left: auto;
     }
 
-    /* Pattern list */
-    .pattern-section {
+    /* ============ Main ============ */
+    .main {
+      padding-left: 24px;
+      min-width: 0;
+    }
+    .content-section {
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       margin-bottom: 20px;
       overflow: hidden;
       box-shadow: var(--shadow);
+      scroll-margin-top: 16px;
     }
-    .pattern-header {
+    .section-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 24px;
-      cursor: pointer;
-      user-select: none;
-      transition: background .15s;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--surface-2);
     }
-    .pattern-header:hover {
-      background: var(--surface-light);
-    }
-    .pattern-header h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
+    .section-head h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .pattern-header h3 .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
+    .section-head h2 .icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: color-mix(in srgb, var(--cat-accent) 20%, transparent);
+      color: var(--cat-accent);
     }
-    .pattern-toggle {
+    .section-head .summary {
+      font-size: .82rem;
       color: var(--ink-muted);
-      transition: transform .25s;
-      font-size: 1.2rem;
     }
-    .pattern-section.open .pattern-toggle {
-      transform: rotate(180deg);
+    .section-head .summary strong {
+      color: var(--ink);
+      font-weight: 600;
     }
-    .pattern-list {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height .35s cubic-bezier(.4,0,.2,1);
-    }
-    .pattern-section.open .pattern-list {
-      max-height: 2000px;
-    }
+
     .pattern-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 14px 24px;
-      border-top: 1px solid var(--line);
+      border-top: 1px solid var(--line-soft);
       gap: 16px;
+      transition: background .12s;
     }
-    .pattern-item:last-child {
-      border-bottom: none;
+    .pattern-item:first-child {
+      border-top: none;
+    }
+    .pattern-item:hover {
+      background: var(--surface-2);
     }
     .pattern-info {
       flex: 1;
@@ -243,29 +316,26 @@
     .pattern-name {
       font-weight: 600;
       font-size: .95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .pattern-name-en {
       color: var(--ink-muted);
-      font-size: .8rem;
-    }
-    .pattern-link {
-      color: var(--ink-muted);
-      font-size: .8rem;
-      text-decoration: none;
-    }
-    .pattern-link:hover {
-      color: var(--ink);
-      text-decoration: underline;
-    }
-    .pattern-status {
-      font-size: .75rem;
-      color: var(--ink-muted);
+      font-size: .78rem;
       margin-top: 2px;
     }
-
+    .pattern-status {
+      font-size: .72rem;
+      color: var(--ink-dim);
+      margin-top: 3px;
+    }
+    .pattern-status.learned {
+      color: var(--success);
+    }
     .pattern-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
       flex-shrink: 0;
     }
@@ -273,11 +343,11 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: 8px;
-      background: var(--card-accent, var(--accent-creational));
+      background: var(--cat-accent);
       color: #fff;
-      font-size: .85rem;
+      font-size: .82rem;
       font-weight: 600;
       text-decoration: none;
       transition: opacity .2s, transform .15s;
@@ -287,26 +357,22 @@
       opacity: .85;
       transform: translateY(-1px);
     }
-    .btn-go::after {
-      content: "→";
-    }
+    .btn-go::after { content: "→"; }
     .pattern-disabled {
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: 8px;
       background: var(--surface-light);
       color: var(--ink-muted);
-      font-size: .85rem;
+      font-size: .82rem;
       white-space: nowrap;
     }
-
-    /* Button */
     .btn-learn {
-      padding: 8px 18px;
-      border-radius: 999px;
+      padding: 7px 14px;
+      border-radius: 8px;
       border: 1px solid var(--line);
       background: transparent;
       color: var(--ink-muted);
-      font-size: .85rem;
+      font-size: .8rem;
       cursor: pointer;
       transition: all .2s;
       white-space: nowrap;
@@ -322,6 +388,43 @@
       color: var(--success);
     }
 
+    /* Empty section */
+    .empty {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--ink-dim);
+      font-size: .9rem;
+    }
+
+    /* Mobile category switcher */
+    .mobile-tabs {
+      display: none;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 0 12px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .mobile-tabs::-webkit-scrollbar { display: none; }
+    .mobile-tab {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      font-size: .82rem;
+      color: var(--ink-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .mobile-tab.active {
+      background: var(--cat-accent);
+      border-color: var(--cat-accent);
+      color: #fff;
+    }
+
     /* Footer */
     .footer {
       text-align: center;
@@ -331,20 +434,22 @@
       border-top: 1px solid var(--line);
     }
 
-    /* Responsive */
+    /* ============ Responsive ============ */
     @media (max-width: 900px) {
-      .category-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .hero { padding: 56px 16px 40px; }
-      .container { width: calc(100% - 24px); padding: 24px 0 60px; }
-      .category-grid { grid-template-columns: 1fr; }
-      .progress-card { padding: 20px; }
-      .pattern-header { padding: 16px 18px; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar { display: none; }
+      .mobile-tabs { display: flex; }
+      .main { padding-left: 0; }
       .pattern-item { padding: 12px 18px; flex-wrap: wrap; }
       .pattern-actions { width: 100%; order: 3; }
-      .btn-go, .pattern-disabled { width: 100%; justify-content: center; text-align: center; }
-      .btn-learn { width: 100%; text-align: center; }
+      .btn-go, .pattern-disabled { width: 100%; justify-content: center; }
+      .btn-learn { width: 100%; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 48px 16px 32px; }
+      .layout { width: calc(100% - 24px); padding: 20px 0 40px; }
     }
   </style>
 </head>
@@ -357,19 +462,23 @@
   <p class="subtitle">TypeScript × Python 双语示例 · 从代码结构到架构决策</p>
 </section>
 
-<main class="container">
-  <div class="progress-card">
-    <div class="progress-header">
-      <h2>学习进度</h2>
-      <span class="progress-count" id="progressCount">已学习 0 / 26</span>
+<main class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title">学习目录</div>
+      <div class="sidebar-overall">
+        <strong id="overallPct">0%</strong>
+        <span id="overallLabel">已学习 0 / 0</span>
+      </div>
+      <div class="sidebar-overall-bar"><i id="overallBar"></i></div>
     </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-  </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+  </aside>
 
-  <div class="category-grid" id="categoryGrid"></div>
-  <div id="patternSections"></div>
+  <section class="main">
+    <div class="mobile-tabs" id="mobileTabs"></div>
+    <div id="patternSections"></div>
+  </section>
 </main>
 
 <footer class="footer">
@@ -378,14 +487,15 @@
 
 <script src="assets/patterns-data.js"></script>
 <script>
-const PATTERNS = (window.PATTERN_DATA || []).map((pattern) => ({ ...pattern }));
-const CATEGORIES = (window.PATTERN_CATEGORIES || []).map((category) => ({
-  ...category,
-  accent: `var(--accent-${category.key})`,
+const PATTERNS = (window.PATTERN_DATA || []).map((p) => ({ ...p }));
+const CATEGORIES = (window.PATTERN_CATEGORIES || []).map((c) => ({
+  ...c,
+  accent: `var(--accent-${c.key})`,
 }));
 
 const STORAGE_KEY = "design-pattern-progress";
 const TOTAL = PATTERNS.length;
+let ACTIVE_KEY = CATEGORIES[0]?.key;
 
 function loadProgress() {
   try {
@@ -393,11 +503,9 @@ function loadProgress() {
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 }
-
 function saveProgress(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
-
 function mergeProgress() {
   const saved = loadProgress();
   PATTERNS.forEach(p => {
@@ -407,40 +515,67 @@ function mergeProgress() {
     }
   });
 }
-
+function learnedIn(cat) {
+  return PATTERNS.filter(p => p.cat === cat && p.status === "learned").length;
+}
+function totalIn(cat) {
+  return PATTERNS.filter(p => p.cat === cat).length;
+}
 function getLearnedCount() {
   return PATTERNS.filter(p => p.status === "learned").length;
 }
 
-function updateProgressUI() {
+function updateOverall() {
   const count = getLearnedCount();
-  document.getElementById("progressCount").textContent = `已学习 ${count} / ${TOTAL}`;
-  document.getElementById("progressFill").style.width = `${(count / TOTAL) * 100}%`;
+  const pct = TOTAL > 0 ? Math.round((count / TOTAL) * 100) : 0;
+  document.getElementById("overallPct").textContent = `${pct}%`;
+  document.getElementById("overallLabel").textContent = `已学习 ${count} / ${TOTAL}`;
+  document.getElementById("overallBar").style.width = `${pct}%`;
 }
 
-function renderCategoryGrid() {
-  const grid = document.getElementById("categoryGrid");
-  grid.innerHTML = CATEGORIES.map(cat => {
-    const total = PATTERNS.filter(p => p.cat === cat.key).length;
-    const done = PATTERNS.filter(p => p.cat === cat.key && p.status === "learned").length;
+function renderSidebar() {
+  const nav = document.getElementById("sidebarNav");
+  nav.innerHTML = CATEGORIES.map(cat => {
+    const total = totalIn(cat.key);
+    const done = learnedIn(cat.key);
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const isActive = cat.key === ACTIVE_KEY;
+    const isDone = total > 0 && done === total;
     return `
-      <div class="category-card" style="--card-accent: ${cat.accent}" data-cat="${cat.key}">
-        <div class="category-icon">${cat.icon}</div>
-        <div class="category-name">${cat.zh}</div>
-        <div class="category-count">已学习 ${done} / ${total}</div>
+      <div class="nav-item ${isActive ? "active" : ""} ${isDone ? "done" : ""}"
+           style="--cat-accent:${cat.accent}"
+           data-cat="${cat.key}">
+        <div class="nav-icon">${cat.icon}</div>
+        <div class="nav-text">
+          <div class="nav-name">
+            <span>${cat.zh}</span>
+            <span class="nav-progress">${done} / ${total}</span>
+          </div>
+          <div class="nav-bar"><i style="width:${pct}%"></i></div>
+        </div>
       </div>
     `;
   }).join("");
 
-  grid.querySelectorAll(".category-card").forEach(card => {
-    card.addEventListener("click", () => {
-      const cat = card.dataset.cat;
-      const section = document.querySelector(`.pattern-section[data-cat="${cat}"]`);
-      if (section) {
-        section.classList.toggle("open");
-        card.classList.toggle("active");
-      }
+  nav.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+      setActive(item.dataset.cat, true);
     });
+  });
+}
+
+function renderMobileTabs() {
+  const tabs = document.getElementById("mobileTabs");
+  tabs.innerHTML = CATEGORIES.map(cat => `
+    <button class="mobile-tab ${cat.key === ACTIVE_KEY ? "active" : ""}"
+            style="--cat-accent:${cat.accent}"
+            data-cat="${cat.key}">
+      ${cat.icon} ${cat.zh}
+    </button>
+  `).join("");
+
+  tabs.querySelectorAll(".mobile-tab").forEach(tab => {
+    tab.addEventListener("click", () => setActive(tab.dataset.cat, true));
   });
 }
 
@@ -448,17 +583,16 @@ function renderPatternSections() {
   const container = document.getElementById("patternSections");
   container.innerHTML = CATEGORIES.map(cat => {
     const patterns = PATTERNS.filter(p => p.cat === cat.key);
+    const done = learnedIn(cat.key);
+    const total = totalIn(cat.key);
+    const isActive = cat.key === ACTIVE_KEY;
     const items = patterns.map((p, i) => {
       const isLearned = p.status === "learned";
-      const catAccent = cat.accent;
-      let actionHtml;
-      if (p.file) {
-        actionHtml = `<div class="pattern-actions" style="--card-accent:${catAccent}"><a href="${p.file}" class="btn-go">开始学习</a></div>`;
-      } else {
-        actionHtml = `<div class="pattern-actions"><span class="pattern-disabled">待补充</span></div>`;
-      }
+      const actionHtml = p.file
+        ? `<div class="pattern-actions"><a href="${p.file}" class="btn-go">开始学习</a></div>`
+        : `<div class="pattern-actions"><span class="pattern-disabled">待补充</span></div>`;
       const statusHtml = isLearned && p.date
-        ? `<div class="pattern-status" style="color:var(--success)">已学习 · ${p.date}</div>`
+        ? `<div class="pattern-status learned">已学习 · ${p.date}</div>`
         : `<div class="pattern-status">未学习</div>`;
       const btnClass = isLearned ? "btn-learn learned" : "btn-learn";
       const btnText = isLearned ? "✓ 已学习" : "标记为已学习";
@@ -476,28 +610,19 @@ function renderPatternSections() {
     }).join("");
 
     return `
-      <div class="pattern-section" data-cat="${cat.key}">
-        <div class="pattern-header" data-cat="${cat.key}">
-          <h3><span class="dot" style="background:${cat.accent}"></span>${cat.icon} ${cat.zh}</h3>
-          <span class="pattern-toggle">▼</span>
+      <div class="content-section ${isActive ? "active" : ""}"
+           data-cat="${cat.key}"
+           style="--cat-accent:${cat.accent}">
+        <div class="section-head">
+          <h2><span class="icon">${cat.icon}</span>${cat.zh}</h2>
+          <span class="summary">已学习 <strong>${done}</strong> / ${total}</span>
         </div>
-        <div class="pattern-list">${items}</div>
+        ${patterns.length > 0 ? items : `<div class="empty">本分类暂无内容</div>`}
       </div>
     `;
   }).join("");
 
-  // Toggle sections
-  container.querySelectorAll(".pattern-header").forEach(header => {
-    header.addEventListener("click", () => {
-      const cat = header.dataset.cat;
-      const section = document.querySelector(`.pattern-section[data-cat="${cat}"]`);
-      const card = document.querySelector(`.category-card[data-cat="${cat}"]`);
-      if (section) section.classList.toggle("open");
-      if (card) card.classList.toggle("active");
-    });
-  });
-
-  // Toggle learn status
+  // Learn status buttons
   container.querySelectorAll(".btn-learn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -514,24 +639,46 @@ function renderPatternSections() {
         pattern.date = new Date().toISOString().split("T")[0];
       }
 
-      // Save
       const saved = loadProgress();
       saved[file] = { status: pattern.status, date: pattern.date };
       saveProgress(saved);
 
-      // Re-render
-      renderCategoryGrid();
-      renderPatternSections();
-      updateProgressUI();
+      renderAll();
     });
   });
 }
 
+function setActive(key, scroll = false) {
+  ACTIVE_KEY = key;
+  // Update sidebar
+  document.querySelectorAll("#sidebarNav .nav-item").forEach(el => {
+    el.classList.toggle("active", el.dataset.cat === key);
+  });
+  // Update mobile tabs
+  document.querySelectorAll("#mobileTabs .mobile-tab").forEach(el => {
+    el.classList.toggle("active", el.dataset.cat === key);
+  });
+  // Update section visibility
+  document.querySelectorAll(".content-section").forEach(el => {
+    el.style.display = el.dataset.cat === key ? "" : "none";
+  });
+  if (scroll) {
+    const target = document.querySelector(`.content-section[data-cat="${key}"]`);
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function renderAll() {
+  updateOverall();
+  renderSidebar();
+  renderMobileTabs();
+  renderPatternSections();
+  setActive(ACTIVE_KEY);
+}
+
 // Init
 mergeProgress();
-updateProgressUI();
-renderCategoryGrid();
-renderPatternSections();
+renderAll();
 </script>
 
 </body>

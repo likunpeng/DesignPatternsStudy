@@ -47,4 +47,5 @@ class CreateOrderUseCase:
 <h2>9. 一个练习题</h2><p>把“用户注册”拆成 API、Application、Domain、Infrastructure 四层，说明密码规则、保存用户、发送欢迎邮件分别放在哪里。</p>
 <h2>10. 参考答案或改进建议</h2><p>密码格式校验可以在用例入口做，密码强度和用户状态规则应靠近 Domain；保存用户是 Repository 端口；邮件发送是 Notifier 端口，由 Infrastructure 实现。</p>
 <section class="summary"><h2>今日总结</h2><p>分层架构的价值不是目录多，而是让变化有固定位置。入口变化不影响业务规则，数据库变化不影响用例，业务规则能独立测试。</p></section>
-</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script>  <script src="../assets/learn-track.js"></script>
+</body></html>

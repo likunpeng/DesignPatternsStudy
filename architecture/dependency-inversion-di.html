@@ -43,4 +43,5 @@ class ConsoleEmailSender:
 <h2>9. 一个练习题</h2><p>把订单支付逻辑改成依赖 <code>PaymentGateway</code> 端口，而不是直接调用支付宝 SDK。</p>
 <h2>10. 参考答案或改进建议</h2><p>在 application 层定义 <code>PaymentGateway.pay(orderId, amount)</code>，支付宝、微信支付各写一个 infrastructure 适配器。用例只依赖端口，测试时传入内存实现。</p>
 <section class="summary"><h2>今日总结</h2><p>依赖倒置的核心不是“到处写 interface”，而是业务规则不要被外部实现牵着走。依赖注入只是让这个原则真正落地。</p></section>
-</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>
+</main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script>  <script src="../assets/learn-track.js"></script>
+</body></html>

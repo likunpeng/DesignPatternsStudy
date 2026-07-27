@@ -25,4 +25,5 @@ function reducer(state: State, action: Action): State {
 <h2>8. 和 MVVM 的区别</h2><table><thead><tr><th>MVVM</th><th>Flux/Redux</th></tr></thead><tbody><tr><td>ViewModel 管页面状态和命令。</td><td>Action/Reducer/Store 管状态变化链路。</td></tr><tr><td>适合页面级状态。</td><td>适合复杂共享状态。</td></tr></tbody></table>
 <h2>9. 一个练习题</h2><p>为购物车设计 Action 和 Reducer：添加商品、修改数量、清空购物车。</p>
 <h2>10. 参考答案或改进建议</h2><p>Action 描述 addItem、changeQty、clearCart；Reducer 不直接请求接口，只根据 Action 更新状态。异步请求应放在副作用层或 use case。</p>
-<section class="summary"><h2>今日总结</h2><p>单向数据流的价值是让状态变化可追踪。AI 生成前端状态代码时，应该明确状态只能通过规定动作改变。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>
+<section class="summary"><h2>今日总结</h2><p>单向数据流的价值是让状态变化可追踪。AI 生成前端状态代码时，应该明确状态只能通过规定动作改变。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script>  <script src="../assets/learn-track.js"></script>
+</body></html>

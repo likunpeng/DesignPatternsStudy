@@ -22,4 +22,5 @@ export interface OrderModule {
 <h2>8. 和微服务的区别</h2><table><thead><tr><th>模块化单体</th><th>微服务</th></tr></thead><tbody><tr><td>一个部署单元，进程内调用。</td><td>多个部署单元，网络调用。</td></tr><tr><td>适合边界探索期。</td><td>适合边界成熟后。</td></tr></tbody></table>
 <h2>9. 一个练习题</h2><p>把电商系统拆成订单、库存、支付三个模块，说明每个模块公开什么 API。</p>
 <h2>10. 参考答案或改进建议</h2><p>订单公开 create/cancel/query；库存公开 reserve/release；支付公开 pay/refund/queryPayment。模块间不要直接访问彼此内部表和类。</p>
-<section class="summary"><h2>今日总结</h2><p>模块化单体是最常用、最务实的架构形态之一。先把模块边界做好，再考虑是否需要微服务。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script></body></html>
+<section class="summary"><h2>今日总结</h2><p>模块化单体是最常用、最务实的架构形态之一。先把模块边界做好，再考虑是否需要微服务。</p></section></main><script src="../assets/patterns-data.js"></script><script src="../assets/tutorial-nav.js"></script>  <script src="../assets/learn-track.js"></script>
+</body></html>

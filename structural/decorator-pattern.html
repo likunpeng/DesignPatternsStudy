@@ -2,13 +2,38 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>装饰器模式教程</title>
+  <title>装饰器模式</title>
   <link rel="stylesheet" href="../assets/tutorial.css">
 </head>
 <body><main>
-  <h1>装饰器模式教程</h1>
+  <h1>装饰器模式</h1>
   <p class="lead">装饰器模式解决的是“在不修改原对象的前提下，动态叠加新能力”的问题。它强调增强行为，而不是替换对象。</p>
   <div class="meta"><span class="tag">结构型模式</span><span class="tag">Decorator Pattern</span><span class="tag">TypeScript + Python</span><span class="tag">动态增强</span></div>
+
+  <section class="concept">
+    <div class="concept-eyebrow">🔍 概念速览</div>
+    <p class="concept-def">装饰器模式把一个对象（也就是它对外提供的一组方法），<b>用另一个实现了相同接口的对象包起来</b>，在保持原接口不变的前提下，<b>动态叠加新能力</b>。它只做“加料”，不改变原对象本身。</p>
+    <div class="concept-grid">
+      <div class="concept-analogy">
+        <div class="ca-title"><span class="ca-icon">☕</span>一句话类比</div>
+        <p>一杯基础咖啡可以加奶、加糖、加燕麦奶。每一层配料都“包”在原来的饮品外面，杯子还是那杯饮料（接口不变），但味道一层层增强。咖啡本身没被替换，你只是不停往外裹新层——这就是装饰器。</p>
+        <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：原味咖啡 = <b>ConcreteComponent</b>，加奶/加糖层 = <b>ConcreteDecorator</b>，包裹这一行为 = <b>Decorator</b>，它们共同遵守的“一杯饮料” = <b>Component</b>，被包在里面的对象 = <b>被包装对象(wrapped)</b>。</p>
+      </div>
+      <div class="concept-diagram">
+        <div class="cd-title">角色关系</div>
+        <div class="cd-flow">
+          <div class="cd-node cd-target"><b>Component</b><span>共同接口</span></div>
+          <div class="cd-arrow">实现 ▾</div>
+          <div class="cd-node"><b>ConcreteComponent</b><span>基础对象</span></div>
+          <div class="cd-arrow">被包 ▸</div>
+          <div class="cd-node"><b>Decorator</b><span>持接口+持有 wrapped</span></div>
+          <div class="cd-arrow">扩展 ▸</div>
+          <div class="cd-node"><b>ConcreteDecorator</b><span>加新能力</span></div>
+        </div>
+        <p class="cd-caption">虚线框表示接口；Decorator 与 ConcreteComponent 都实现 Component，Decorator 内部持有一个 Component（被包装对象），调用时先/后执行自己的增强，再转发给它。</p>
+      </div>
+    </div>
+  </section>
 
   <h2>今日目标</h2>
   <ul><li>理解为什么继承不适合组合大量功能开关。</li><li>掌握装饰器的共同接口和包裹关系。</li><li>能区分装饰器模式和代理模式。</li><li>知道 Python 语言装饰器和设计模式装饰器的联系与区别。</li></ul>
@@ -17,6 +42,15 @@
   <p>当一个对象需要可选能力时，如果用继承组合，会很快出现类爆炸。</p>
   <pre><code>基础通知 + 短信通知 + 邮件通知 + 日志通知 + 重试通知</code></pre>
   <p>装饰器模式让每个增强能力成为一个独立包装器，需要什么就包什么。</p>
+  <p>为了看清问题，先看“不用装饰器”会发生什么——用继承把所有组合都写成类：</p>
+  <p class="bad-code-label">❌ 反例（不要这样写）</p>
+  <pre class="bad-code"><code class="language-ts">// 每多一种能力组合，就要新增一个子类
+class EmailNotifier { send(m: string) { console.log(`邮件：${m}`); } }
+class EmailSmsNotifier extends EmailNotifier { send(m: string) { super.send(m); console.log(`短信：${m}`); } }
+class EmailLogNotifier extends EmailNotifier { send(m: string) { console.log("日志"); super.send(m); } }
+class EmailSmsLogNotifier extends EmailSmsNotifier { send(m: string) { console.log("日志"); super.send(m); } }
+// ... 再加“重试”就是 8 个、16 个类，全写死、没法运行时自由搭配</code></pre>
+  <p>这段代码能跑，但问题明显：能力一多就类爆炸，而且是<b>编译期写死</b>的组合——想临时“只加日志不加短信”做不到，运行时也无法按需叠加。第 6 部分用装饰器把每个能力拆成独立包装器，需要时一层层包上去即可。</p>
 
   <h2>2. 一个生活类比</h2>
   <p>一杯基础咖啡可以加奶、加糖、加燕麦奶。咖啡本身没变，每个配料都在原有饮品外面叠加一层新效果。你可以自由组合，而不需要为每种组合创建一个新咖啡类。</p>
@@ -63,6 +97,10 @@ class LogDecorator implements Notifier {
 
 const notifier = new LogDecorator(new SmsDecorator(new EmailNotifier()));
 notifier.send("订单已支付");</code></pre>
+  <p>注意看 <code>SmsDecorator</code> 和 <code>LogDecorator</code>：它们都通过构造函数<b>持有一个 <code>Notifier</code>（被包装对象）</b>——这就是装饰器的关键结构。调用 <code>send</code> 时，装饰器先（或后）做自己的增强，再把请求<b>转发</b>给内部持有的那个对象。最里层是 <code>EmailNotifier</code>，外面依次裹了 <code>SmsDecorator</code> 和 <code>LogDecorator</code>。运行会打印：</p>
+  <pre><code>记录发送日志
+发送邮件：订单已支付
+发送短信：订单已支付</code></pre>
 
   <h2>7. Python 示例</h2>
   <pre><code class="language-python">from typing import Protocol
@@ -106,7 +144,8 @@ notifier.send("订单已支付")</code></pre>
   <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>比继承更灵活，可运行时组合功能。</td><td>对象链变长后，排查问题更费力。</td></tr><tr><td>每个增强职责独立，符合单一职责。</td><td>装饰器顺序可能影响结果，需要约定清楚。</td></tr><tr><td>不需要修改原对象。</td><td>过度使用会产生很多小类。</td></tr></tbody></table>
 
   <h2>9. 和相似模式的区别</h2>
-  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>装饰器</td><td>动态增强</td><td>通常为了叠加新功能，可多层包装。</td></tr><tr><td><a href="./proxy-pattern.html">代理</a></td><td>访问控制</td><td>通常控制是否、何时、如何访问真实对象。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>接口转换</td><td>让不兼容接口变成目标接口。</td></tr></tbody></table>
+  <table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>装饰器</td><td>动态增强</td><td>通常为了叠加新功能，可多层包装。</td></tr><tr><td><a href="./proxy-pattern.html">代理</a></td><td>访问控制</td><td>通常控制是否、何时、如何访问真实对象。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>接口转换</td><td>让不兼容接口变成目标接口；适配器改写方法签名，把 Adaptee 对齐到 Target，不改变功能。</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.88rem;color:var(--muted)">一句话区分：<b>简单包装</b>不改方法签名，只是套个壳；<b>装饰器</b>同样不改签名，但给对象“加料”（增强功能、可多层叠加）；<b>适配器</b>恰恰要改写方法签名，把接口转换过去 —— 这才是装饰器和“简单封装”的本质不同。</p>
 
   <h2>10. 练习题</h2>
   <p>给一个文件读取器增加 gzip 解压和读取日志功能。请思考：用继承会产生哪些组合类？用装饰器如何组合？</p>
@@ -115,4 +154,5 @@ notifier.send("订单已支付")</code></pre>
   <div class="summary"><h2>今日总结</h2><p>装饰器模式的核心是“同接口、包一层、加能力”。当功能组合多、又不想改原类时，它比继承更灵活。</p></div>
 </main>  <script src="../assets/patterns-data.js"></script>
   <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
 </body></html>
