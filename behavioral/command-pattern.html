@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>命令模式教程</title>
+  <title>命令模式</title>
   <link rel="stylesheet" href="../assets/tutorial.css">
 </head>
 <body>
@@ -32,20 +32,10 @@
       <li>把命令发送给远程服务执行</li>
       <li>日志记录命令执行</li>
     </ul>
-    <p>这样调用者不需要知道具体怎么执行，只管发命令。</p>
-    <h2>2. 坏代码示例</h2>
-    <p>直接在调用者中写执行逻辑：</p>
-    <pre><code class="language-ts">class Button {
-  constructor(private editor: TextEditor) {}
-
-  click() {
-    this.editor.copy(); // 紧耦合
-  }
-}</code></pre>
-    <p>问题：按钮和编辑器紧耦合，无法复用按钮控制其他操作，也无法支持撤销。</p>
-    <h2>3. 一个生活类比</h2>
-    <p>餐厅点餐：顾客只管点菜（发送命令），不需要知道厨师怎么炒菜（执行者）。服务员把订单（命令对象）记录下来，厨房按顺序做（命令队列）。</p>
-    <h2>4. 适用场景</h2>
+    <p>这样调用者不需要知道具体怎么执行，只管发命令。命令模式最常见的落地场景就是文本编辑器、快捷键系统和任务队列。</p>
+    <h2>2. 一个生活类比</h2>
+    <p>餐厅点餐：顾客只管下单（命令），不需要知道厨师怎么做菜（接收者）。服务员把订单写成单据（命令对象），厨房按单据执行（命令队列）。如果要取消某道菜，只要把对应单据撤掉。</p>
+    <h2>3. 适用场景</h2>
     <ul>
       <li>需要支持撤销/重做操作。</li>
       <li>需要把操作排队、按顺序执行。</li>
@@ -53,102 +43,168 @@
       <li>需要把请求发送者和接收者解耦。</li>
       <li>事务操作，支持回滚。</li>
     </ul>
-    <h2>5. 不适用场景</h2>
+    <h2>4. 不适用场景</h2>
     <ul>
       <li>操作很简单，不需要队列、撤销等功能。</li>
       <li>不需要解耦调用者和执行者。</li>
     </ul>
-    <h2>6. 核心结构</h2>
+    <h2>5. 核心结构</h2>
     <table>
       <thead><tr><th>角色</th><th>职责</th></tr></thead>
       <tbody>
-        <tr><td>Command</td><td>定义执行操作的接口。</td></tr>
-        <tr><td>ConcreteCommand</td><td>绑定接收者，实现具体的执行逻辑。</td></tr>
-        <tr><td>Invoker</td><td>发起命令，不知道具体执行者。</td></tr>
-        <tr><td>Receiver</td><td>知道如何执行操作。</td></tr>
+        <tr><td>Command</td><td>定义命令接口，通常包含 execute 和 undo。</td></tr>
+        <tr><td>ConcreteCommand</td><td>绑定接收者，保存执行所需参数，实现具体命令。</td></tr>
+        <tr><td>Invoker</td><td>发起命令、记录历史或排队，不关心命令怎么执行。</td></tr>
+        <tr><td>Receiver</td><td>真正执行业务动作的对象。</td></tr>
       </tbody>
     </table>
-    <h2>7. 示例代码</h2>
-    <h3>TypeScript</h3>
+    <h2>6. 示例代码</h2>
+    <p>下面用电商后台的订单操作举例。运营人员可能批量审核订单、批量发货、批量退款，这些操作需要可追溯、可撤销、可重试。如果直接让按钮调用业务逻辑，后续加审计日志、失败重试、权限校验会很痛苦。</p>
+    <div class="note">
+      <strong>阅读方法：</strong>先看 TypeScript 里命令如何封装操作和状态，再看 Python 如何用函数简化相同意图。重点不是类多，而是每个命令独立、可测试、可组合。
+    </div>
+    <h3>TypeScript 示例</h3>
     <pre><code class="language-ts">interface Command {
-  execute(): void;
-  undo(): void;
+  execute(): Promise&lt;void&gt;;
+  undo(): Promise&lt;void&gt;;
 }
 
-class Light {
-  on() { console.log("开灯"); }
-  off() { console.log("关灯"); }
+// 接收者：订单服务，真正执行业务逻辑。
+class OrderService {
+  async approve(orderId: string) {
+    console.log(`订单 ${orderId} 已审核通过`);
+  }
+
+  async ship(orderId: string) {
+    console.log(`订单 ${orderId} 已发货`);
+  }
+
+  async refund(orderId: string) {
+    console.log(`订单 ${orderId} 已退款`);
+  }
 }
 
-class LightOnCommand implements Command {
-  // 命令对象只负责把请求转给接收者
-  constructor(private light: Light) {}
-  execute() { this.light.on(); }
-  undo() { this.light.off(); }
+// 具体命令：审核订单，保存旧状态以便撤销。
+class ApproveOrderCommand implements Command {
+  private previousStatus = "";
+
+  constructor(
+    private orderService: OrderService,
+    private orderId: string
+  ) {}
+
+  async execute() {
+    this.previousStatus = "pending"; // 实际应从数据库读取
+    await this.orderService.approve(this.orderId);
+  }
+
+  async undo() {
+    console.log(`撤销审核：订单 ${this.orderId} 恢复为 ${this.previousStatus}`);
+  }
 }
 
-class RemoteControl {
+// 具体命令：发货订单。
+class ShipOrderCommand implements Command {
+  constructor(
+    private orderService: OrderService,
+    private orderId: string
+  ) {}
+
+  async execute() {
+    await this.orderService.ship(this.orderId);
+  }
+
+  async undo() {
+    console.log(`撤销发货：订单 ${this.orderId} 标记为未发货`);
+  }
+}
+
+// 调用者：批量操作管理器，负责执行、记录、重试。
+class BatchOperationManager {
   private history: Command[] = [];
 
-  // 记录命令历史，方便撤销
-  execute(command: Command) {
-    command.execute();
-    this.history.push(command);
+  async execute(command: Command) {
+    try {
+      await command.execute();
+      this.history.push(command);
+    } catch (error) {
+      console.error("命令执行失败，可加入重试队列", error);
+    }
   }
 
-  // 撤销时调用上一个命令的 undo
-  undo() {
+  async undoLast() {
     const command = this.history.pop();
-    if (command) command.undo();
+    if (command) await command.undo();
   }
 }
 
-const light = new Light();
-const lightOn = new LightOnCommand(light);
-const remote = new RemoteControl();
-remote.execute(lightOn);
-remote.undo();</code></pre>
-    <h3>Python</h3>
-    <pre><code class="language-python">from abc import ABC, abstractmethod
+const orderService = new OrderService();
+const manager = new BatchOperationManager();
 
-class Command(ABC):
-    @abstractmethod
-    def execute(self): pass
+await manager.execute(new ApproveOrderCommand(orderService, "ORD-001"));
+await manager.execute(new ShipOrderCommand(orderService, "ORD-001"));
+await manager.undoLast();</code></pre>
+    <p>好在哪里：每个命令封装了自己的执行和撤销逻辑；批量管理器不关心具体是什么命令；新增批量退款只需要再加一个命令类，不用改现有代码。</p>
+    <h3>Python 示例</h3>
+    <p>Python 里可以用函数和闭包简化命令，不一定非要写一堆类。但当命令需要复杂状态管理时，类仍然更清晰。</p>
+    <pre><code class="language-python">from typing import Callable, Awaitable
+import asyncio
 
-    @abstractmethod
-    def undo(self): pass
+class OrderService:
+    async def approve(self, order_id: str):
+        print(f"订单 {order_id} 已审核通过")
 
-class Light:
-    def on(self): print("开灯")
-    def off(self): print("关灯")
+    async def ship(self, order_id: str):
+        print(f"订单 {order_id} 已发货")
 
-class LightOnCommand(Command):
-    def __init__(self, light):
-        # 保存接收者，命令本身不直接干活
-        self.light = light
+    async def refund(self, order_id: str):
+        print(f"订单 {order_id} 已退款")
 
-    def execute(self): self.light.on()
-    def undo(self): self.light.off()
+# 用函数工厂创建命令，适合简单场景。
+def create_approve_command(order_service: OrderService, order_id: str):
+    async def execute():
+        await order_service.approve(order_id)
 
-class RemoteControl:
+    async def undo():
+        print(f"撤销审核：订单 {order_id} 恢复为 pending")
+
+    return {"execute": execute, "undo": undo}
+
+def create_ship_command(order_service: OrderService, order_id: str):
+    async def execute():
+        await order_service.ship(order_id)
+
+    async def undo():
+        print(f"撤销发货：订单 {order_id} 标记为未发货")
+
+    return {"execute": execute, "undo": undo}
+
+class BatchOperationManager:
     def __init__(self):
         self.history = []
 
-    def execute(self, command):
-        # 执行并记录，支持撤销
-        command.execute()
-        self.history.append(command)
+    async def execute(self, command: dict):
+        try:
+            await command["execute"]()
+            self.history.append(command)
+        except Exception as e:
+            print(f"命令执行失败，可加入重试队列: {e}")
 
-    def undo(self):
+    async def undo_last(self):
         if self.history:
-            self.history.pop().undo()
+            await self.history.pop()["undo"]()
 
-light = Light()
-light_on = LightOnCommand(light)
-remote = RemoteControl()
-remote.execute(light_on)
-remote.undo()</code></pre>
-    <h2>8. 优缺点</h2>
+async def main():
+    order_service = OrderService()
+    manager = BatchOperationManager()
+
+    await manager.execute(create_approve_command(order_service, "ORD-001"))
+    await manager.execute(create_ship_command(order_service, "ORD-001"))
+    await manager.undo_last()
+
+asyncio.run(main())</code></pre>
+    <p>Python 这里用字典返回 execute 和 undo 函数，避免了为每个简单命令写类。当命令内部需要共享状态、缓存连接或注入 SDK 客户端时，再升级成类就行。</p>
+    <h2>7. 优缺点</h2>
     <table>
       <thead><tr><th>优点</th><th>缺点</th></tr></thead>
       <tbody>
@@ -157,7 +213,7 @@ remote.undo()</code></pre>
         <tr><td>符合开闭原则，可以新增命令</td><td>命令对象可能暴露内部实现细节</td></tr>
       </tbody>
     </table>
-    <h2>9. 和相似模式的区别</h2>
+    <h2>8. 和相似模式的区别</h2>
     <table>
       <thead><tr><th>模式</th><th>区别</th></tr></thead>
       <tbody>
@@ -165,13 +221,21 @@ remote.undo()</code></pre>
         <tr><td><a href="./chain-of-responsibility-pattern.html">责任链模式</a></td><td>责任链是让请求在多个处理器间传递；命令模式是让命令排队执行。</td></tr>
       </tbody>
     </table>
+    <h2>9. AI 时代的价值</h2>
+    <p>在 AI 协作编程中，命令模式特别有用：</p>
+    <ul>
+      <li>让 AI 生成的操作可追溯：每个命令记录执行时间、参数、结果。</li>
+      <li>批量操作更安全：AI 生成一批命令后，可以先预览再执行。</li>
+      <li>失败重试更简单：命令对象可以序列化存入队列，失败后自动重试。</li>
+      <li>审计合规：金融、医疗等场景需要完整操作日志，命令天然适合。</li>
+    </ul>
     <h2>10. 练习题</h2>
-    <p>场景：实现一个文本编辑器，支持复制、粘贴、删除操作，并且支持撤销。写出代码结构。</p>
+    <p>场景：电商后台需要批量审核订单、批量发货、批量退款。这些操作需要可追溯、可撤销、失败可重试。请设计命令结构，并说明为什么不用直接调用业务方法。</p>
     <div class="note">
-      <strong>参考答案：</strong>定义 Command 接口和 CopyCommand、PasteCommand、DeleteCommand 三个实现类。Editor 类作为 Receiver，真正执行操作。RemoteControl 或 EditorManager 作为 Invoker，维护命令历史并支持 undo。</div>
+      <strong>参考答案：</strong>定义 Command 接口包含 execute 和 undo。为每种操作创建具体命令类（ApproveOrderCommand、ShipOrderCommand、RefundOrderCommand），绑定 OrderService 作为接收者。BatchOperationManager 作为调用者，维护命令历史并支持撤销。新增批量操作只需加新命令类，不改现有代码。这样做的价值是：操作可追溯、可组合、可测试，符合开闭原则。</div>
     <div class="summary">
       <h2>今日总结</h2>
-      <p>命令模式把每个操作封装成独立的对象，实现请求发送者和接收者的解耦。它是实现撤销/重做、命令队列、日志记录等功能的基础。</p>
+      <p>命令模式把每个操作封装成独立的对象，实现请求发送者和接收者的解耦。它是实现撤销/重做、命令队列、日志记录等功能的基础。在 AI 时代，命令模式让操作更可追溯、更安全、更易审计。</p>
     </div>
   </main>
   <script src="../assets/patterns-data.js"></script>
