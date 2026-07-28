@@ -12,6 +12,7 @@
 
 | 主题 | 文件 | 状态 | 更新时间 |
 |---|---|---|---|
+| 设计模式全景：为什么这样分类 | `fundamentals/why-classify-patterns.html` | 已学习 | 2026-07-28 |
 | 面向对象基础 | `fundamentals/oop-basics.html` | 已学习 | 2026-05-18 |
 | 设计原则 | `fundamentals/design-principles.html` | 已学习 | 2026-05-18 |
 

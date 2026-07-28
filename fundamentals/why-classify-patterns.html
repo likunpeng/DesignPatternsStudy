@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>设计模式全景：为什么这样分类</title>
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head>
+<body data-category="fundamentals">
+  <main>
+    <h1>设计模式全景：为什么这样分类</h1>
+    <p class="lead">23 个 GoF 设计模式不是随机堆在一起的。它们被分成创建型、结构型、行为型三类，本质是一张「写代码时遇到问题该去哪找解法」的地图。本文先讲清楚这张地图怎么画出来的，再用一句话带过每一个模式，方便你后面逐个深入。</p>
+    <div class="meta">
+      <span class="tag">前置基础</span>
+      <span class="tag">设计模式分类</span>
+      <span class="tag">23 个模式</span>
+      <span class="tag">三问模型</span>
+    </div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解为什么 23 个模式要分成创建型、结构型、行为型三类。</li>
+      <li>用一个「三问」模型记住每一类在解决什么问题。</li>
+      <li>读完能对每一个模式说出一句话定位和典型场景。</li>
+      <li>遇到「这两个模式好像差不多」时，知道怎么快速区分。</li>
+    </ul>
+
+    <h2>1. 先说清楚：分类是为了好找，不是为了背</h2>
+    <p>如果你已经写了几年代码，大概率在不经意间用过某些设计模式——只是当时不知道它叫这个名字。比如用过一个全局配置对象（单例）、给函数加过缓存或日志（装饰器思想的雏形）、或者用事件通知过多个模块（观察者）。</p>
+    <p>设计模式被整理出来，最大的好处不是让你说话显得专业，而是当你面对一段越来越难改的代码时，能快速判断：<strong>「我遇到的，到底是哪一类问题？」</strong> 答案一旦清楚，该去 23 个模式里的哪几个里找灵感，也就清楚了。</p>
+    <p>所以分类本身不是重点，<strong>分类背后的那三个问题</strong>才是重点。记住三个问题，比记住 23 个名字有用得多。</p>
+
+    <h2>2. 三问模型：创建、结构、行为</h2>
+    <p>所有 23 个模式，都可以放进回答下面三个问题之一的抽屉里。这三个问题彼此正交：一个问题变了，通常不影响另外两个。</p>
+
+    <div class="concept">
+      <div class="concept-eyebrow">▍核心框架 · 三问模型</div>
+      <p class="concept-def">一段代码会随时间变复杂，无非在三个维度上出问题：<b>对象怎么来</b>、<b>对象怎么组合</b>、<b>对象怎么协作</b>。设计模式就是按这三个维度归类的。</p>
+      <div class="concept-grid">
+        <div class="concept-analogy">
+          <div class="ca-title"><span class="ca-icon">🏗️</span>一个生活类比</div>
+          <p>开一家餐厅：先要解决「食材从哪进货」（创建型），再解决「厨房、前厅、仓库怎么布局才不打架」（结构型），最后解决「服务员、厨师、采购之间怎么传话不混乱」（行为型）。三类问题同时存在，但各自独立。</p>
+        </div>
+        <div class="concept-diagram">
+          <div class="cd-title">三个抽屉各装什么</div>
+          <div class="cd-flow">
+            <div class="cd-node cd-target"><b>创建型</b><span>对象怎么被造出来</span></div>
+          </div>
+          <div class="cd-flow" style="margin-top:8px">
+            <div class="cd-node cd-target"><b>结构型</b><span>类/对象怎么组合</span></div>
+          </div>
+          <div class="cd-flow" style="margin-top:8px">
+            <div class="cd-node cd-target"><b>行为型</b><span>对象怎么协作通信</span></div>
+          </div>
+          <p class="cd-caption">遇到代码坏味道，先问自己：这是「造」「组合」还是「协作」的问题？答案决定去哪一类找模式。</p>
+        </div>
+      </div>
+    </div>
+
+    <svg viewBox="0 0 680 300" width="100%" role="img" aria-label="创建型、结构型、行为型三类模式概览" style="margin:8px 0 4px;max-width:680px">
+      <!-- 创建型 -->
+      <rect x="16" y="20" width="200" height="258" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+      <rect x="16" y="20" width="200" height="6" rx="3" fill="#4f46e5"/>
+      <text x="32" y="60" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="18" font-weight="700" fill="#4f46e5">创建型</text>
+      <text x="32" y="94" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#334155">对象是怎么被</text>
+      <text x="32" y="114" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#334155">「造」出来的？</text>
+      <line x1="32" y1="132" x2="200" y2="132" stroke="#e2e8f0"/>
+      <rect x="32" y="148" width="168" height="26" rx="13" fill="#eef2ff"/>
+      <text x="116" y="165" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#4f46e5">单例</text>
+      <rect x="32" y="180" width="168" height="26" rx="13" fill="#eef2ff"/>
+      <text x="116" y="197" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#4f46e5">工厂方法</text>
+      <rect x="32" y="212" width="168" height="26" rx="13" fill="#eef2ff"/>
+      <text x="116" y="229" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#4f46e5">建造者</text>
+      <text x="32" y="262" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="12" fill="#64748b">+ 等 6 个模式</text>
+
+      <!-- 结构型 -->
+      <rect x="240" y="20" width="200" height="258" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+      <rect x="240" y="20" width="200" height="6" rx="3" fill="#059669"/>
+      <text x="256" y="60" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="18" font-weight="700" fill="#059669">结构型</text>
+      <text x="256" y="94" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#334155">类和对象是怎么</text>
+      <text x="256" y="114" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#334155">「组合」在一起的？</text>
+      <line x1="256" y1="132" x2="424" y2="132" stroke="#e2e8f0"/>
+      <rect x="256" y="148" width="168" height="26" rx="13" fill="#ecfdf5"/>
+      <text x="340" y="165" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#059669">适配器</text>
+      <rect x="256" y="180" width="168" height="26" rx="13" fill="#ecfdf5"/>
+      <text x="340" y="197" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#059669">装饰器</text>
+      <rect x="256" y="212" width="168" height="26" rx="13" fill="#ecfdf5"/>
+      <text x="340" y="229" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#059669">桥接</text>
+      <text x="256" y="262" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="12" fill="#64748b">+ 等 7 个模式</text>
+
+      <!-- 行为型 -->
+      <rect x="464" y="20" width="200" height="258" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+      <rect x="464" y="20" width="200" height="6" rx="3" fill="#7c3aed"/>
+      <text x="480" y="60" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="18" font-weight="700" fill="#7c3aed">行为型</text>
+      <text x="480" y="94" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#334155">对象之间是怎么</text>
+      <text x="480" y="114" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#334155">「协作」的？</text>
+      <line x1="480" y1="132" x2="648" y2="132" stroke="#e2e8f0"/>
+      <rect x="480" y="148" width="168" height="26" rx="13" fill="#f5f3ff"/>
+      <text x="564" y="165" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#7c3aed">策略</text>
+      <rect x="480" y="180" width="168" height="26" rx="13" fill="#f5f3ff"/>
+      <text x="564" y="197" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#7c3aed">观察者</text>
+      <rect x="480" y="212" width="168" height="26" rx="13" fill="#f5f3ff"/>
+      <text x="564" y="229" text-anchor="middle" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="13" fill="#7c3aed">命令</text>
+      <text x="480" y="262" font-family="-apple-system,Segoe UI,PingFang SC,sans-serif" font-size="12" fill="#64748b">+ 等 11 个模式</text>
+    </svg>
+
+    <h2>3. 创建型：解决「对象怎么来」</h2>
+    <p>当你发现代码里到处是 <code>new</code>、或者「该造哪个对象」的判断逻辑散落得到处都是，就该看这一类。它们不关心对象内部长什么样，只关心<strong>谁来决定造什么、怎么造</strong>。</p>
+    <table>
+      <thead><tr><th>模式</th><th>一句话定位</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td>单例（Singleton）</td><td>保证一个类只有一个实例，并提供全局访问点。</td><td>配置、日志、连接池等「全系统共用一个」的对象。</td></tr>
+        <tr><td>简单工厂（Simple Factory）</td><td>用一个工厂函数根据参数返回不同产品对象。</td><td>把散落在各处的 <code>new</code> 分支收口到一个地方。</td></tr>
+        <tr><td>工厂方法（Factory Method）</td><td>把「造哪个产品」交给子类去决定。</td><td>框架留扩展点，调用方只依赖产品接口。</td></tr>
+        <tr><td>抽象工厂（Abstract Factory）</td><td>生产一族互相配套的产品对象。</td><td>跨平台 UI 套件，保证多个产品组合一致。</td></tr>
+        <tr><td>建造者（Builder）</td><td>把复杂对象的构建步骤拆开，支持不同装配。</td><td>构造参数多、组合多变的报表 / 订单 / SQL。</td></tr>
+        <tr><td>原型（Prototype）</td><td>通过复制已有实例来创建新对象。</td><td>创建成本高、或需要大量相似初始状态的对象。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. 结构型：解决「对象怎么组合」</h2>
+    <p>这一类全部在回答一个问题：<strong>怎么把类和对象拼到一起，既灵活又不互相绑死？</strong> 它们几乎都体现了「组合优于继承」：与其用继承把行为焊死在层级里，不如把能力拆成可拼装的部件。这也是为什么结构型最容易被人觉得「这几个长得像」。</p>
+    <table>
+      <thead><tr><th>模式</th><th>一句话定位</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td>适配器（Adapter）</td><td>把一个接口转换成调用方期望的另一接口。</td><td>接老系统 / 第三方 SDK，接口对不上。</td></tr>
+        <tr><td>装饰器（Decorator）</td><td>不改原类，动态叠加新能力。</td><td>日志、缓存、权限等横向能力组合。</td></tr>
+        <tr><td>代理（Proxy）</td><td>为目标对象加一层替身，控制访问。</td><td>懒加载、权限校验、远程调用、缓存。</td></tr>
+        <tr><td>外观（Facade）</td><td>把一堆复杂子系统的调用打包成简单入口。</td><td>降低调用方对子系统的认知负担。</td></tr>
+        <tr><td>桥接（Bridge）</td><td>把「抽象」和「实现」两条变化轴分开，各自扩展。</td><td>形状×颜色、设备×驱动等多维变化。</td></tr>
+        <tr><td>组合（Composite）</td><td>用同一接口把对象组织成树，统一处理单个和整体。</td><td>菜单、文件目录、UI 组件树。</td></tr>
+        <tr><td>享元（Flyweight）</td><td>共享大量细粒度对象的公共部分，省内存。</td><td>字符、棋子、连接等大量重复对象。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>5. 行为型：解决「对象怎么协作」</h2>
+    <p>这一类关心的是<strong>职责怎么分、消息怎么传、状态怎么变</strong>。对象已经造好、也组合好了，问题出在它们之间「说话的方式」——要么紧耦合、要么一个对象知道太多别人的事、要么流程写死不好换。</p>
+    <table>
+      <thead><tr><th>模式</th><th>一句话定位</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td>策略（Strategy）</td><td>把可互换的算法封装成独立对象，运行时挑选。</td><td>支付方式、折扣、排序规则。</td></tr>
+        <tr><td>模板方法（Template Method）</td><td>固定算法骨架，把可变步骤留给子类。</td><td>流程稳定但某些步骤不同的场景。</td></tr>
+        <tr><td>观察者（Observer）</td><td>一对多，状态变化时自动通知订阅者。</td><td>事件、消息推送、UI 刷新。</td></tr>
+        <tr><td>责任链（Chain of Responsibility）</td><td>把请求串成一串处理者，谁合适谁处理。</td><td>审批流、过滤器、中间件。</td></tr>
+        <tr><td>命令（Command）</td><td>把请求封装成对象，支持撤销 / 队列 / 日志。</td><td>撤销重做、任务队列、宏。</td></tr>
+        <tr><td>状态（State）</td><td>把不同状态拆成独立类，状态自己决定下一步。</td><td>订单状态机、连接状态、角色状态。</td></tr>
+        <tr><td>迭代器（Iterator）</td><td>提供统一方式遍历集合，不暴露内部结构。</td><td>自定义集合、树 / 图遍历。</td></tr>
+        <tr><td>中介者（Mediator）</td><td>用中心对象协调一群对象，避免互相直接引用。</td><td>聊天室、UI 组件联动、调度。</td></tr>
+        <tr><td>备忘录（Memento）</td><td>不破坏封装地保存 / 恢复对象状态。</td><td>撤销、快照、游戏存档。</td></tr>
+        <tr><td>访问者（Visitor）</td><td>把对元素的新操作集中到访问者，元素结构稳定。</td><td>对 AST / 文档树做多种统计或导出。</td></tr>
+        <tr><td>解释器（Interpreter）</td><td>为简单文法定义解释规则，处理领域语言。</td><td>规则引擎、表达式求值、配置 DSL。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. 一个常见困惑：为什么有的模式看着像？</h2>
+    <p>分类只是粗线条。真正动手时会发现，结构型内部好几个都像「包一层」，行为型里策略和状态也像。下面两对是最常被问到的，给你快速判别法。</p>
+
+    <h3>桥接 vs 组合</h3>
+    <p>两者结构图上都有「一个对象指向另一个对象」，但意图完全不同：<strong>桥接是让两个<em>不同</em>的接口各自独立变化</strong>（比如形状和颜色互不影响）；<strong>组合是让许多<em>相同</em>的接口组成一棵树</strong>（比如文件夹里套文件夹）。判别法：你是在「拆两条变化轴」还是「递归地组装同一种东西」？</p>
+    <table>
+      <thead><tr><th>维度</th><th>桥接（Bridge）</th><th>组合（Composite）</th></tr></thead>
+      <tbody>
+        <tr><td>指向的对象</td><td>另一种接口（实现维度）</td><td>同一种接口（自身类型）</td></tr>
+        <tr><td>目的</td><td>两条变化轴独立扩展</td><td>统一处理单个对象和整体</td></tr>
+        <tr><td>结构形状</td><td>横向两根轴交叉</td><td>纵向一棵树</td></tr>
+      </tbody>
+    </table>
+    <p>想看代码示例和更多对比，见<a href="../structural/composite-pattern.html#bridge-vs-composite">组合模式里的「桥接 vs 组合」</a>一节。</p>
+
+    <h3>策略 vs 状态</h3>
+    <p>两者都是「把可替换的行为抽成对象」：<strong>策略由调用方主动挑选</strong>用哪种算法；<strong>状态由对象内部的当前状态自动切换</strong>下一步走哪个分支。判别法：是谁在做选择？你在外面临时换，还是对象自己按状态流转？</p>
+    <table>
+      <thead><tr><th>维度</th><th>策略（Strategy）</th><th>状态（State）</th></tr></thead>
+      <tbody>
+        <tr><td>谁决定用哪个</td><td>调用方 / 运行时传入</td><td>对象内部状态自动切换</td></tr>
+        <tr><td>关注点</td><td>算法可互换</td><td>状态流转与约束</td></tr>
+        <tr><td>典型例子</td><td>支付方式、折扣规则</td><td>订单状态机、连接状态</td></tr>
+      </tbody>
+    </table>
+    <p>更多对照见<a href="../behavioral/strategy-pattern.html#strategy-vs-state">策略模式里的「策略 vs 状态」</a>一节。</p>
+
+    <div class="note">记住：分类是「地图」，不是「牢笼」。有些模式会跨边界——比如装饰器既是结构型（包一层），也顺手改变了行为。先靠三问定位大方向，再进具体文章看细节，比死记类别更稳。</div>
+
+    <h2>7. 怎么用这张地图选模式（速查）</h2>
+    <p>下次看到坏代码，先对号入座：你纠结的是下面哪一类症状？</p>
+    <table>
+      <thead><tr><th>如果你在纠结……</th><th>去哪一类找</th><th>优先看</th></tr></thead>
+      <tbody>
+        <tr><td>对象该由谁、按什么条件创建</td><td>创建型</td><td>工厂方法、建造者、单例</td></tr>
+        <tr><td>两个接口 / 旧系统对不上，或想给对象加能力、加替身</td><td>结构型</td><td>适配器、装饰器、代理、桥接</td></tr>
+        <tr><td>一堆对象怎么分工、怎么传消息、状态怎么流转</td><td>行为型</td><td>策略、观察者、命令、状态</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. 练习题</h2>
+    <p>下面三个场景，分别属于哪一类？如果再进一步，你第一反应会用哪个模式？</p>
+    <ul>
+      <li>系统里到处 <code>new MySQLOrderRepository()</code>，以后要换 PostgreSQL，得改十几处。</li>
+      <li>给一个支付接口动态加上「限流 + 日志 + 重试」三件套，且不同接口组合不同。</li>
+      <li>订单有「待支付 / 已支付 / 已发货 / 已完成」，每种状态下允许的操作和跳转都不一样。</li>
+    </ul>
+
+    <h2>9. 参考答案或改进建议</h2>
+    <ul>
+      <li><strong>场景一 → 创建型。</strong>问题在「对象怎么来、由谁决定」。优先考虑用工厂方法 / 抽象工厂把创建收口，配合依赖倒置让业务只依赖仓库接口。</li>
+      <li><strong>场景二 → 结构型。</strong>问题在「给对象动态加能力、且组合可变」。装饰器最贴合：每个能力一个装饰器，按需嵌套。</li>
+      <li><strong>场景三 → 行为型。</strong>问题在「状态流转与约束」。状态模式最贴合：把每种状态拆成独立类，状态自己决定下一步能去哪。</li>
+    </ul>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>23 个模式分成三类，不是为了考试，而是给你一张「出问题了该去哪找」的地图。记住三问——<strong>对象怎么来（创建型）、怎么组合（结构型）、怎么协作（行为型）</strong>——你就能在看到坏代码时快速定位方向，再进具体文章挑模式。分类是入口，不是终点；真正的能力是带着这张地图去读每一个模式的细节和取舍。</p>
+    </section>
+  </main>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
+</body>
+</html>

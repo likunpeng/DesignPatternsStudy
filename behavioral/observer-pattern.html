@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>观察者模式教程</title>
+  <title>观察者模式</title>
   <link rel="stylesheet" href="../assets/tutorial.css">
 </head>
 <body>
   <main>
-    <h1>观察者模式教程</h1>
+    <h1>观察者模式</h1>
     <p class="lead">观察者模式解决的是"一个对象状态变化后，需要自动通知多个依赖它的对象"的问题。它把被观察者和观察者解耦，让通知逻辑不再写死在主流程里。</p>
     <div class="meta">
       <span class="tag">行为型模式</span>
@@ -226,9 +226,12 @@ subject.notify("订单 A1001 支付成功")</code></pre>
         <tr><td>观察者模式</td><td>状态变化通知多个订阅者</td><td>被观察者直接通知观察者。</td></tr>
         <tr><td><a href="./strategy-pattern.html">策略模式</a></td><td>算法替换</td><td>策略关注"怎么做"，观察者关注"谁来被通知"。</td></tr>
         <tr><td><a href="./chain-of-responsibility-pattern.html">责任链模式</a></td><td>沿链传递处理</td><td>责任链是"谁处理算谁的"，观察者是"一次通知多个"。</td></tr>
-        <tr><td>发布订阅</td><td>事件中心解耦</td><td>发布订阅多了一个中间事件中心，观察者更强调主题和观察者直接关系。</td></tr>
-      </tbody>
-    </table>
+      <tr><td>发布订阅</td><td>事件中心解耦</td><td>发布订阅多了一个中间事件中心，观察者更强调主题和观察者直接关系。</td></tr>
+      <tr><td><a href="./mediator-pattern.html">中介者</a></td><td>中心协调</td><td>中介者用中心对象双向协调多个组件；观察者是单向一对多通知。易混淆点详见 <a href="#observer-vs-mediator">下方对比小节</a>。</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="observer-vs-mediator" style="margin-top:28px">10.1 特别容易混淆：观察者 vs 中介者</h2><p>两者都为减少对象间直接耦合，但<strong>通信结构不同</strong>。</p><table><thead><tr><th>对比点</th><th>观察者 Observer</th><th>中介者 Mediator</th></tr></thead><tbody><tr><td>通信方向</td><td>一对多单向通知（发布者→订阅者）</td><td>多对多经中心双向协调</td></tr><tr><td>互相认知</td><td>发布者与订阅者互不知道</td><td>组件都认识中介者，中介者认识所有组件</td></tr><tr><td>关注点</td><td>一个变、多个被动收通知</td><td>多个对象互相引用、网状耦合，需集中协调</td></tr><tr><td>类比</td><td>公众号推文给粉丝</td><td>机场塔台协调飞机</td></tr></tbody></table><p>快速判别：是「一个变化、一群对象被动更新」就选<strong>观察者</strong>；是「多个对象互相协调、避免直接引用」就选<strong>中介者</strong>。中介者侧解读见 <a href="./mediator-pattern.html">中介者模式</a>。</p>
 
     <h2>11. 练习题</h2>
     <p>把下面的活动发布逻辑改造成观察者模式：</p>

@@ -8,7 +8,7 @@
 </head>
 <body>
   <main>
-    <h1>命令模式教程</h1>
+    <h1>命令模式</h1>
     <p class="lead">命令模式解决的是"希望把请求发送者和请求接收者解耦，并且支持请求的排队、撤销、日志记录等操作"的问题。它把请求封装成对象。</p>
     <div class="meta">
       <span class="tag">行为型模式</span>
@@ -221,6 +221,8 @@ asyncio.run(main())</code></pre>
         <tr><td><a href="./chain-of-responsibility-pattern.html">责任链模式</a></td><td>责任链是让请求在多个处理器间传递；命令模式是让命令排队执行。</td></tr>
       </tbody>
     </table>
+
+    <h2 id="command-vs-strategy" style="margin-top:28px">8.1 特别容易混淆：命令 vs 策略</h2><p>两者都把「一个行为」包成对象，容易混。区别在于<strong>目的</strong>。</p><table><thead><tr><th>对比点</th><th>命令 Command</th><th>策略 Strategy</th></tr></thead><tbody><tr><td>关注点</td><td>把操作封装成对象，以便排队、撤销、记录、远程执行</td><td>同一动作有多种可换算法，运行时选一个</td></tr><tr><td>额外能力</td><td>常带 execute/undo、历史栈、队列</td><td>通常只一个方法（如 calculate）</td></tr><tr><td>执行时机</td><td>常“先存起来以后执行”（延迟、批量）</td><td>“现在就选好用哪个”</td></tr><tr><td>类比</td><td>餐厅点菜单（可撤单、可排队）</td><td>出行方式（进站前选好）</td></tr></tbody></table><p>快速判别：需要撤销/队列/日志/远程就选<strong>命令</strong>；只是多算法任选其一就选<strong>策略</strong>。策略侧解读见 <a href="./strategy-pattern.html">策略模式</a>。</p>
     <h2>9. AI 时代的价值</h2>
     <p>在 AI 协作编程中，命令模式特别有用：</p>
     <ul>

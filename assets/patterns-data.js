@@ -8,6 +8,7 @@ window.PATTERN_CATEGORIES = [
 ];
 
 window.PATTERN_DATA = [
+  { cat: "fundamentals", name: "设计模式全景：为什么这样分类", nameEn: "Why Classify Patterns", file: "fundamentals/why-classify-patterns.html" },
   { cat: "fundamentals", name: "面向对象基础", nameEn: "OOP Basics", file: "fundamentals/oop-basics.html" },
   { cat: "fundamentals", name: "设计原则", nameEn: "Design Principles", file: "fundamentals/design-principles.html" },
   { cat: "creational", name: "单例模式", nameEn: "Singleton", file: "creational/singleton-pattern.html" },

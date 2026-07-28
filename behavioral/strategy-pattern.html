@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>策略模式教程</title>
+  <title>策略模式</title>
   <link rel="stylesheet" href="../assets/tutorial.css">
 </head>
 <body>
   <main>
-    <h1>策略模式教程</h1>
+    <h1>策略模式</h1>
     <p class="lead">策略模式解决的是"同一个业务动作有多种可替换算法，而且这些算法经常变化"的问题。它把变化的部分拆出去，让主流程保持稳定。</p>
     <div class="meta">
       <span class="tag">行为型模式</span>
@@ -204,8 +204,11 @@ print(get_price(vip_discount, 100))  # 输出：90.0</code></pre>
         <tr><td>策略模式</td><td>算法替换</td><td>同一接口，不同实现可互换。</td></tr>
         <tr><td><a href="./state-pattern.html">状态模式</a></td><td>状态驱动行为</td><td>状态切换会改变对象行为，策略由外部选择。</td></tr>
         <tr><td><a href="./template-method-pattern.html">模板方法</a></td><td>固定流程，可变步骤</td><td>模板方法用继承，策略模式用组合。</td></tr>
+        <tr><td><a href="./command-pattern.html">命令模式</a></td><td>封装操作对象</td><td>命令把操作封装成对象以支持排队/撤销；策略只选算法。易混淆点详见 <a href="./command-pattern.html#command-vs-strategy">命令模式笔记对比小节</a>。</td></tr>
       </tbody>
     </table>
+
+    <h2 id="strategy-vs-state" style="margin-top:28px">10.1 特别容易混淆：策略 vs 状态</h2><p>策略模式和状态模式都用「组合一个多态对象」的方式，初学者常混。区别在于<strong>谁来决定用哪一个</strong>。</p><table><thead><tr><th>对比点</th><th>策略 Strategy</th><th>状态 State</th></tr></thead><tbody><tr><td>选择方</td><td>由客户端/调用方在运行时挑选</td><td>由对象内部状态自动决定，外部不感知</td></tr><tr><td>关注点</td><td>同一动作有多种可换算法</td><td>同一对象因状态不同行为不同，且会自转移</td></tr><tr><td>是否自转移</td><td>切换后保持不变，直到调用方再换</td><td>常在 handle 内部主动 setState 切到下一状态</td></tr><tr><td>类比</td><td>出门可选地铁/打车（你选）</td><td>水的冰/水/汽（温度到了自动变）</td></tr></tbody></table><p>快速判别：是「不同算法随场景替换」就选<strong>策略</strong>；是「同一对象随内部状态变行为且自动流转」就选<strong>状态</strong>。状态侧解读见 <a href="./state-pattern.html">状态模式</a>。</p>
 
     <h2>11. 练习题</h2>
     <p>把下面的支付逻辑改造成策略模式：</p>
