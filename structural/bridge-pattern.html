@@ -53,50 +53,61 @@ class UrgentWechatNotification { /* 发微信 + 紧急 */ }
   <h2>3. 适用场景</h2><ul><li>两个维度都可能扩展，并且可以独立变化。</li><li>继承层级已经因为组合关系变得臃肿。</li><li>希望运行时切换实现。</li><li>抽象逻辑和底层实现需要分开演进。</li></ul>
   <h2>4. 不适用场景</h2><ul><li>只有一个变化维度。</li><li>组合关系并不稳定，强行抽象会增加理解成本。</li><li>简单业务中几个类就能解决问题。</li></ul>
   <h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Abstraction</td><td>抽象层，面向业务提供高层能力。</td></tr><tr><td>RefinedAbstraction</td><td>抽象层的具体变体。</td></tr><tr><td>Implementor</td><td>实现层接口。</td></tr><tr><td>ConcreteImplementor</td><td>实现层的具体实现。</td></tr></tbody></table>
-  <h2>6. TypeScript 示例</h2><pre><code class="language-ts">interface MessageSender {
+  <h2>6. TypeScript 示例</h2><pre><code class="language-ts">// 实现层接口：定义“发送消息”这个能力，不关心具体是哪种渠道
+interface MessageSender {
   send(content: string): void;
 }
 
+// 具体实现 A：邮件渠道（实现维度）
 class EmailSender implements MessageSender {
   send(content: string): void { console.log(`邮件：${content}`); }
 }
 
+// 具体实现 B：短信渠道（实现维度）
 class SmsSender implements MessageSender {
   send(content: string): void { console.log(`短信：${content}`); }
 }
 
+// 抽象层：构造时通过组合接住一个 MessageSender 实现对象，不绑定具体渠道
 class Notification {
   constructor(protected sender: MessageSender) {}
+  // 通知时把请求转发给实现层，自身只负责“通知”这件事
   notify(content: string): void { this.sender.send(content); }
 }
 
+// 抽象层变体：紧急通知，属于“通知类型”维度，与渠道维度互不干扰
 class UrgentNotification extends Notification {
   notify(content: string): void { this.sender.send(`[紧急] ${content}`); }
 }
 
+// 运行时自由组合两个维度：紧急+短信、普通+邮件，类数量从 M×N 降到 M+N
 new UrgentNotification(new SmsSender()).notify("服务器 CPU 过高");
 new Notification(new EmailSender()).notify("日报已生成");</code></pre>
-  <p><code>Notification</code> 在构造时通过 <code>protected sender</code> 接住一个 <code>MessageSender</code> 实现对象并保存（第 34 行），<code>notify</code> 时再转发到 <code>sender.send</code>。抽象层（普通 / 紧急通知）和实现层（邮件 / 短信）因此各自独立扩展。运行会打印：</p>
+  <p><code>Notification</code> 在构造时通过 <code>protected sender</code> 接住一个 <code>MessageSender</code> 实现对象并保存，<code>notify</code> 时再转发到 <code>sender.send</code>。抽象层（普通 / 紧急通知）和实现层（邮件 / 短信）因此各自独立扩展。运行会打印：</p>
   <pre><code>短信：[紧急] 服务器 CPU 过高
 邮件：日报已生成</code></pre>
   <h2>7. Python 示例</h2><pre><code class="language-python">from typing import Protocol
 
 
+# 实现层接口（协议）：定义“发送消息”能力，具体渠道后续实现，鸭子类型即可接入
 class MessageSender(Protocol):
     def send(self, content: str) -&gt; None:
         ...
 
 
+# 具体实现 A：邮件渠道（实现维度）。无需显式继承，满足协议即生效
 class EmailSender:
     def send(self, content: str) -&gt; None:
         print(f"邮件：{content}")
 
 
+# 具体实现 B：短信渠道（实现维度）
 class SmsSender:
     def send(self, content: str) -&gt; None:
         print(f"短信：{content}")
 
 
+# 抽象层：构造时接住一个 sender 实现对象，用组合而非继承连接渠道
 class Notification:
     def __init__(self, sender: MessageSender) -&gt; None:
         self.sender = sender
@@ -105,15 +116,17 @@ class Notification:
         self.sender.send(content)
 
 
+# 抽象层变体：紧急通知，属于“通知类型”维度，独立于渠道维度
 class UrgentNotification(Notification):
     def notify(self, content: str) -&gt; None:
         self.sender.send(f"[紧急] {content}")
 
 
+# 运行时自由组合两个维度，无需为每种组合写一个类
 UrgentNotification(SmsSender()).notify("服务器 CPU 过高")
 Notification(EmailSender()).notify("日报已生成")</code></pre>
   <h2>8. 优缺点</h2><table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>避免多维继承组合爆炸。</td><td>需要先识别稳定的变化维度。</td></tr><tr><td>抽象和实现可独立扩展。</td><td>比直接继承多一层接口和组合关系。</td></tr><tr><td>符合组合优于继承。</td><td>对初学者不如适配器、外观直观。</td></tr></tbody></table>
-  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>桥接</td><td>拆分两个变化维度</td><td>通常在设计前期主动使用。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>兼容已有接口</td><td>通常在已有接口不匹配时补救。</td></tr><tr><td><a href="../behavioral/strategy-pattern.html">策略</a></td><td>替换算法</td><td>策略多关注行为算法，桥接关注结构维度解耦。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>增强功能</td><td>装饰器保持相同接口，动态给对象“加料”（日志、缓存等）；桥接则拆分抽象与实现两个维度解耦，关注结构而非增强。</td></tr></tbody></table>
+  <h2>9. 和相似模式的区别</h2><table><thead><tr><th>模式</th><th>重点</th><th>区别</th></tr></thead><tbody><tr><td>桥接</td><td>拆分两个变化维度</td><td>通常在设计前期主动使用。</td></tr><tr><td><a href="./adapter-pattern.html">适配器</a></td><td>兼容已有接口</td><td>通常在已有接口不匹配时补救。</td></tr><tr><td><a href="../behavioral/strategy-pattern.html">策略</a></td><td>替换算法</td><td>策略多关注行为算法，桥接关注结构维度解耦。</td></tr><tr><td><a href="./decorator-pattern.html">装饰器</a></td><td>增强功能</td><td>装饰器保持相同接口，动态给对象“加料”（日志、缓存等）；桥接则拆分抽象与实现两个维度解耦，关注结构而非增强。</td></tr><tr><td><a href="./composite-pattern.html">组合</a></td><td>树形整体-部分</td><td>组合用「同一个接口」统一处理叶子与容器；桥接是「两个不同接口」各自独立变。两者都靠组合而非继承，容易混。详细对比见 <a href="./composite-pattern.html#bridge-vs-composite">组合模式笔记 9.1 节</a>。</td></tr></tbody></table>
   <p style="margin-top:12px;font-size:.88rem;color:var(--muted)">一句话区分：<b>简单包装</b>只是套壳，仍把抽象和实现绑在一起；<b>装饰器</b>不改签名，但给对象“加料”增强功能；<b>桥接</b>恰恰是把抽象和实现拆成两层用组合连接，专门解决两个变化维度的组合爆炸 —— 这才是它和“简单封装”的本质不同。</p>
   <h2>10. 练习题</h2><p>报表有 PDF、Excel 两种格式，输出位置有本地文件、对象存储两种。请用桥接模式避免 <code>PdfLocalReport</code>、<code>PdfOssReport</code> 这类组合类。</p><div class="note">参考思路：格式作为抽象层，存储作为实现层；报表对象持有 <code>ReportStorage</code>。</div>
   <div class="summary"><h2>今日总结</h2><p>桥接模式的核心是“拆开两个变化维度，再用组合连接”。它不是为了多写接口，而是为了避免继承组合爆炸。</p></div>

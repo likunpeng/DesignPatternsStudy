@@ -52,23 +52,28 @@ for (const [c, x, y] of rawChars) {
   <h2>3. 适用场景</h2><ul><li>对象数量非常大，内存压力真实存在。</li><li>对象可以拆分为可共享的内部状态和变化的外部状态。</li><li>共享对象最好是不可变的。</li><li>常见于文本编辑器字符样式、地图图标、游戏粒子、缓存池。</li></ul>
   <h2>4. 不适用场景</h2><ul><li>对象数量少，内存不是问题。</li><li>对象状态高度个性化，无法有效共享。</li><li>共享对象会被频繁修改，容易引发串数据问题。</li><li>为了微小优化牺牲代码可读性。</li></ul>
   <h2>5. 核心结构</h2><table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Flyweight</td><td>可共享对象，保存内部状态。</td></tr><tr><td>FlyweightFactory</td><td>按 key 复用或创建享元对象。</td></tr><tr><td>External State</td><td>不能共享的变化状态，由调用方传入。</td></tr><tr><td>Client</td><td>使用工厂获取享元，并提供外部状态。</td></tr></tbody></table>
-  <h2>6. TypeScript 示例</h2><pre><code class="language-ts">class TextStyle {
+  <h2>6. TypeScript 示例</h2><pre><code class="language-ts">// 享元（Flyweight）：保存可共享的“内部状态”——字体、字号、颜色
+// 字符内容、坐标等“外部状态”不在这里，调用时再传进来
+class TextStyle {
   constructor(
     public readonly font: string,
     public readonly size: number,
     public readonly color: string,
   ) {}
 
+  // 渲染时把外部状态（字符、坐标）传入，内部状态复用同一份
   render(char: string, x: number, y: number): void {
     console.log(`${char} at (${x}, ${y}) with ${this.font}/${this.size}/${this.color}`);
   }
 }
 
+// 享元工厂：按 key 复用或创建享元，确保相同样式只存一份
 class TextStyleFactory {
   private styles = new Map&lt;string, TextStyle&gt;();
 
   getStyle(font: string, size: number, color: string): TextStyle {
     const key = `${font}-${size}-${color}`;
+    // 命中缓存就返回已有实例，未命中才新建——这就是“共享”的关键
     if (!this.styles.has(key)) {
       this.styles.set(key, new TextStyle(font, size, color));
     }
@@ -76,6 +81,7 @@ class TextStyleFactory {
   }
 }
 
+// 两次请求相同的样式，拿到的是同一个 TextStyle 实例（共享内部状态）
 const factory = new TextStyleFactory();
 factory.getStyle("Arial", 12, "black").render("A", 0, 0);
 factory.getStyle("Arial", 12, "black").render("B", 10, 0);</code></pre>
@@ -85,27 +91,32 @@ B at (10, 0) with Arial/12/black</code></pre>
   <h2>7. Python 示例</h2><pre><code class="language-python">from dataclasses import dataclass
 
 
+# 享元（Flyweight）：frozen=True 表示内部状态不可变，避免被误改后串数据
 @dataclass(frozen=True)
 class TextStyle:
     font: str
     size: int
     color: str
 
+    # 渲染时把外部状态（字符、坐标）传入，内部状态复用同一份
     def render(self, char: str, x: int, y: int) -&gt; None:
         print(f"{char} at ({x}, {y}) with {self.font}/{self.size}/{self.color}")
 
 
+# 享元工厂：按 key 复用或创建享元，确保相同样式只存一份
 class TextStyleFactory:
     def __init__(self) -&gt; None:
         self.styles: dict[tuple[str, int, str], TextStyle] = {}
 
     def get_style(self, font: str, size: int, color: str) -&gt; TextStyle:
         key = (font, size, color)
+        # 命中缓存就返回已有实例，未命中才新建——这就是“共享”的关键
         if key not in self.styles:
             self.styles[key] = TextStyle(font, size, color)
         return self.styles[key]
 
 
+# 两次请求相同的样式，拿到的是同一个 TextStyle 实例（共享内部状态）
 factory = TextStyleFactory()
 factory.get_style("Arial", 12, "black").render("A", 0, 0)
 factory.get_style("Arial", 12, "black").render("B", 10, 0)</code></pre>
