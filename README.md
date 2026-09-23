@@ -11,6 +11,7 @@ structural/        结构型模式（7 篇）
 behavioral/        行为型模式（11 篇）
 architecture/      架构学习路线
 ai-engineering/    AI 工程能力
+android/           Android 技术基础
 learning-progress.md  学习进度追踪
 AGENTS.md          写作规范和教学原则
 ```
@@ -99,6 +100,12 @@ AGENTS.md          写作规范和教学原则
 - [架构评审清单](architecture/architecture-review-checklist.html)
 - [演进式架构](architecture/evolutionary-architecture.html)
 - [架构综合实践](architecture/architecture-practice.html)
+
+### Android 技术基础
+
+- [Android 平台核心特性](android/android-platform-features.html)
+- [页面导航、任务栈与 Activity 启动模式](android/activity-navigation-task-stack-launch-modes.html)
+- [Android 状态保存与恢复](android/state-saving-restoration.html)
 
 ### AI 工程能力
 

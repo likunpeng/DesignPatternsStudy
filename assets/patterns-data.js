@@ -5,6 +5,7 @@ window.PATTERN_CATEGORIES = [
   { key: "behavioral", zh: "行为型模式", icon: "⚡", accent: "#7c3aed" },
   { key: "architecture", zh: "架构学习", icon: "🏗️", accent: "#d97706" },
   { key: "ai-engineering", zh: "AI 工程能力", icon: "🤖", accent: "#0891b2" },
+  { key: "android", zh: "Android 技术基础", icon: "📱", accent: "#16805f" },
 ];
 
 window.PATTERN_DATA = [
@@ -61,6 +62,9 @@ window.PATTERN_DATA = [
   { cat: "architecture", name: "架构评审清单", nameEn: "Architecture Review Checklist", file: "architecture/architecture-review-checklist.html" },
   { cat: "architecture", name: "演进式架构", nameEn: "Evolutionary Architecture", file: "architecture/evolutionary-architecture.html" },
   { cat: "architecture", name: "架构综合实践", nameEn: "Architecture Practice", file: "architecture/architecture-practice.html" },
+  { cat: "android", name: "Android 平台核心特性", nameEn: "Android Platform Features", file: "android/android-platform-features.html" },
+  { cat: "android", name: "页面导航、任务栈与 Activity 启动模式", nameEn: "Activity Navigation, Task Stack & Launch Modes", file: "android/activity-navigation-task-stack-launch-modes.html" },
+  { cat: "android", name: "Android 状态保存与恢复", nameEn: "Android State Saving & Restoration", file: "android/state-saving-restoration.html" },
   { cat: "ai-engineering", name: "代码坏味道与重构", nameEn: "Code Smells & Refactoring", file: "ai-engineering/code-smells-and-refactoring.html" },
   { cat: "ai-engineering", name: "设计模式选择方法", nameEn: "Pattern Selection", file: "ai-engineering/pattern-selection.html" },
   { cat: "ai-engineering", name: "AI 代码评审方法", nameEn: "AI Code Review", file: "ai-engineering/ai-code-review.html" },

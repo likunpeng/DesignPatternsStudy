@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>页面导航、任务栈与 Activity 启动模式</title>
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head>
+<body data-category="android">
+  <main>
+    <h1>页面导航、任务栈与 Activity 启动模式</h1>
+    <p class="lead">同一个 Activity 到底该新建还是复用、按返回键会去哪里，本质上由任务栈、启动模式和 Intent Flag 共同决定。</p>
+    <div class="meta"><span class="tag">Android 基础</span><span class="tag">Task &amp; Back Stack</span><span class="tag">Activity Launch Modes</span><span class="tag">Kotlin</span></div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>理解 Activity、任务（Task）和返回栈（Back Stack）的关系。</li>
+      <li>能预测多次打开同一页面后，返回键的行为。</li>
+      <li>掌握 <code>standard</code>、<code>singleTop</code>、<code>singleTask</code> 的主要差异。</li>
+      <li>知道为什么不能用启动模式“粗暴修复”重复打开页面。</li>
+    </ul>
+
+    <h2>1. 这个主题解决什么问题</h2>
+    <p>用户进入商品详情、点通知、打开深链、反复点击按钮时，Android 到底是创建新的 Activity，还是把新参数交给已有页面？如果规则不清楚，常见结果是：详情页叠了很多层、返回路径奇怪、通知打开后回不到预期页面，或页面没有刷新新参数。</p>
+    <p>你需要掌握的不是背配置，而是先画出“现在栈里有哪些页面”，再决定要新建、复用还是清理栈。</p>
+
+    <h2>2. 一个生活类比</h2>
+    <p>把任务栈想成一摞文件夹。每打开一个页面，就把一个文件夹放到最上面；按返回键，就拿走最上面的文件夹，露出下面那个。</p>
+    <p>启动模式则像“收到同名文件夹时的处理规则”：默认再放一份；若它本来就在最上面就直接更新；若要回到中间已有的那份，就先拿掉它上面的文件夹。不同规则会直接改变用户“返回”时看到的内容。</p>
+
+    <h2>3. 核心结构：任务栈（Task / Back Stack）</h2>
+    <p><strong>Task 不是“随便一组 Activity”。</strong>更准确地说，它是<strong>系统维护的一条用户任务与返回路径</strong>，通常包含一个或多个按后进先出（LIFO）管理的 Activity。用户从最近任务列表恢复应用时，恢复的就是这条任务路径。</p>
+    <pre><code>用户完成“浏览商品”的路径：
+首页 A → 列表 B → 详情 C
+
+这个 Task 当前的 Activity 栈：
+栈底                          栈顶
+[A, B, C]
+
+按一次返回：[A, B]
+按两次返回：[A]</code></pre>
+    <p>一个 Task 也可以只有一个 Activity，例如现代单 Activity 应用通常只有 <code>MainActivity</code> 位于系统 Task 中；其内部的首页、列表和详情由 Navigation 自己维护页面返回栈。反过来，一个 Activity 也可能因为启动模式或 Intent Flag 被放入不同的 Task。默认情况下，启动一个 Activity 会把新的实例压入当前任务栈；按返回键会结束栈顶 Activity。最近任务列表展示的是 Task，不等于其中的 Activity 实例或应用进程一定仍然存在。</p>
+
+    <h3>三件容易混淆的事</h3>
+    <table>
+      <thead><tr><th>概念</th><th>更准确的解释</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td>Activity</td><td>一个界面入口或页面宿主的实例</td><td>一个商品详情页实例</td></tr>
+        <tr><td>Task</td><td>系统维护的一条用户任务与返回路径，通常包含一个或多个按栈管理的 Activity</td><td>用户从首页进入详情、结算后，按返回键回退的这条路径</td></tr>
+        <tr><td>进程</td><td>承载应用运行代码和内存的系统进程</td><td>后台可能被系统杀掉；Task 入口仍可存在</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. 默认模式：standard</h2>
+    <p><code>standard</code> 是默认启动模式：每次启动目标 Activity，通常都会创建一个新实例并压栈。</p>
+    <pre><code>A（首页） → Detail(商品 1) → Detail(商品 2)
+栈：[A, Detail#1, Detail#2]</code></pre>
+    <p>连续按返回键会依次回到商品 1、首页。这在“不同详情可以连续浏览”时很自然。</p>
+    <pre><code class="language-xml">&lt;activity
+    android:name=".DetailActivity"
+    android:launchMode="standard" /&gt;</code></pre>
+    <p><strong>适合：</strong>详情、编辑、创建等允许存在多份页面实例的场景。<strong>风险：</strong>如果用户连点同一个入口，可能产生多份完全相同的页面。</p>
+
+    <h2>5. 栈顶复用：singleTop</h2>
+    <p><code>singleTop</code> 的规则很克制：<strong>目标 Activity 正好位于栈顶时才复用</strong>；如果它不在栈顶，仍会创建新实例。</p>
+    <pre><code>场景一：A → Detail，再次打开 Detail
+原栈：[A, Detail]
+结果：[A, Detail]          # 复用栈顶 Detail
+
+场景二：A → Detail → Settings，再打开 Detail
+原栈：[A, Detail, Settings]
+结果：[A, Detail, Settings, Detail]  # Detail 不在栈顶，仍新建</code></pre>
+    <p>复用时，Activity 不会再次执行 <code>onCreate()</code>；新 Intent 会送到 <code>onNewIntent()</code>。因此复用页面必须读取新参数、更新自己的状态。</p>
+    <pre><code class="language-kotlin">override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent) // 让 activity.intent 也变成最新 Intent
+
+    val productId = requireNotNull(intent.getStringExtra("product_id"))
+    viewModel.loadProduct(productId)
+}</code></pre>
+    <p><strong>适合：</strong>防双击重复打开、通知已经把目标页面放在最前面时的重复跳转。<strong>常见坑：</strong>只写 <code>onCreate()</code> 读取参数，导致 <code>onNewIntent()</code> 到来后页面仍显示旧数据。</p>
+
+    <h2>6. 复用已有实例并清理上方页面：singleTask</h2>
+    <p><code>singleTask</code> 适合少数“任务入口型”页面。若当前任务中已经有目标 Activity，系统会把它带到前台，并移除它上方的 Activity；目标实例通过 <code>onNewIntent()</code> 接收新 Intent。</p>
+    <pre><code>A → B → C → D
+再次启动 B（singleTask）
+
+结果：A → B
+C、D 被移出返回栈，B 收到 onNewIntent()</code></pre>
+    <p>这会强烈改变返回行为，所以不要把它当作处理重复页面的默认工具。尤其是用户正在填写表单或浏览多级页面时，清空上方页面可能造成未保存内容丢失和“返回键怎么不对”的体验。</p>
+    <p><strong>适合：</strong>极少数需要回到唯一入口的业务流程。现代应用中，通常先评估导航组件的返回栈操作是否更符合产品需求。</p>
+
+    <h2>7. 另外两种模式：singleInstance 与 singleInstancePerTask</h2>
+    <table>
+      <thead><tr><th>模式</th><th>含义</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr><td><code>singleInstance</code></td><td>目标 Activity 独占一个任务；从它启动的其他 Activity 通常进入其他任务。</td><td>行为很特殊，日常业务页面几乎不要使用。</td></tr>
+        <tr><td><code>singleInstancePerTask</code></td><td>每个任务中最多有一个该 Activity 实例；不同任务可以各有一个实例。</td><td>用于特殊多任务场景；普通 App 很少需要主动配置。</td></tr>
+      </tbody>
+    </table>
+    <p>这两种模式容易让最近任务列表和返回行为变得难以解释。除非你能明确描述多任务需求并在真机上测试，否则优先不要选它们。</p>
+
+    <h2>8. Intent Flag：运行时改变任务栈行为</h2>
+    <p>除了 Manifest 中的 <code>android:launchMode</code>，Intent Flag 还能在某一次跳转时调整行为。它们影响很大，应按具体用户路径使用，而不是作为万能修复。</p>
+    <table>
+      <thead><tr><th>Flag</th><th>常见效果</th><th>注意点</th></tr></thead>
+      <tbody>
+        <tr><td><code>FLAG_ACTIVITY_SINGLE_TOP</code></td><td>目标若在栈顶则复用，类似本次启动使用 singleTop。</td><td>同样需要处理 <code>onNewIntent()</code>。</td></tr>
+        <tr><td><code>FLAG_ACTIVITY_CLEAR_TOP</code></td><td>若目标已在当前栈中，清除其上方 Activity 并回到目标。</td><td>会丢掉上方页面；结合启动模式时行为要实际验证。</td></tr>
+        <tr><td><code>FLAG_ACTIVITY_NEW_TASK</code></td><td>按任务规则启动或复用任务，常见于非 Activity 的 Context 发起跳转。</td><td>会影响任务归属和最近任务表现，不要无理由添加。</td></tr>
+      </tbody>
+    </table>
+    <pre><code class="language-kotlin">val intent = Intent(this, HomeActivity::class.java).apply {
+    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+}
+startActivity(intent)</code></pre>
+    <p>这个例子适合“回到已有首页，并让首页处理一次新的导航指令”。但在加入 Flag 前，先写清楚预期栈变化，例如 <code>[Home, List, Detail] → [Home]</code>，再确认这是否符合用户预期。</p>
+
+    <h2>9. 启动模式与生命周期的关系</h2>
+    <p>启动模式不是生命周期的替代品。新建实例时，目标通常会经过 <code>onCreate() → onStart() → onResume()</code>；复用实例时，关键回调是 <code>onNewIntent()</code>，随后它可能恢复到前台并经历相应的可见、可交互阶段。</p>
+    <p>因此页面参数的处理应有明确入口：</p>
+    <ul>
+      <li>首次创建：从 <code>onCreate()</code> 的 Intent 读取参数。</li>
+      <li>复用已有页面：从 <code>onNewIntent()</code> 读取新参数，并更新 UI 状态。</li>
+      <li>不要只依赖成员变量保存路由参数；配置变化和进程回收后它可能消失。</li>
+    </ul>
+
+    <h2>10. 现代实践：单 Activity + Navigation</h2>
+    <p>现代 Compose 项目常采用<strong>单 Activity</strong>：应用保留一个 Activity 作为系统入口，页面之间由 Navigation 管理多个导航目标及其返回栈。这样大多数“页面跳转”不再需要为每个页面设置 Activity 启动模式。</p>
+    <pre><code>一个 MainActivity
+    ↓
+Navigation 返回栈：Home → ProductList → ProductDetail</code></pre>
+    <p>但这不代表任务栈知识失效。通知、深链、分享、外部 App 调起以及多窗口仍可能从 Activity 层进入。正确分工是：</p>
+    <ul>
+      <li>普通 App 内页面流转：优先管理 Navigation 返回栈。</li>
+      <li>系统入口、外部 Intent、通知和深链：理解 Activity 的任务栈与启动模式。</li>
+    </ul>
+
+    <h2>11. 常见误用</h2>
+    <table>
+      <thead><tr><th>误用</th><th>为什么有问题</th><th>更好的做法</th></tr></thead>
+      <tbody>
+        <tr><td>所有页面都设成 <code>singleTask</code></td><td>返回路径被频繁清空，用户难以理解。</td><td>默认 standard；仅对已验证的入口路径使用特殊规则。</td></tr>
+        <tr><td>复用页面但不处理 <code>onNewIntent()</code></td><td>页面实例复用了，内容却还是旧参数。</td><td>集中解析 Intent 并更新 ViewModel 状态。</td></tr>
+        <tr><td>用 <code>NEW_TASK</code> 解决 Context 启动报错</td><td>虽能启动，但可能制造意外任务和返回行为。</td><td>先确认发起方、目标任务及用户返回预期。</td></tr>
+        <tr><td>把大对象放进 Intent Extras</td><td>数据过大可能失败，也无法替代稳定状态存储。</td><td>传 ID、URI 或轻量参数，到数据层读取。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>12. AI 协同开发检查清单</h2>
+    <ol>
+      <li>该页面允许有多个实例吗？若允许，默认 <code>standard</code> 是否已经足够？</li>
+      <li>如果页面被复用，新 Intent 的参数是否在 <code>onNewIntent()</code> 中处理？</li>
+      <li>使用 <code>singleTask</code> 或 <code>FLAG_ACTIVITY_CLEAR_TOP</code> 后，哪些页面会从栈中消失？</li>
+      <li>从通知或深链打开后，按返回键应该去哪里、退出到哪里？</li>
+      <li>是否把业务对象或 Bitmap 等大数据塞进了 Intent？</li>
+      <li>是否能用 Navigation 的 <code>popUpTo</code> 等页面级规则解决，而无需改变 Activity 任务栈？</li>
+      <li>是否分别测试：重复点击、通知二次点击、旋转屏幕、后台恢复和冷启动？</li>
+    </ol>
+
+    <h2>13. 练习题</h2>
+    <p>当前任务栈是：</p>
+    <pre><code>[Home, ProductList, ProductDetail]</code></pre>
+    <p>现在收到一条“回到商品列表并按新筛选条件展示”的通知。请分别判断：</p>
+    <ol>
+      <li>若 <code>ProductList</code> 是 <code>standard</code>，直接启动它，栈会怎样变化？</li>
+      <li>若 <code>ProductList</code> 是 <code>singleTop</code>，栈会怎样变化？</li>
+      <li>若你希望移除详情页、复用已有列表页并接收新筛选条件，应选择什么思路？</li>
+    </ol>
+
+    <h2>14. 参考答案或改进建议</h2>
+    <p>1）<code>standard</code> 会再创建一个列表页：<code>[Home, ProductList, ProductDetail, ProductList]</code>。2）<code>singleTop</code> 也会新建，因为已有列表不在栈顶。3）可以使用明确的返回栈规则，例如让已有列表页成为目标并清掉详情页上方内容，同时在 <code>onNewIntent()</code> 中读取新筛选条件；具体可通过 <code>FLAG_ACTIVITY_CLEAR_TOP</code> 配合 <code>FLAG_ACTIVITY_SINGLE_TOP</code>，或在单 Activity 架构中使用 Navigation 的返回栈操作实现。</p>
+    <p>关键不是先挑 Flag，而是先定义用户预期：通知点击后应该看到筛选后的列表；按返回键通常应回到首页，而不是回到旧详情页。</p>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>任务栈决定返回路径，启动模式决定新 Activity 到来时是创建还是复用，Intent Flag 则可以为某一次跳转调整规则。默认从 <code>standard</code> 开始；只有在能画清楚“跳转前栈、跳转后栈、返回后栈”时，才使用 <code>singleTop</code>、<code>singleTask</code> 或清栈 Flag。</p>
+    </section>
+  </main>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
+</body>
+</html>

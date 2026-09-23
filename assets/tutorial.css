@@ -41,6 +41,11 @@ body[data-category="ai-engineering"] {
   --accent-soft: #ecfeff;
 }
 
+body[data-category="android"] {
+  --accent: #16805f;
+  --accent-soft: #ecfdf5;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {

@@ -18,8 +18,8 @@
       <div class="concept-grid">
         <div class="concept-analogy">
           <div class="ca-title"><span class="ca-icon">🔌</span>一句话类比</div>
-          <p>笔记本是 USB-C，投影仪是 HDMI，两边都能用，只是接口不合。转接头不做任何“新功能”，只负责把一种接口转换成另一种——它就是适配器。</p>
-          <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：转接头 = <b>Adapter</b>，笔记本 = <b>Client</b>，投影仪 = <b>Adaptee</b>，笔记本期望的接口 = <b>Target</b>。</p>
+          <p>笔记本只有 USB-C 口，投影仪只有 HDMI 口；两边都能用，只是口对不上。转接头不做任何“新功能”，只把 USB-C 信号转成 HDMI——它就是适配器。</p>
+          <p style="margin-top:12px;font-size:.9rem;color:var(--accent)">对照代码：转接头 = <b>Adapter</b>，笔记本 = <b>Client</b>，投影仪 = <b>Adaptee</b>，笔记本期望的接口（USB-C）= <b>Target</b>。</p>
         </div>
         <div class="concept-diagram">
           <div class="cd-title">角色关系</div>
@@ -41,42 +41,14 @@
     <ul><li>理解适配器模式为什么不是简单封装。</li><li>能识别接口不兼容导致的耦合问题。</li><li>能用 TypeScript 和 Python 实现一个最小适配器。</li><li>知道适配器和外观、代理的区别。</li></ul>
 
     <h2>1. 这个模式解决什么问题</h2>
-    <p>当系统期望一种接口，但现有类、第三方库或遗留系统提供的是另一种接口时，就会出现“不兼容但有用”的对象。</p>
-    <pre><code>调用方想要 pay(amount)，旧系统只有 charge(cents)。</code></pre>
-    <p>如果到处写转换逻辑，调用方会同时依赖新接口和旧接口，后续替换第三方库会很痛苦。适配器把转换集中在一个对象里。</p>
-    <p>为了看清问题，我们分步来看“不用适配器”会发生什么。</p>
-    <p><b>前因：</b>项目里已经跑着一个旧支付 SDK，业务一直直接调用它。它的方法叫 <code>charge</code>，单位用「分」：</p>
-    <pre><code class="language-ts">class LegacyPaySdk {
-  charge(cents: number): void {
-    console.log(`旧支付系统扣款 ${cents} 分`);
-  }
-}
-
-// 业务直接认识旧 SDK 的方法名和单位
-function checkout(order, sdk: LegacyPaySdk) {
-  sdk.charge(order.amount * 100); // 元转分的换算散落在业务里
-}
-checkout(order, new LegacyPaySdk());</code></pre>
-    <p>这段代码本身能跑，但已经埋下隐患：元转分的换算和旧 SDK 的方法名都写死在业务里。</p>
-    <p><b>触发变化：</b>现在要接入第二个支付渠道，接口长得完全不一样——方法叫 <code>processPayment</code>，而且直接收「元」。于是业务被迫直接适配它：</p>
-    <pre class="bad-code"><code class="language-ts">class NewPaySdk {
-  processPayment(amountInYuan: number): void {
-    console.log(`新支付系统扣款 ${amountInYuan} 元`);
-  }
-}
-
-// 业务被迫同时认识两套 SDK 的方法名、参数单位
-function checkoutLegacy(order, sdk: LegacyPaySdk) {
-  sdk.charge(order.amount * 100);
-}
-function checkoutNew(order, sdk: NewPaySdk) {
-  sdk.processPayment(order.amount);
-}</code></pre>
-    <p class="bad-code-label">❌ 这就是接口不兼容导致的耦合</p>
-    <p><b>后果：</b>业务<b>同时依赖了新旧两套接口</b>——方法名（<code>charge</code> vs <code>processPayment</code>）、参数单位（分 vs 元）全都写死在业务代码里。更关键的是，真实项目里支付调用往往不止这两处：下单、退款、对账都会用到。每新增或替换一个支付商，所有调用点都要改；万一旧 SDK 哪天把单位从分改成元，散落各处的 <code>* 100</code> 全要翻出来检查。第 6 部分用适配器把差异收口后，业务只认 <code>PaymentGateway</code>。</p>
+    <p>把视角切回真实场景：你的笔记本只有 <b>USB-C 口</b>，会议室的投影仪只有 <b>HDMI 口</b>。两边都能用，只是口对不上，直接插不进去。</p>
+    <pre><code>// 没有适配器：笔记本被迫直接认投影仪的 HDMI 口
+projector.receiveHdmi(signal);   // 笔记本亲自懂 HDMI，换 VGA 显示器就全要改</code></pre>
+    <p><b>问题在这里：</b>笔记本为了用上投影仪，直接去调它的 HDMI 口——等于笔记本被迫"懂 HDMI"。换一台 VGA 老显示器，每个调用点都要改成认 VGA；哪天投影仪换了个口，散在各处的转换代码都得翻出来改。笔记本其实只想做一件事——<b>把画面送出去</b>——根本不想管对面是什么口。</p>
+    <p><b>适配器要做的，就是在笔记本和投影仪之间塞一个"转接头"</b>：笔记本只发一句统一的"USB-C 信号"，转接头负责把它变成投影仪能收的 HDMI。换设备时，笔记本一行不用动，只换（或加）一个转接头即可。第 6 部分会用代码把这个转接头落地。</p>
 
     <h2>2. 一个生活类比</h2>
-    <p>你的笔记本是 USB-C 接口，投影仪是 HDMI 接口。投影仪能用，电脑也能用，只是接口不匹配。转接头就是适配器：它不改变电脑，也不改变投影仪，只负责把一种接口转换成另一种接口。</p>
+    <p>笔记本只有 USB-C 口，投影仪只有 HDMI 口；电脑能出画面，投影仪能放画面，只是接口对不上。转接头就是适配器：它不动电脑也不动投影仪，只把 USB-C 信号转成 HDMI。</p>
 
     <h2>3. 适用场景</h2>
     <ul><li>接入第三方 SDK，但它的方法名、参数单位或返回结构和系统约定不同。</li><li>改造遗留系统，希望新代码使用统一接口。</li><li>多个供应商能力类似，但接口细节不同。</li><li>测试时需要把复杂外部服务适配成简单接口。</li></ul>
@@ -88,82 +60,59 @@ function checkoutNew(order, sdk: NewPaySdk) {
     <table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>Target</td><td>当前系统希望使用的目标接口。</td></tr><tr><td>Adaptee</td><td>已有对象或第三方对象，功能可用但接口不匹配。</td></tr><tr><td>Adapter</td><td>实现目标接口，并在内部调用 Adaptee 完成转换。</td></tr><tr><td>Client</td><td>只依赖 Target，不关心背后接的是谁。</td></tr></tbody></table>
 
     <h2>6. TypeScript 示例</h2>
-    <p>对应第 1 部分的反例，我们给两个 SDK 各写一个适配器，让它们都变成 <code>PaymentGateway</code>。业务从此只认一个接口：</p>
-    <pre><code class="language-ts">interface PaymentGateway {
-  pay(amount: number): void; // 单位：元
+    <p>对应第 1 部分，我们写一个 USB-C 转 HDMI 的转接头，让投影仪能用上笔记本期望的接口。笔记本从此只认一个接口：</p>
+    <pre><code class="language-ts">interface ExternalDisplay {   // Target：笔记本期望的接口（插上 USB-C 就能投屏）
+  receiveUsbC(signal: string): void;
 }
 
-class LegacyPaySdk {
-  charge(cents: number): void {
-    console.log(`旧支付系统扣款 ${cents} 分`);
+class HdmiProjector {         // Adaptee：投影仪，只有 HDMI 口
+  receiveHdmi(signal: string): void {
+    console.log(`HDMI 投影仪投放：${signal}`);
   }
 }
 
-class NewPaySdk {
-  processPayment(amountInYuan: number): void {
-    console.log(`新支付系统扣款 ${amountInYuan} 元`);
+// 转接头：实现笔记本期望的 USB-C 接口，内部把信号转成 HDMI
+class UsbCToHdmiAdapter implements ExternalDisplay {
+  constructor(private device: HdmiProjector) {}
+  receiveUsbC(signal: string): void {
+    this.device.receiveHdmi(signal); // 适配发生在“口”上，不关心内容
   }
 }
 
-// 两个适配器都把各自的 SDK 对齐到 PaymentGateway
-class LegacyPayAdapter implements PaymentGateway {
-  constructor(private sdk: LegacyPaySdk) {}
-  pay(amount: number): void {
-    this.sdk.charge(amount * 100); // 元 → 分
-  }
+// 笔记本只认 ExternalDisplay，不关心对面是 HDMI 还是别的口
+function present(display: ExternalDisplay) {
+  display.receiveUsbC("季度复盘幻灯片");
 }
 
-class NewPayAdapter implements PaymentGateway {
-  constructor(private sdk: NewPaySdk) {}
-  pay(amount: number): void {
-    this.sdk.processPayment(amount); // 单位已是元
-  }
-}
+present(new UsbCToHdmiAdapter(new HdmiProjector()));</code></pre>
+    <p><code>present</code>（代表笔记本）只认识 <code>ExternalDisplay</code>，完全不感知背后是 HDMI 投影仪还是别的设备。笔记本发的是 USB-C 信号，真正的 HDMI 调用被关在转接头里。如果会议室还有一台 VGA 老显示器，只需再写一个 <code>UsbCToVgaAdapter</code>，笔记本代码一行都不用改。运行会打印 <code>HDMI 投影仪投放：季度复盘幻灯片</code>。</p>
+    <div class="note">真实项目里这种“口不匹配”最常出现在接入第三方 SDK——比如支付网关：有的叫 <code>charge(分)</code>，有的叫 <code>processPayment(元)</code>。结构完全一样，只是转换内容从“信号格式”变成“金额单位”。本文用笔记本 + 投影仪，是为了和开头类比保持一致，让你只建立一幅心智模型。</div>
 
-function checkout(gateway: PaymentGateway) {
-  gateway.pay(99);
-}
-
-checkout(new LegacyPayAdapter(new LegacyPaySdk()));
-checkout(new NewPayAdapter(new NewPaySdk()));</code></pre>
-    <p><code>checkout</code> 只认识 <code>PaymentGateway</code>，完全不感知背后是 legacy 还是 new。两个 SDK 的差异（方法名 <code>charge</code>/<code>processPayment</code>、单位 分/元）都被关进各自的适配器里。接入新支付商时，业务代码一行都不用改，只新增一个适配器即可。运行会打印 <code>旧支付系统扣款 9900 分</code> 和 <code>新支付系统扣款 99 元</code>。</p>
-
-    <h2>7. Python 示例</h2>
+        <h2>7. Python 示例</h2>
     <pre><code class="language-python">from typing import Protocol
 
 
-class PaymentGateway(Protocol):
-    def pay(self, amount: float) -> None:
+
+class ExternalDisplay(Protocol):     # Target：笔记本期望的接口（插上 USB-C 就能投屏）
+    def receiveUsbC(self, signal: str) -> None:
         ...
 
-class LegacyPaySdk:
-    def charge(self, cents: int) -> None:
-        print(f"旧支付系统扣款 {cents} 分")
+class HdmiProjector:                # Adaptee：投影仪，只有 HDMI 口
+    def receiveHdmi(self, signal: str) -> None:
+        print(f"HDMI 投影仪投放：{signal}")
 
-class NewPaySdk:
-    def processPayment(self, amountInYuan: float) -> None:
-        print(f"新支付系统扣款 {amountInYuan} 元")
+class UsbCToHdmiAdapter:            # 转接头：实现 USB-C 接口，内部转成 HDMI
+    def __init__(self, device: HdmiProjector) -> None:
+        self.device = device
 
-class LegacyPayAdapter:
-    def __init__(self, sdk: LegacyPaySdk) -> None:
-        self.sdk = sdk
+    def receiveUsbC(self, signal: str) -> None:
+        self.device.receiveHdmi(signal)
 
-    def pay(self, amount: float) -> None:
-        self.sdk.charge(int(amount * 100))
+def present(display: ExternalDisplay) -> None:
+    display.receiveUsbC("季度复盘幻灯片")
 
-class NewPayAdapter:
-    def __init__(self, sdk: NewPaySdk) -> None:
-        self.sdk = sdk
-
-    def pay(self, amount: float) -> None:
-        self.sdk.processPayment(amount)
-
-def checkout(gateway: PaymentGateway) -> None:
-    gateway.pay(99)
-
-checkout(LegacyPayAdapter(LegacyPaySdk()))
-checkout(NewPayAdapter(NewPaySdk()))</code></pre>
-    <p>Python 更自然地使用鸭子类型或 <code>Protocol</code>。只要对象有 <code>pay</code> 方法，就能被 <code>checkout</code> 使用。两个适配器和 TypeScript 版本承担完全相同的职责：把各自的 SDK 差异收口到 <code>PaymentGateway</code> 后面。</p>
+present(UsbCToHdmiAdapter(HdmiProjector()))</code></pre>
+    <p>Python 更自然地使用鸭子类型或 <code>Protocol</code>。只要对象有 <code>receiveUsbC</code> 方法，就能被 <code>present</code> 使用。这个适配器和 TypeScript 版本承担完全相同的职责：把投影仪的 HDMI 口收口到笔记本期望的 USB-C 接口后面。</p>
 
     <h2>8. 优缺点</h2>
     <table><thead><tr><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>隔离第三方或遗留接口，调用方更稳定。</td><td>类数量增加，简单场景可能显得多余。</td></tr><tr><td>转换逻辑集中，便于替换外部实现。</td><td>适配器过多时，需要统一命名和组织。</td></tr><tr><td>符合开闭原则，新增供应商通常只加新适配器。</td><td>只能解决接口不兼容，不能解决语义不一致。</td></tr></tbody></table>

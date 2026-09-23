@@ -90,6 +90,14 @@
 | 演进式架构 | `architecture/evolutionary-architecture.html` | 未学习 | - |
 | 架构综合实践 | `architecture/architecture-practice.html` | 未学习 | - |
 
+## Android 技术基础
+
+| 主题 | 文件 | 状态 | 更新时间 |
+|---|---|---|---|
+| Android 平台核心特性 | `android/android-platform-features.html` | 已学习 | 2026-09-23 |
+| 页面导航、任务栈与 Activity 启动模式 | `android/activity-navigation-task-stack-launch-modes.html` | 已学习 | 2026-09-23 |
+| Android 状态保存与恢复 | `android/state-saving-restoration.html` | 已学习 | 2026-09-23 |
+
 ## AI 工程能力
 
 | 主题 | 文件 | 状态 | 更新时间 |

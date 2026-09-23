@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Android 状态保存与恢复</title>
+  <link rel="stylesheet" href="../assets/tutorial.css">
+</head>
+<body data-category="android">
+  <main>
+    <h1>Android 状态保存与恢复</h1>
+    <p class="lead">页面旋转、切后台或进程被系统回收后，正确的目标不是“变量永远不丢”，而是让用户回到合理、可继续完成任务的状态。</p>
+    <div class="meta"><span class="tag">Android 基础</span><span class="tag">State Saving</span><span class="tag">ViewModel</span><span class="tag">Jetpack Compose</span></div>
+
+    <h2>今日目标</h2>
+    <ul>
+      <li>区分配置变化、进程回收和冷启动三种情况。</li>
+      <li>知道数据该放在 Compose 状态、ViewModel、SavedStateHandle 还是数据库。</li>
+      <li>避免把“状态保存”误解为把所有对象都塞进 Bundle。</li>
+      <li>建立一条面向 AI 协同开发的 Android 速学路线。</li>
+    </ul>
+
+    <h2>1. 这个主题解决什么问题</h2>
+    <p>用户在发布商品页填了一半标题，旋转屏幕、切到微信，或后台太久导致进程被系统回收。若数据只放在 Activity 或 Composable 的内存变量里，返回时页面可能重新加载，输入内容和当前步骤都会丢失。</p>
+    <p>状态保存的价值是：在系统生命周期不可控的前提下，明确哪些内容可以丢、哪些必须恢复，以及从哪里恢复。</p>
+
+    <h2>2. 先区分三种场景</h2>
+    <table>
+      <thead><tr><th>场景</th><th>内存中的 ViewModel</th><th>普通变量</th><th>典型策略</th></tr></thead>
+      <tbody>
+        <tr><td>配置变化</td><td>通常仍可保留</td><td>Activity/Compose 实例重建后丢失</td><td>ViewModel 保存页面状态</td></tr>
+        <tr><td>进程被系统回收</td><td>丢失</td><td>丢失</td><td>SavedStateHandle 保存轻量恢复参数；数据层重新加载</td></tr>
+        <tr><td>用户完全关闭后冷启动</td><td>丢失</td><td>丢失</td><td>数据库、文件、账号服务等持久化数据恢复</td></tr>
+      </tbody>
+    </table>
+    <p><strong>关键结论：</strong>ViewModel 能解决配置变化，不等于能抵抗进程被系统回收。</p>
+
+    <h2>3. 状态应该放在哪里</h2>
+    <table>
+      <thead><tr><th>内容</th><th>例子</th><th>推荐位置</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>短暂 UI 状态</td><td>密码是否显示、弹窗是否展开</td><td>Compose <code>remember</code></td><td>离开/重建后可接受丢失</td></tr>
+        <tr><td>可恢复 UI 状态</td><td>当前 Tab、输入框文字、筛选项</td><td><code>rememberSaveable</code> 或 <code>SavedStateHandle</code></td><td>适合保存小型、可序列化内容</td></tr>
+        <tr><td>页面状态</td><td>加载中、商品详情、错误提示</td><td>ViewModel + <code>StateFlow</code></td><td>让 UI 与生命周期解耦</td></tr>
+        <tr><td>长期业务数据</td><td>草稿、收藏、离线订单</td><td>Room / DataStore / 文件</td><td>进程死亡、重启后仍应存在</td></tr>
+        <tr><td>路由恢复参数</td><td>商品 ID、搜索关键词</td><td><code>SavedStateHandle</code></td><td>恢复后据此向数据层重新读取</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Compose：remember 与 rememberSaveable</h2>
+    <p><code>remember</code> 只在当前 Composable 留在内存时保留值；页面实例重建后可能丢失。<code>rememberSaveable</code> 会使用保存状态机制恢复适合保存的小型值，例如文本、布尔值、枚举和 ID。</p>
+    <pre><code class="language-kotlin">@Composable
+fun SearchScreen() {
+    var keyword by rememberSaveable { mutableStateOf("") }
+
+    TextField(
+        value = keyword,
+        onValueChange = { keyword = it },
+        label = { Text("搜索") },
+    )
+}</code></pre>
+    <p>不要把整个商品列表、Bitmap、大型响应对象塞进 <code>rememberSaveable</code>。保存关键词或 ID，重新从数据层读取才是更稳的方式。</p>
+
+    <h2>5. ViewModel：保存页面状态，不持有页面</h2>
+    <p>ViewModel 适合持有页面的 <code>UiState</code>，例如加载、成功、失败、当前编辑值。它不应保存 Activity、View、Composable 或其他 UI 引用，否则可能造成内存泄漏。</p>
+    <pre><code class="language-kotlin">data class EditUiState(
+    val title: String = "",
+    val saving: Boolean = false,
+    val error: String? = null,
+)
+
+class EditProductViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(EditUiState())
+    val uiState: StateFlow&lt;EditUiState&gt; = _uiState
+
+    fun updateTitle(value: String) {
+        _uiState.update { it.copy(title = value) }
+    }
+}</code></pre>
+    <p>Compose 读取 <code>uiState</code> 并派发事件；ViewModel 更新状态；UI 随状态刷新。这是状态驱动 UI 的基本协作方式。</p>
+
+    <h2>6. SavedStateHandle：进程回收后的轻量恢复</h2>
+    <p><code>SavedStateHandle</code> 是 ViewModel 中用于保存可恢复状态的入口。适合存商品 ID、筛选条件、当前步骤等小数据；恢复后再通过 Repository 或数据库重建完整页面。</p>
+    <pre><code class="language-kotlin">class ProductViewModel(
+    private val savedStateHandle: SavedStateHandle,
+    private val repository: ProductRepository,
+) : ViewModel() {
+    private val productId = savedStateHandle.getStateFlow("product_id", "")
+
+    fun open(id: String) {
+        savedStateHandle["product_id"] = id
+        // 根据 id 重新加载完整商品数据
+    }
+}</code></pre>
+    <p><strong>不要误用：</strong>它不是数据库，更不是大对象缓存。保存“如何重新找到数据”的线索，而不是复制整份数据。</p>
+
+    <h2>7. 数据分层：恢复不等于缓存一切</h2>
+    <p>稳定的恢复流程通常是：</p>
+    <pre><code>SavedStateHandle：保存 productId / filter
+        ↓
+ViewModel：根据恢复参数发起加载
+        ↓
+Repository：决定读网络、Room 缓存或文件
+        ↓
+UiState：渲染加载、内容、失败状态</code></pre>
+    <p>这就是数据分层的意义：UI 只关心状态；ViewModel 负责页面逻辑；Repository 负责数据来源。进程死亡后，内存状态可以消失，但恢复入口和业务数据仍然可用。</p>
+
+    <h2>8. AI 协同开发的检查清单</h2>
+    <ol>
+      <li>这个状态在旋转、进程回收、冷启动后分别应不应该恢复？</li>
+      <li>是否把所有状态都塞进 ViewModel，却没有持久化真正重要的数据？</li>
+      <li>是否错误把大列表、Bitmap、网络响应对象放进 Bundle 或 SavedStateHandle？</li>
+      <li>ViewModel 是否持有 Activity、Context、View 或 Compose UI 引用？</li>
+      <li>恢复时是否只有 ID/筛选条件，然后通过数据层重新加载？</li>
+      <li>加载、空数据、错误和重试是否都是明确 UiState？</li>
+    </ol>
+
+    <h2>9. 高热度主题速学路线</h2>
+    <p>参考 CSDN、掘金 Android 内容中长期高频出现的方向，建议不要零散地看“面试题合集”，而是按真实开发依赖顺序快速学习：</p>
+    <table>
+      <thead><tr><th>优先级</th><th>主题</th><th>为什么高频</th><th>先掌握到什么程度</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>生命周期、任务栈、状态恢复</td><td>几乎所有页面问题的底层约束</td><td>能画回调和返回栈，能解释进程回收</td></tr>
+        <tr><td>2</td><td>Jetpack Compose</td><td>现代 Android UI 主流方向</td><td>理解状态、重组、列表、表单和主题</td></tr>
+        <tr><td>3</td><td>协程与 Flow</td><td>网络、数据库、UI 状态都依赖异步</td><td>会处理取消、异常、主线程切换</td></tr>
+        <tr><td>4</td><td>网络 + Room + Repository</td><td>绝大多数业务 App 的数据基础</td><td>能处理加载、失败、缓存与离线读取</td></tr>
+        <tr><td>5</td><td>权限、相册、文件、通知与深链</td><td>真机和系统交互问题高发</td><td>能处理授权、URI、冷/热启动路径</td></tr>
+        <tr><td>6</td><td>性能与 ANR</td><td>面试和线上问题都高频</td><td>知道主线程、启动速度、内存泄漏排查方向</td></tr>
+        <tr><td>7</td><td>Gradle、组件化与发布</td><td>项目变大后的工程痛点</td><td>会看依赖、构建变体、minSdk/targetSdk</td></tr>
+        <tr><td>8</td><td>安全与隐私</td><td>上线审核与安全风险不可忽视</td><td>避免密钥硬编码、组件暴露和日志泄露</td></tr>
+      </tbody>
+    </table>
+    <p>这条路线把 CSDN、掘金常见的 Kotlin、Jetpack Compose、协程与 Flow、架构组件、性能优化、组件化等高频主题，按“先能做稳定页面，再处理数据和工程化”重新排序。</p>
+
+    <h2>10. 练习题</h2>
+    <p>做一个“编辑个人资料”页面：昵称、性别、头像 URI 和保存状态。请分别选择它们应该放在哪里，并说明用户旋转屏幕、切后台后进程被杀、重新冷启动时的恢复策略。</p>
+
+    <h2>11. 参考答案或改进建议</h2>
+    <p>昵称和性别可作为可恢复表单状态放在 ViewModel，并用 SavedStateHandle 保存轻量草稿；头像保存 URI 或上传后的文件 ID，不保存 Bitmap；保存中的 loading/error 是短暂 UiState；若草稿必须跨冷启动保留，应落到数据库或本地草稿文件。进程恢复后，根据 URI/ID 和草稿数据重新构建页面。</p>
+
+    <section class="summary">
+      <h2>今日总结</h2>
+      <p>状态恢复的核心不是记住更多变量，而是把数据放到正确层次：短暂 UI 用 remember，轻量可恢复状态用 rememberSaveable 或 SavedStateHandle，页面状态用 ViewModel，长期业务数据用持久化存储。下一步建议学习 Jetpack Compose 的状态与重组。</p>
+    </section>
+  </main>
+  <script src="../assets/patterns-data.js"></script>
+  <script src="../assets/tutorial-nav.js"></script>
+  <script src="../assets/learn-track.js"></script>
+</body>
+</html>
